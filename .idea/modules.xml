@@ -2,6 +2,9 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/petNow.iml" filepath="$PROJECT_DIR$/.idea/modules/petNow.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/petNow.main.iml" filepath="$PROJECT_DIR$/.idea/modules/petNow.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/petNow.test.iml" filepath="$PROJECT_DIR$/.idea/modules/petNow.test.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/project-01.iml" filepath="$PROJECT_DIR$/.idea/project-01.iml" />
     </modules>
   </component>
