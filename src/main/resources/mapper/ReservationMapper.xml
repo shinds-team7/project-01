@@ -6,7 +6,8 @@
 
         <id property="id" column="reservation_id"/>
         <result property="status" column="status"/>
-        <result property="date" column="date"/>
+        <result property="checkIn" column="check_in"/>
+        <result property="checkOut" column="check_out"/>
         <result property="createdAt" column="created_at"/>
         <result property="updatedAt" column="updated_at"/>
 
@@ -19,11 +20,17 @@
         </association>
     </resultMap>
 
-    <insert id="save" useGeneratedKeys="true" keyProperty="id" keyColumn="reservation_id">
-        INSERT INTO reservation (
-            place_id, user_id, pet_id, check_in, check_out, message, price, status, created_at
-        ) VALUES (
-            #{placeId}, #{userId}, #{petId}, #{checkIn}, #{checkOut}, #{message}, #{price}, #{status}, NOW()
-        )
+    <insert id="save" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO reservations (user_id, place_id, check_in, check_out, status, memo)
+        VALUES (#{user.id}, #{place.id}, #{checkIn}, #{checkOut}, #{status}, #{memo})
     </insert>
+
+    <insert id="saveReservationPets">
+        INSERT INTO reservation_pets (reservation_id, pet_id)
+        VALUES
+        <foreach collection="petIds" item="petId" separator=",">
+            (#{reservationId}, #{petId})
+        </foreach>
+    </insert>
+
 </mapper>
