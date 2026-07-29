@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.petnow.mapper.ReservationMapper">
+
+    <resultMap id="ReservationDetailMap" type="com.example.petnow.entity.Reservation">
+
+        <id property="id" column="reservation_id"/>
+        <result property="status" column="status"/>
+        <result property="date" column="date"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+
+        <association property="user" javaType="com.example.petnow.entity.User">
+            <id property="id" column="user_id"/>
+        </association>
+
+        <association property="place" javaType="com.example.petnow.entity.Place">
+            <id property="id" column="place_id"/>
+        </association>
+    </resultMap>
+
+    <insert id="save" useGeneratedKeys="true" keyProperty="id" keyColumn="reservation_id">
+        INSERT INTO reservation (
+            place_id, user_id, pet_id, check_in, check_out, message, price, status, created_at
+        ) VALUES (
+            #{placeId}, #{userId}, #{petId}, #{checkIn}, #{checkOut}, #{message}, #{price}, #{status}, NOW()
+        )
+    </insert>
+</mapper>
