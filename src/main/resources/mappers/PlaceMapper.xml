@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.petnow.mapper.PlaceMapper">
+    <insert id="insert"
+            parameterType="com.example.petnow.entity.Place"
+            useGeneratedKeys="true"
+            keyProperty="id">
+        INSERT INTO place (
+        user_id,
+        title,
+        address,
+        detail_address,
+        info,
+        place_type,
+        place_area,
+        max_dog_count,
+        option_small_dog,
+        option_medium_dog,
+        option_large_dog,
+        option_home_cam,
+        option_real_time_photo,
+        option_yard,
+        option_walk_service,
+        option_etc,
+        option_text,
+        hour_price,
+        day_price,
+        created_at,
+        updated_at
+        ) VALUES (
+        #{userId},
+        #{title},
+        #{address},
+        #{detailAddress},
+        #{info},
+        #{placeType},
+        #{placeArea},
+        #{maxDogCount},
+        #{optionSmallDog},
+        #{optionMediumDog},
+        #{optionLargeDog},
+        #{optionHomeCam},
+        #{optionRealTimePhoto},
+        #{optionYard},
+        #{optionWalkService},
+        #{optionEtc},
+        #{optionText},
+        #{hourPrice},
+        #{dayPrice},
+        NOW(),
+        NOW()
+        )
+    </insert>
+</mapper>
