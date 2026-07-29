@@ -30,23 +30,15 @@
             )
     </insert>
 
-    <select id="findByUserId"
+    <select id="petList"
             parameterType="long"
-            resultType="com.example.petnow.entity.Pet">
+            resultType="com.example.petnow.dto.response.PetListResponse">
 
         SELECT
-            pet_id,
-            user_id,
+            id,
             name,
-            birth_year,
-            gender,
-            weight,
-            neutered,
-            note,
             size_code,
-            image_url,
-            created_at,
-            updated_at
+            weight
         FROM pets
         WHERE user_id = #{userId}
         ORDER BY created_at DESC
