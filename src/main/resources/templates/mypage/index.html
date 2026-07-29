@@ -1,0 +1,17 @@
+<table>
+    <thead>
+    <tr>
+        <th>이름</th>
+        <th>크기</th>
+        <th>몸무게</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    <tr th:each="pet : ${petList}">
+        <td th:text="${pet.name}"></td>
+        <td th:text="${pet.sizeCode}"></td>
+        <td th:text="${pet.weight} + 'kg'"></td>
+    </tr>
+    </tbody>
+</table>
