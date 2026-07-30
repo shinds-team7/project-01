@@ -1,7 +1,10 @@
 package com.example.petnow.service;
 
-import com.example.petnow.dto.UserSignupRequest;
+import com.example.petnow.dto.request.UserLoginRequest;
+import com.example.petnow.dto.request.UserSignupRequest;
 import com.example.petnow.entity.User;
+import com.example.petnow.exception.BusinessException;
+import com.example.petnow.exception.ErrorCode;
 import com.example.petnow.mapper.UserMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -22,5 +25,19 @@ public class UserServiceImpl implements UserService {
                 .build();
 
         userMapper.signup(user);
+    }
+
+    @Override
+    public void login(UserLoginRequest request) {
+
+        User user = userMapper.findByEmail(request.getEmail());
+
+        if (user == null) {
+            throw new BusinessException(ErrorCode.INVALID_CREDENTIALS);
+        }
+
+        if (!user.getPassword().equals(request.getPassword())) {
+            throw new BusinessException(ErrorCode.INVALID_CREDENTIALS);
+        }
     }
 }
