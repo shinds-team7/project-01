@@ -5,6 +5,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.example.petnow.dto.request.ReservationRequest;
@@ -12,6 +13,7 @@ import com.example.petnow.dto.request.ReservationRequest;
 import com.example.petnow.service.ReservationService;
 
 @Controller
+@RequestMapping("/api/reservation")
 public class ReservationController {
 	private final ReservationService reservationService;
 
@@ -19,7 +21,7 @@ public class ReservationController {
 		this.reservationService = reservationService;
 	}
 
-	@PostMapping("/api/reservation/create")
+	@PostMapping("/create")
 	public String save(@RequestBody ReservationRequest request, @RequestParam Long userId) {
 		reservationService.save(request, userId);
 		return "reservationDetail";
