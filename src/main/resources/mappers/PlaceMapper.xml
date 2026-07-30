@@ -27,6 +27,7 @@
         option_text,
         hour_price,
         day_price,
+        place_status,
         created_at,
         updated_at
         ) VALUES (
@@ -49,8 +50,21 @@
         #{optionText},
         #{hourPrice},
         #{dayPrice},
+        #{placeStatus},
         NOW(),
         NOW()
         )
     </insert>
+
+    <select id="findAllByUserId"
+            resultType="com.example.petnow.dto.response.PlaceListResponseDTO">
+        SELECT
+        id,
+        title,
+        place_status AS status
+        FROM place
+        WHERE user_id = #{userId}
+        AND deleted_at IS NULL
+        ORDER BY id DESC
+    </select>
 </mapper>

@@ -19,8 +19,8 @@ public class Place {
     private String detailAddress;
     private String info;
     private PlaceType placeType;
-    private int placeArea;
-    private int maxDogCount;
+    private Integer placeArea;
+    private Integer maxDogCount;
     private boolean optionSmallDog;
     private boolean optionMediumDog;
     private boolean optionLargeDog;
@@ -32,6 +32,7 @@ public class Place {
     private String optionText;
     private Long hourPrice;
     private Long dayPrice;
+    private PlaceStatus placeStatus;
     private LocalDateTime deletedAt;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
