@@ -1,5 +1,6 @@
 package com.example.petnow.dto.request;
 
+import com.example.petnow.entity.Pet;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -21,7 +22,7 @@ public class PetCreateRequest {
 
     private String note;
 
-    private String sizeCode;
+    private Pet.SizeCode sizeCode;
 
     private String photoUrl;
 
