@@ -3,7 +3,9 @@ package com.example.petnow.controller;
 import com.example.petnow.dto.ReviewCreateRequest;
 import com.example.petnow.entity.Review;
 import com.example.petnow.service.ReviewService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -17,9 +19,9 @@ public class ReviewController {
 
     private final ReviewService reviewService;
 
-    @PostMapping("/write")
-    public ResponseEntity<Void> createReview(@RequestBody ReviewCreateRequest request) {
+    @PostMapping
+    public ResponseEntity<Void> createReview(@Valid @RequestBody ReviewCreateRequest request) {
         reviewService.insertReview(request);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 }
