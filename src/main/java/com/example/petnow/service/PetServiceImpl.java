@@ -1,6 +1,7 @@
 package com.example.petnow.service;
 
 import com.example.petnow.dto.request.PetCreateRequest;
+import com.example.petnow.dto.request.PetUpdateRequest;
 import com.example.petnow.dto.response.PetListResponse;
 import com.example.petnow.entity.Pet;
 import com.example.petnow.entity.PetPhoto;
@@ -43,5 +44,11 @@ public class PetServiceImpl implements PetService {
     public List<PetListResponse> petList(Long userId) {
 
         return petMapper.petList(userId);
+    }
+
+    @Override
+    public void updatePet(Long petId, PetUpdateRequest request){
+        request.setPetId(petId);
+        petMapper.updatePet(request);
     }
 }
