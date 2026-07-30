@@ -1,6 +1,7 @@
 package com.example.petnow.service;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.example.petnow.dto.request.ReservationRequest;
 import com.example.petnow.entity.Pet;
@@ -18,6 +19,7 @@ public class ReservationServiceImpl implements ReservationService {
 	private final ReservationMapper reservationMapper;
 
 	@Override
+	@Transactional
 	public Long save(ReservationRequest request, Long userId) {
 		Reservation reservation = Reservation.builder()
 			.place(Place.builder().id(request.getPlaceId()).build())
