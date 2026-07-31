@@ -27,6 +27,7 @@
         option_text,
         hour_price,
         day_price,
+        place_status,
         created_at,
         updated_at
         ) VALUES (
@@ -49,6 +50,7 @@
         #{optionText},
         #{hourPrice},
         #{dayPrice},
+        #{placeStatus},
         NOW(),
         NOW()
         )
