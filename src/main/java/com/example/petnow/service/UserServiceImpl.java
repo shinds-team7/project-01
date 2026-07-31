@@ -7,6 +7,7 @@ import com.example.petnow.exception.BusinessException;
 import com.example.petnow.exception.ErrorCode;
 import com.example.petnow.mapper.UserMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service;
 public class UserServiceImpl implements UserService {
 
     private final UserMapper userMapper;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public void signup(UserSignupRequest request) {
@@ -21,7 +23,7 @@ public class UserServiceImpl implements UserService {
         User user = User.builder()
                 .email(request.getEmail())
                 .nickname(request.getNickname())
-                .password(request.getPassword())
+                .password(passwordEncoder.encode(request.getPassword()))
                 .build();
 
         userMapper.signup(user);
