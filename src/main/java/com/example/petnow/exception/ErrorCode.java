@@ -26,6 +26,7 @@ public enum ErrorCode {
 	USER_NOT_FOUND(HttpStatus.NOT_FOUND, "USER_NOT_FOUND", "사용자를 찾을 수 없습니다"),
 
 	// 500
+	PLACE_CREATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "PLACE_CREATE_FAILED", "장소 등록에 실패했습니다."),
 	INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "INTERNAL_ERROR", "서버 내부 오류");
 
 	private final HttpStatus status;
