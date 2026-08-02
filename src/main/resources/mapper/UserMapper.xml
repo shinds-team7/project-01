@@ -5,7 +5,11 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.example.petnow.mapper.UserMapper">
-    <insert id="signup" parameterType="com.example.petnow.entity.User">
+
+    <insert id="signup"
+            parameterType="com.example.petnow.entity.User"
+            useGeneratedKeys="true"
+            keyProperty="userId">
 
         INSERT INTO users (
             email,
@@ -22,9 +26,15 @@
 
     <select id="findByEmail" resultType="com.example.petnow.entity.User">
 
-        SELECT email, nickname, password
+        SELECT
+            user_id,
+            email,
+            nickname,
+            password
         FROM users
         WHERE email = #{email}
+          AND deleted_at IS NULL
 
     </select>
+
 </mapper>

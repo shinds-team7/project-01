@@ -6,9 +6,14 @@
 
 <mapper namespace="com.example.petnow.mapper.ReviewMapper">
 
-    <insert id="insertReview">
-        INSERT INTO reviews ( score, comment, reservation_id )
-        VALUES ( #{score}, #{comment}, #{reservationId} )
+    <insert id="insertReview"
+            parameterType="com.example.petnow.entity.Review"
+            useGeneratedKeys="true"
+            keyProperty="reviewId">
+
+        INSERT INTO reviews ( reservation_id, rating, content )
+        VALUES ( #{reservationId}, #{rating}, #{content} )
+
     </insert>
 
 </mapper>

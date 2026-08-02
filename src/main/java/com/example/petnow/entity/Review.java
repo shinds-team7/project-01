@@ -3,15 +3,24 @@ package com.example.petnow.entity;
 import com.example.petnow.common.domain.BaseEntity;
 import lombok.*;
 
-import java.time.LocalDateTime;
-
+/**
+ * reviews 테이블 매핑. 필드명은 ERD 컬럼명 기준.
+ */
 @Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class Review extends BaseEntity {
-    private Long id;
-    private Integer score;
-    private String comment;
+
+    private Long reviewId;
+
     private Long reservationId;     // FK
+
+    /** 1 ~ 5 */
+    private Integer rating;
+
+    private String content;
+
+    private Boolean isReadByHost;
 }

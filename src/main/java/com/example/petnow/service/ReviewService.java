@@ -15,9 +15,10 @@ public class ReviewService {
 
     @Transactional
     public void insertReview(ReviewCreateRequest request) {
+        // 요청 DTO 필드명 -> ERD 컬럼명
         Review review = Review.builder()
-                .score(request.getScore())
-                .comment(request.getComment())
+                .rating(request.getScore())
+                .content(request.getComment())
                 .reservationId(request.getReservationId())
                 .build();
 
