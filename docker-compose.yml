@@ -1,0 +1,35 @@
+# =====================================================================
+# 로컬 개발용 MariaDB
+#
+#   docker compose up -d
+#
+# 최초 기동 시 docs/db/schema.sql 이 자동 실행되어 스키마가 생성된다.
+# (스키마를 다시 만들려면: docker compose down -v && docker compose up -d)
+# =====================================================================
+services:
+  mariadb:
+    image: mariadb:11.4
+    container_name: petnow-mariadb
+    restart: unless-stopped
+    ports:
+      - "3306:3306"
+    environment:
+      MARIADB_ROOT_PASSWORD: root1234
+      MARIADB_DATABASE: petnow
+      MARIADB_USER: petnow
+      MARIADB_PASSWORD: petnow1234
+      TZ: Asia/Seoul
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    volumes:
+      - petnow-db-data:/var/lib/mysql
+      - ./docs/db/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  petnow-db-data:

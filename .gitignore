@@ -61,3 +61,10 @@ out/
 
 ### VS Code ###
 .vscode/
+
+### 로컬 전용 설정 (커밋 금지) ###
+# 개인 DB 계정이 들어가므로 Git에 올리지 않는다.
+# 생성 방법은 docs/LOCAL_SETUP.md 참고
+src/main/resources/application-local.yaml
+src/main/resources/application-local.yml
+.env

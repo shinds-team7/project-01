@@ -1,17 +1,39 @@
+# =====================================================================
+# 공통 설정 (모든 환경 공유) - Git 관리 대상
+#
+# 환경별 설정은 application-{profile}.yaml 에서 오버라이드한다.
+#   - application-local.yaml : 개인 로컬 (Git 제외, docs/LOCAL_SETUP.md 참고)
+#   - application-prod.yaml  : 운영 (값은 전부 환경변수로 주입)
+#
+# 프로필 지정: SPRING_PROFILES_ACTIVE 환경변수 또는 --spring.profiles.active
+# 미지정 시 local 로 동작한다.
+# =====================================================================
 spring:
   application:
     name: petNow
 
+  profiles:
+    active: local
+
   datasource:
     driver-class-name: org.mariadb.jdbc.Driver
-    url: jdbc:mariadb://localhost:3306/petnow
-    username: testuser
-    password: test1234
     hikari:
+      pool-name: petnow-pool
       maximum-pool-size: 10
       minimum-idle: 5
+      connection-timeout: 30000
+      max-lifetime: 1800000
 
 mybatis:
   mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.example.petnow.entity
   configuration:
-   map-underscore-to-camel-case: true
+    map-underscore-to-camel-case: true
+    jdbc-type-for-null: NULL
+
+server:
+  port: 8080
+  servlet:
+    encoding:
+      charset: UTF-8
+      force: true

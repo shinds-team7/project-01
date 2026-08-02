@@ -1,0 +1,296 @@
+-- =====================================================================
+-- petNow DDL (MariaDB 11.x)
+-- ERD 원본: pet-now-2.sql
+--
+-- 원본 대비 추가된 사항
+--   1) 모든 PK에 AUTO_INCREMENT 부여 (매퍼가 PK를 넘기지 않음)
+--   2) FK / UNIQUE / INDEX 추가
+--   3) created_at / updated_at 기본값 부여 (매퍼 INSERT에 해당 컬럼 없음)
+--   4) users.password 추가 (자체 로그인 기능에서 필요, ERD에는 누락)
+--   5) ENGINE=InnoDB, CHARSET=utf8mb4 명시
+-- =====================================================================
+
+CREATE DATABASE IF NOT EXISTS petnow
+    DEFAULT CHARACTER SET utf8mb4
+    DEFAULT COLLATE utf8mb4_unicode_ci;
+
+USE petnow;
+
+SET FOREIGN_KEY_CHECKS = 0;
+
+DROP TABLE IF EXISTS review_photos;
+DROP TABLE IF EXISTS review_replies;
+DROP TABLE IF EXISTS reviews;
+DROP TABLE IF EXISTS payments;
+DROP TABLE IF EXISTS reservation_pets;
+DROP TABLE IF EXISTS reservations;
+DROP TABLE IF EXISTS bookmarks;
+DROP TABLE IF EXISTS place_availability;
+DROP TABLE IF EXISTS place_addresses;
+DROP TABLE IF EXISTS place_photos;
+DROP TABLE IF EXISTS places;
+DROP TABLE IF EXISTS pet_photos;
+DROP TABLE IF EXISTS pets;
+DROP TABLE IF EXISTS social_accounts;
+DROP TABLE IF EXISTS users;
+
+SET FOREIGN_KEY_CHECKS = 1;
+
+-- ---------------------------------------------------------------------
+-- 사용자
+-- ---------------------------------------------------------------------
+CREATE TABLE users (
+    user_id           BIGINT       NOT NULL AUTO_INCREMENT,
+    email             VARCHAR(255) NULL,
+    password          VARCHAR(255) NULL COMMENT 'BCrypt 해시. 소셜 전용 계정은 NULL',
+    nickname          VARCHAR(50)  NOT NULL,
+    phone             VARCHAR(20)  NULL,
+    profile_image_url VARCHAR(500) NULL,
+    created_at        DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at        DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted_at        DATETIME     NULL,
+    CONSTRAINT PK_USERS PRIMARY KEY (user_id),
+    CONSTRAINT UK_USERS_EMAIL UNIQUE (email)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+
+-- ---------------------------------------------------------------------
+-- 소셜 계정
+-- ---------------------------------------------------------------------
+CREATE TABLE social_accounts (
+    social_account_id BIGINT       NOT NULL AUTO_INCREMENT,
+    user_id           BIGINT       NOT NULL,
+    provider          VARCHAR(20)  NOT NULL,
+    provider_user_id  VARCHAR(255) NOT NULL,
+    provider_email    VARCHAR(255) NULL,
+    created_at        DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at        DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT PK_SOCIAL_ACCOUNTS PRIMARY KEY (social_account_id),
+    CONSTRAINT UK_SOCIAL_ACCOUNTS_PROVIDER UNIQUE (provider, provider_user_id),
+    CONSTRAINT FK_SOCIAL_ACCOUNTS_USER FOREIGN KEY (user_id) REFERENCES users (user_id)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+
+-- ---------------------------------------------------------------------
+-- 반려동물
+-- ---------------------------------------------------------------------
+CREATE TABLE pets (
+    pet_id      BIGINT        NOT NULL AUTO_INCREMENT,
+    user_id     BIGINT        NOT NULL,
+    name        VARCHAR(20)   NOT NULL,
+    weight      DECIMAL(5, 2) NULL,
+    breed       VARCHAR(50)   NULL,
+    sex         VARCHAR(10)   NULL,
+    is_neutered BOOLEAN       NOT NULL DEFAULT FALSE,
+    size        VARCHAR(10)   NULL,
+    birth_year  SMALLINT      NULL,
+    memo        VARCHAR(500)  NULL,
+    created_at  DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at  DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted_at  DATETIME      NULL,
+    CONSTRAINT PK_PETS PRIMARY KEY (pet_id),
+    CONSTRAINT FK_PETS_USER FOREIGN KEY (user_id) REFERENCES users (user_id),
+    INDEX IDX_PETS_USER (user_id)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+
+CREATE TABLE pet_photos (
+    pet_photo_id BIGINT       NOT NULL AUTO_INCREMENT,
+    pet_id       BIGINT       NOT NULL,
+    file_url     VARCHAR(500) NOT NULL,
+    sort_order   INT          NOT NULL DEFAULT 0,
+    created_at   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT PK_PET_PHOTOS PRIMARY KEY (pet_photo_id),
+    CONSTRAINT FK_PET_PHOTOS_PET FOREIGN KEY (pet_id) REFERENCES pets (pet_id),
+    INDEX IDX_PET_PHOTOS_PET (pet_id, sort_order)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+
+-- ---------------------------------------------------------------------
+-- 장소
+-- ---------------------------------------------------------------------
+CREATE TABLE places (
+    place_id                BIGINT         NOT NULL AUTO_INCREMENT,
+    host_user_id            BIGINT         NOT NULL,
+    name                    VARCHAR(100)   NOT NULL,
+    description             TEXT           NULL,
+    place_type              VARCHAR(30)    NULL,
+    area_size               DECIMAL(8, 2)  NULL,
+    capacity                SMALLINT       NOT NULL DEFAULT 1,
+    allows_small_dog        BOOLEAN        NOT NULL DEFAULT FALSE,
+    allows_medium_dog       BOOLEAN        NOT NULL DEFAULT FALSE,
+    allows_large_dog        BOOLEAN        NOT NULL DEFAULT FALSE,
+    provides_home_camera    BOOLEAN        NOT NULL DEFAULT FALSE,
+    provides_realtime_photo BOOLEAN        NOT NULL DEFAULT FALSE,
+    provides_yard           BOOLEAN        NOT NULL DEFAULT FALSE,
+    provides_walk           BOOLEAN        NOT NULL DEFAULT FALSE,
+    other_options           VARCHAR(1000)  NULL,
+    hourly_price            DECIMAL(12, 0) NULL,
+    nightly_price           DECIMAL(12, 0) NULL,
+    status                  VARCHAR(20)    NOT NULL DEFAULT 'PENDING',
+    is_visible              BOOLEAN        NOT NULL DEFAULT TRUE,
+    created_at              DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at              DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted_at              DATETIME       NULL,
+    CONSTRAINT PK_PLACES PRIMARY KEY (place_id),
+    CONSTRAINT FK_PLACES_HOST FOREIGN KEY (host_user_id) REFERENCES users (user_id),
+    INDEX IDX_PLACES_HOST (host_user_id),
+    INDEX IDX_PLACES_STATUS (status, is_visible)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+
+CREATE TABLE place_photos (
+    place_photo_id BIGINT       NOT NULL AUTO_INCREMENT,
+    place_id       BIGINT       NOT NULL,
+    image_url      VARCHAR(500) NOT NULL,
+    sort_order     INT          NOT NULL DEFAULT 0,
+    created_at     DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at     DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT PK_PLACE_PHOTOS PRIMARY KEY (place_photo_id),
+    CONSTRAINT FK_PLACE_PHOTOS_PLACE FOREIGN KEY (place_id) REFERENCES places (place_id),
+    INDEX IDX_PLACE_PHOTOS_PLACE (place_id, sort_order)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+
+CREATE TABLE place_addresses (
+    place_address_id BIGINT         NOT NULL AUTO_INCREMENT,
+    place_id         BIGINT         NOT NULL,
+    address_code     VARCHAR(30)    NULL,
+    sido             VARCHAR(30)    NOT NULL,
+    sigungu          VARCHAR(50)    NOT NULL,
+    eupmyeondong     VARCHAR(50)    NULL,
+    road_address     VARCHAR(255)   NOT NULL,
+    detail_address   VARCHAR(255)   NULL,
+    postal_code      VARCHAR(10)    NULL,
+    latitude         DECIMAL(10, 7) NULL,
+    longitude        DECIMAL(10, 7) NULL,
+    created_at       DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at       DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT PK_PLACE_ADDRESSES PRIMARY KEY (place_address_id),
+    CONSTRAINT UK_PLACE_ADDRESSES_PLACE UNIQUE (place_id),
+    CONSTRAINT FK_PLACE_ADDRESSES_PLACE FOREIGN KEY (place_id) REFERENCES places (place_id),
+    INDEX IDX_PLACE_ADDRESSES_REGION (sido, sigungu)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+
+CREATE TABLE place_availability (
+    availability_id BIGINT   NOT NULL AUTO_INCREMENT,
+    place_id        BIGINT   NOT NULL,
+    start_at        DATETIME NOT NULL,
+    end_at          DATETIME NOT NULL,
+    is_available    BOOLEAN  NOT NULL DEFAULT TRUE,
+    created_at      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT PK_PLACE_AVAILABILITY PRIMARY KEY (availability_id),
+    CONSTRAINT FK_PLACE_AVAILABILITY_PLACE FOREIGN KEY (place_id) REFERENCES places (place_id),
+    INDEX IDX_PLACE_AVAILABILITY_RANGE (place_id, start_at, end_at)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+
+CREATE TABLE bookmarks (
+    bookmark_id BIGINT   NOT NULL AUTO_INCREMENT,
+    user_id     BIGINT   NOT NULL,
+    place_id    BIGINT   NOT NULL,
+    created_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT PK_BOOKMARKS PRIMARY KEY (bookmark_id),
+    CONSTRAINT UK_BOOKMARKS_USER_PLACE UNIQUE (user_id, place_id),
+    CONSTRAINT FK_BOOKMARKS_USER FOREIGN KEY (user_id) REFERENCES users (user_id),
+    CONSTRAINT FK_BOOKMARKS_PLACE FOREIGN KEY (place_id) REFERENCES places (place_id)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+
+-- ---------------------------------------------------------------------
+-- 예약
+-- ---------------------------------------------------------------------
+CREATE TABLE reservations (
+    reservation_id   BIGINT         NOT NULL AUTO_INCREMENT,
+    guest_user_id    BIGINT         NOT NULL,
+    place_id         BIGINT         NOT NULL,
+    reservation_type VARCHAR(20)    NOT NULL,
+    check_in_at      DATETIME       NOT NULL,
+    check_out_at     DATETIME       NOT NULL,
+    status           VARCHAR(20)    NOT NULL DEFAULT 'REQUESTED',
+    request_message  VARCHAR(500)   NULL,
+    total_price      DECIMAL(12, 0) NOT NULL DEFAULT 0,
+    responded_at     DATETIME       NULL,
+    canceled_at      DATETIME       NULL,
+    cancel_reason    VARCHAR(500)   NULL,
+    created_at       DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at       DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT PK_RESERVATIONS PRIMARY KEY (reservation_id),
+    CONSTRAINT FK_RESERVATIONS_GUEST FOREIGN KEY (guest_user_id) REFERENCES users (user_id),
+    CONSTRAINT FK_RESERVATIONS_PLACE FOREIGN KEY (place_id) REFERENCES places (place_id),
+    INDEX IDX_RESERVATIONS_GUEST (guest_user_id, status),
+    INDEX IDX_RESERVATIONS_PLACE (place_id, check_in_at, check_out_at)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+
+CREATE TABLE reservation_pets (
+    reservation_pet_id BIGINT   NOT NULL AUTO_INCREMENT,
+    reservation_id     BIGINT   NOT NULL,
+    pet_id             BIGINT   NOT NULL,
+    created_at         DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT PK_RESERVATION_PETS PRIMARY KEY (reservation_pet_id),
+    CONSTRAINT UK_RESERVATION_PETS UNIQUE (reservation_id, pet_id),
+    CONSTRAINT FK_RESERVATION_PETS_RESERVATION FOREIGN KEY (reservation_id) REFERENCES reservations (reservation_id),
+    CONSTRAINT FK_RESERVATION_PETS_PET FOREIGN KEY (pet_id) REFERENCES pets (pet_id)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+
+-- ---------------------------------------------------------------------
+-- 결제
+-- ---------------------------------------------------------------------
+CREATE TABLE payments (
+    payment_id      BIGINT         NOT NULL AUTO_INCREMENT,
+    reservation_id  BIGINT         NOT NULL,
+    provider        VARCHAR(30)    NOT NULL,
+    payment_method  VARCHAR(30)    NULL,
+    order_id        VARCHAR(100)   NOT NULL,
+    payment_key     VARCHAR(255)   NULL,
+    amount          DECIMAL(12, 0) NOT NULL,
+    status          VARCHAR(20)    NOT NULL DEFAULT 'READY',
+    failure_code    VARCHAR(100)   NULL,
+    failure_message VARCHAR(500)   NULL,
+    approved_at     DATETIME       NULL,
+    failed_at       DATETIME       NULL,
+    canceled_at     DATETIME       NULL,
+    created_at      DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at      DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT PK_PAYMENTS PRIMARY KEY (payment_id),
+    CONSTRAINT UK_PAYMENTS_ORDER_ID UNIQUE (order_id),
+    CONSTRAINT FK_PAYMENTS_RESERVATION FOREIGN KEY (reservation_id) REFERENCES reservations (reservation_id),
+    INDEX IDX_PAYMENTS_RESERVATION (reservation_id, status)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+
+-- ---------------------------------------------------------------------
+-- 리뷰
+-- ---------------------------------------------------------------------
+CREATE TABLE reviews (
+    review_id        BIGINT   NOT NULL AUTO_INCREMENT,
+    reservation_id   BIGINT   NOT NULL,
+    rating           TINYINT  NOT NULL,
+    content          TEXT     NULL,
+    is_read_by_host  BOOLEAN  NOT NULL DEFAULT FALSE,
+    created_at       DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at       DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted_at       DATETIME NULL,
+    CONSTRAINT PK_REVIEWS PRIMARY KEY (review_id),
+    CONSTRAINT UK_REVIEWS_RESERVATION UNIQUE (reservation_id),
+    CONSTRAINT FK_REVIEWS_RESERVATION FOREIGN KEY (reservation_id) REFERENCES reservations (reservation_id),
+    CONSTRAINT CK_REVIEWS_RATING CHECK (rating BETWEEN 1 AND 5)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+
+CREATE TABLE review_photos (
+    review_photo_id BIGINT       NOT NULL AUTO_INCREMENT,
+    review_id       BIGINT       NOT NULL,
+    image_url       VARCHAR(500) NOT NULL,
+    sort_order      INT          NOT NULL DEFAULT 0,
+    created_at      DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT PK_REVIEW_PHOTOS PRIMARY KEY (review_photo_id),
+    CONSTRAINT FK_REVIEW_PHOTOS_REVIEW FOREIGN KEY (review_id) REFERENCES reviews (review_id),
+    INDEX IDX_REVIEW_PHOTOS_REVIEW (review_id, sort_order)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+
+CREATE TABLE review_replies (
+    review_reply_id BIGINT   NOT NULL AUTO_INCREMENT,
+    review_id       BIGINT   NOT NULL,
+    host_user_id    BIGINT   NOT NULL,
+    content         TEXT     NOT NULL,
+    created_at      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted_at      DATETIME NULL,
+    CONSTRAINT PK_REVIEW_REPLIES PRIMARY KEY (review_reply_id),
+    CONSTRAINT UK_REVIEW_REPLIES_REVIEW UNIQUE (review_id),
+    CONSTRAINT FK_REVIEW_REPLIES_REVIEW FOREIGN KEY (review_id) REFERENCES reviews (review_id),
+    CONSTRAINT FK_REVIEW_REPLIES_HOST FOREIGN KEY (host_user_id) REFERENCES users (user_id)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
