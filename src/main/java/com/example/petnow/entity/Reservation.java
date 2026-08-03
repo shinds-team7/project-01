@@ -24,6 +24,8 @@ public class Reservation extends BaseEntity {
 	private LocalDateTime checkIn;
 	private LocalDateTime checkOut;
 	private String memo;
+	private LocalDateTime createdAt;
+	private LocalDateTime updatedAt;
 
 	private List<Pet> pets;
 }
