@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
-public class PlaceCreateRequestDTO {
+public class PlaceCreateRequest {
 
     @NotBlank(message = "장소명을 입력해주세요.")
     @Size(max = 100, message = "장소명은 100자 이하로 입력해주세요.")
@@ -34,7 +34,7 @@ public class PlaceCreateRequestDTO {
     private Integer placeArea;
 
     @NotNull(message = "최대 마릿수를 입력해주세요.")
-    @Positive(message = "최소 마릿수는 1마리 이상이어야 합니다.")
+    @Positive(message = "최대 마릿수는 1마리 이상이어야 합니다.")
     private Integer maxDogCount;
 
     private boolean optionSmallDog;

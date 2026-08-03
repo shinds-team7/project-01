@@ -55,7 +55,6 @@
         NOW()
         )
     </insert>
-
     <select id="findAllByUserId"
             resultType="com.example.petnow.dto.response.PlaceListResponseDTO">
         SELECT

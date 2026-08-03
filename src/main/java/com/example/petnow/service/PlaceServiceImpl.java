@@ -1,6 +1,6 @@
 package com.example.petnow.service;
 
-import com.example.petnow.dto.request.PlaceCreateRequestDTO;
+import com.example.petnow.dto.request.PlaceCreateRequest;
 import com.example.petnow.dto.response.PlaceListResponseDTO;
 import com.example.petnow.entity.Place;
 import com.example.petnow.exception.BusinessException;
@@ -17,9 +17,10 @@ import java.util.List;
 public class PlaceServiceImpl implements PlaceService{
 
     private final PlaceMapper placeMapper;
+
     @Override
     @Transactional
-    public void createPlace(Long userId, PlaceCreateRequestDTO requestDTO) {
+    public void createPlace(Long userId, PlaceCreateRequest requestDTO) {
         Place place = requestDTO.toEntity(userId);
 
         int result = placeMapper.insert(place);

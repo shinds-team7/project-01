@@ -1,13 +1,11 @@
 package com.example.petnow.entity;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
-@Data
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
@@ -33,7 +31,7 @@ public class Place {
     private Long hourPrice;
     private Long dayPrice;
     private PlaceStatus placeStatus;
-    private LocalDateTime deletedAt;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private LocalDateTime deletedAt;
 }

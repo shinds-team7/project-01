@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.petnow.mapper.PetPhotoMapper">
+
+    <insert id="insertPhoto">
+
+        INSERT INTO pet_photos
+        (
+        pet_id,
+        photo_url,
+        is_thumbnail,
+        sort_order
+        )
+        VALUES
+        (
+        #{petId},
+        #{photoUrl},
+        #{isThumbnail},
+        #{sortOrder}
+        )
+
+    </insert>
+
+    <select id="findByPetId"
+            parameterType="long"
+            resultType="com.example.petnow.entity.PetPhoto">
+
+        SELECT
+        id,
+        pet_id,
+        photo_url,
+        is_thumbnail,
+        sort_order,
+        created_at,
+        updated_at
+        FROM pet_photos
+        WHERE pet_id = #{petId}
+        ORDER BY sort_order
+
+    </select>
+
+    <delete id="deleteByPetId">
+
+        DELETE
+        FROM pet_photos
+        WHERE pet_id = #{petId}
+
+    </delete>
+
+</mapper>
