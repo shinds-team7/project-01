@@ -16,8 +16,8 @@ public class ReviewService {
     @Transactional
     public void insertReview(ReviewCreateRequest request) {
         Review review = Review.builder()
-                .score(request.getScore())
-                .comment(request.getComment())
+                .rating(request.getRating())
+                .content(request.getContent())
                 .reservationId(request.getReservationId())
                 .build();
 
