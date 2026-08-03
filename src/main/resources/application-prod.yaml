@@ -8,6 +8,10 @@ spring:
     hikari:
       maximum-pool-size: 20
       minimum-idle: 10
+  flyway:
+    # 기존 운영 DB를 처음 연결할 때만 true로 설정한다.
+    baseline-on-migrate: ${FLYWAY_BASELINE_ON_MIGRATE:false}
+    baseline-version: ${FLYWAY_BASELINE_VERSION:4}
 
 logging:
   level:
