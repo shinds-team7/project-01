@@ -1,6 +1,6 @@
 package com.example.petnow.controller;
 
-import com.example.petnow.dto.ReviewCreateRequest;
+import com.example.petnow.dto.request.ReviewCreateRequest;
 import com.example.petnow.entity.Review;
 import com.example.petnow.service.ReviewService;
 import jakarta.validation.Valid;
