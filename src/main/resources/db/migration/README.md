@@ -1,17 +1,18 @@
-# Database migrations
+# 데이터베이스 마이그레이션
 
-Flyway applies the SQL files in version order when the application connects to
-an empty MariaDB database.
+애플리케이션이 빈 MariaDB 데이터베이스에 연결되면 Flyway가 SQL 파일을
+버전 순서대로 적용합니다.
 
-- `V1`: users and pets
-- `V2`: places
-- `V3`: reservations and payments
-- `V4`: reviews
+- `V1`: 회원 및 반려동물
+- `V2`: 장소
+- `V3`: 예약 및 결제
+- `V4`: 리뷰
 
-Do not edit a migration after it has been applied to a shared database. Add a
-new migration with the next version instead.
+공유 데이터베이스에 이미 적용된 마이그레이션 파일은 수정하지 않습니다.
+스키마를 변경할 때는 다음 버전의 마이그레이션 파일을 새로 추가합니다.
 
-Local databases that were already created from `petnow_schema.sql` are adopted
-at baseline version `4` by the local profile. For an existing production
-database, set `FLYWAY_BASELINE_ON_MIGRATE=true` only for its first Flyway-backed
-startup, verify the `flyway_schema_history` entry, and then turn the setting off.
+`petnow_schema.sql`로 이미 생성한 로컬 데이터베이스는 local 프로필을 통해
+기준 버전 `4`로 등록됩니다. 기존 운영 데이터베이스에 처음 Flyway를 적용할
+때만 `FLYWAY_BASELINE_ON_MIGRATE=true`로 설정합니다. 시작 후
+`flyway_schema_history`에 기준 이력이 등록됐는지 확인하고 설정을 다시
+비활성화합니다.
