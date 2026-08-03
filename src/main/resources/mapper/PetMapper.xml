@@ -11,11 +11,11 @@
             user_id,
             name,
             birth_year,
-            gender,
+            sex,
             weight,
-            neutered,
-            note,
-            size_code
+            is_neutered,
+            memo,
+            size
         )
         VALUES
             (
@@ -35,16 +35,15 @@
             resultType="com.example.petnow.entity.Pet">
 
         SELECT
-            pet_id,
+            id,
             user_id,
             name,
             birth_year,
-            gender,
+            sex AS gender,
             weight,
-            neutered,
-            note,
-            size_code,
-            image_url,
+            is_neutered AS neutered,
+            memo AS note,
+            size AS size_code,
             created_at,
             updated_at
         FROM pets
