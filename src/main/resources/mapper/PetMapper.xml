@@ -5,37 +5,29 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.example.petnow.mapper.PetMapper">
-
-    <insert id="insertPet"
-            parameterType="com.example.petnow.entity.Pet"
-            useGeneratedKeys="true"
-            keyProperty="petId">
-
+    <insert id="insertPet">
         INSERT INTO pets
         (
             user_id,
             name,
-            weight,
-            breed,
-            sex,
-            is_neutered,
-            `size`,
             birth_year,
-            memo
+            sex,
+            weight,
+            is_neutered,
+            memo,
+            size
         )
         VALUES
-        (
-            #{userId},
-            #{name},
-            #{weight},
-            #{breed},
-            #{sex},
-            #{isNeutered},
-            #{size},
-            #{birthYear},
-            #{memo}
-        )
-
+            (
+                #{userId},
+                #{name},
+                #{birthYear},
+                #{gender},
+                #{weight},
+                #{neutered},
+                #{note},
+                #{sizeCode}
+            )
     </insert>
 
     <select id="findByUserId"
@@ -43,23 +35,20 @@
             resultType="com.example.petnow.entity.Pet">
 
         SELECT
-            pet_id,
+            id,
             user_id,
             name,
-            weight,
-            breed,
-            sex,
-            is_neutered,
-            `size`,
             birth_year,
-            memo,
+            sex AS gender,
+            weight,
+            is_neutered AS neutered,
+            memo AS note,
+            size AS size_code,
             created_at,
             updated_at
         FROM pets
         WHERE user_id = #{userId}
-          AND deleted_at IS NULL
         ORDER BY created_at DESC
 
     </select>
-
 </mapper>

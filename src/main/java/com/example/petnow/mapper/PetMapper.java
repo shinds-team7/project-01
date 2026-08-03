@@ -9,7 +9,7 @@ public interface PetMapper {
 
     void insertPet(Pet pet);
 
-    List<Pet> findByUserId(Long userId);
+//    List<Pet> findByUserId(Long userId);
 
 //    Pet findByPetId(Long petId);
 //

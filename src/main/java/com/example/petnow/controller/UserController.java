@@ -2,13 +2,14 @@ package com.example.petnow.controller;
 
 import com.example.petnow.dto.request.UserLoginRequest;
 import com.example.petnow.dto.request.UserSignupRequest;
+import com.example.petnow.entity.User;
 import com.example.petnow.service.UserService;
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
@@ -27,8 +28,9 @@ public class UserController {
 
     // 로그인 , 메인페이지 생성 되면 return을 메인페이지로 바꿀 예정
     @PostMapping ("/login")
-    public String userLogin(@Valid @ModelAttribute UserLoginRequest request) {
-        userService.login(request);
+    public String userLogin(@Valid @ModelAttribute UserLoginRequest request, HttpSession session) {
+        User user = userService.login(request);
+        session.setAttribute("userId", user.getId());
         return "mypage";
     }
 }

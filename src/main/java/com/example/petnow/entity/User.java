@@ -4,14 +4,11 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-/**
- * users 테이블 매핑. 필드명은 ERD 컬럼명 기준.
- */
 @Getter
 @NoArgsConstructor
 public class User {
 
-    private Long userId;
+    private Long id;
     private String email;
     private String nickname;
     private String password;

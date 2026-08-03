@@ -20,16 +20,16 @@ public class PetServiceImpl implements PetService {
     @Override
     public void createPet(Long userId, PetCreateRequest request) {
 
-        // Pet Entity 생성 (요청 DTO 필드명 -> ERD 컬럼명)
+        // Pet Entity 생성
         Pet pet = Pet.builder()
                 .userId(userId)
                 .name(request.getName())
                 .birthYear(request.getBirthYear())
-                .sex(request.getGender())
+                .gender(request.getGender())
                 .weight(request.getWeight())
-                .isNeutered(request.getNeutered())
-                .memo(request.getNote())
-                .size(request.getSizeCode())
+                .neutered(request.getNeutered())
+                .note(request.getNote())
+                .sizeCode(request.getSizeCode())
                 .build();
 
         // pets 테이블 저장

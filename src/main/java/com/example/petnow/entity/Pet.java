@@ -9,9 +9,6 @@ import lombok.Setter;
 import java.time.LocalDateTime;
 import java.util.List;
 
-/**
- * pets 테이블 매핑. 필드명은 ERD 컬럼명 기준.
- */
 @Getter
 @Setter
 @NoArgsConstructor
@@ -19,34 +16,27 @@ import java.util.List;
 @Builder
 public class Pet {
 
-    private Long petId;
+    private Long id;
 
     private Long userId;
 
     private String name;
 
-    private Double weight;
-
-    private String breed;
-
-    /** 'MALE' / 'FEMALE' */
-    private String sex;
-
-    private Boolean isNeutered;
-
-    /** 'SMALL' / 'MEDIUM' / 'LARGE' */
-    private String size;
-
     private Integer birthYear;
 
-    private String memo;
+    private String gender;
+
+    private Double weight;
+
+    private Boolean neutered;
+
+    private String note;
+
+    private String sizeCode;
+
+    private PetPhoto photo;
 
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;
-
-    private LocalDateTime deletedAt;
-
-    /** 연관 관계. pets 테이블 컬럼이 아님 */
-    private List<PetPhoto> photos;
 }

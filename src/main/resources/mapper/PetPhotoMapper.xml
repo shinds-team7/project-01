@@ -6,22 +6,19 @@
 
 <mapper namespace="com.example.petnow.mapper.PetPhotoMapper">
 
-    <insert id="insertPhoto"
-            parameterType="com.example.petnow.entity.PetPhoto"
-            useGeneratedKeys="true"
-            keyProperty="petPhotoId">
+    <insert id="insertPhoto">
 
         INSERT INTO pet_photos
         (
-            pet_id,
-            file_url,
-            sort_order
+        pet_id,
+        image_url,
+        sort_order
         )
         VALUES
         (
-            #{petId},
-            #{fileUrl},
-            #{sortOrder}
+        #{petId},
+        #{imageUrl},
+        #{sortOrder}
         )
 
     </insert>
@@ -31,12 +28,12 @@
             resultType="com.example.petnow.entity.PetPhoto">
 
         SELECT
-            pet_photo_id,
-            pet_id,
-            file_url,
-            sort_order,
-            created_at,
-            updated_at
+        id,
+        pet_id,
+        image_url,
+        sort_order,
+        created_at,
+        updated_at
         FROM pet_photos
         WHERE pet_id = #{petId}
         ORDER BY sort_order

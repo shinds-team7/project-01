@@ -1,0 +1,12 @@
+spring:
+  datasource:
+    driver-class-name: org.mariadb.jdbc.Driver
+    url: jdbc:mariadb://localhost:3306/petnow
+    username: testuser
+    password: test1234
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+logging:
+  level:
+    org.springframework.web: debug
