@@ -38,7 +38,7 @@ public class UserServiceImpl implements UserService {
             throw new BusinessException(ErrorCode.INVALID_CREDENTIALS);
         }
 
-        if (!user.getPassword().equals(request.getPassword())) {
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new BusinessException(ErrorCode.INVALID_CREDENTIALS);
         }
     }
