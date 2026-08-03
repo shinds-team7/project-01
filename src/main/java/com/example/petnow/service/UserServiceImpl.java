@@ -30,7 +30,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void login(UserLoginRequest request) {
+    public Long login(UserLoginRequest request) {
 
         User user = userMapper.findByEmail(request.getEmail());
 
@@ -41,5 +41,6 @@ public class UserServiceImpl implements UserService {
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new BusinessException(ErrorCode.INVALID_CREDENTIALS);
         }
+        return user.getId();
     }
 }

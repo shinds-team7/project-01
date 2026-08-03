@@ -6,5 +6,5 @@ import com.example.petnow.dto.request.UserSignupRequest;
 public interface UserService {
     void signup(UserSignupRequest request);
 
-    void login(UserLoginRequest request);
+    Long login(UserLoginRequest request);
 }
