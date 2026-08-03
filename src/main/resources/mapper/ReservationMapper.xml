@@ -15,7 +15,7 @@
 
     <insert id="save" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO reservations (user_id, place_id, check_in, check_out, status, memo)
-        VALUES (#{user.id}, #{place.id}, #{checkIn}, #{checkOut}, #{status}, #{memo})
+        VALUES (#{userId}, #{placeId}, #{checkIn}, #{checkOut}, #{status}, #{memo})
     </insert>
 
     <insert id="saveReservationPets">
