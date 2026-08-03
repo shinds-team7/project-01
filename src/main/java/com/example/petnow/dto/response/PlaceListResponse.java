@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class PlaceListResponseDTO {
+public class PlaceListResponse {
 
     private Long id;
     private String title;

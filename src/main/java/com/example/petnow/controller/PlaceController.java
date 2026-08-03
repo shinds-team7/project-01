@@ -33,7 +33,7 @@ public class PlaceController {
 
     //TODO: 로그인 구현 후 세션 사용자 ID로 교체
     @PostMapping
-    public String create(@Valid @ModelAttribute("placeCreateRequest") PlaceCreateRequest requestDTO,
+    public String create(@Valid @ModelAttribute("placeCreateRequest") PlaceCreateRequest request,
                          BindingResult bindingResult,
                          Model model) {
         if (bindingResult.hasErrors()) {
@@ -42,7 +42,7 @@ public class PlaceController {
         }
 
         Long userId = 1L;
-        placeService.createPlace(userId, requestDTO);
+        placeService.createPlace(userId, request);
 
         return "redirect:/host/places/success";
     }
@@ -62,7 +62,6 @@ public class PlaceController {
         Long userId = 1L;
 
         model.addAttribute("places", placeService.getPlacesByUserId(userId));
-
         return "host/places/list";
     }
 }

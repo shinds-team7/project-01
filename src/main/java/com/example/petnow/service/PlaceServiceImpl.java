@@ -1,7 +1,7 @@
 package com.example.petnow.service;
 
 import com.example.petnow.dto.request.PlaceCreateRequest;
-import com.example.petnow.dto.response.PlaceListResponseDTO;
+import com.example.petnow.dto.response.PlaceListResponse;
 import com.example.petnow.entity.Place;
 import com.example.petnow.exception.BusinessException;
 import com.example.petnow.exception.ErrorCode;
@@ -20,8 +20,8 @@ public class PlaceServiceImpl implements PlaceService{
 
     @Override
     @Transactional
-    public void createPlace(Long userId, PlaceCreateRequest requestDTO) {
-        Place place = requestDTO.toEntity(userId);
+    public void createPlace(Long userId, PlaceCreateRequest request) {
+        Place place = request.toEntity(userId);
 
         int result = placeMapper.insert(place);
         if (result != 1 || place.getId() == null) {
@@ -31,7 +31,7 @@ public class PlaceServiceImpl implements PlaceService{
 
     @Override
     @Transactional(readOnly = true)
-    public List<PlaceListResponseDTO> getPlacesByUserId(Long userId) {
+    public List<PlaceListResponse> getPlacesByUserId(Long userId) {
         return placeMapper.findAllByUserId(userId);
     }
 }

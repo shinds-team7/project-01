@@ -56,7 +56,7 @@
         )
     </insert>
     <select id="findAllByUserId"
-            resultType="com.example.petnow.dto.response.PlaceListResponseDTO">
+            resultType="com.example.petnow.dto.response.PlaceListResponse">
         SELECT
         id,
         title,
