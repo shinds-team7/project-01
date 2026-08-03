@@ -34,7 +34,7 @@ public class PlaceCreateRequest {
     private Integer placeArea;
 
     @NotNull(message = "최대 마릿수를 입력해주세요.")
-    @Positive(message = "최소 마릿수는 1마리 이상이어야 합니다.")
+    @Positive(message = "최대 마릿수는 1마리 이상이어야 합니다.")
     private Integer maxDogCount;
 
     private boolean optionSmallDog;
