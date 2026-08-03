@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
-public class PlaceCreateRequestDTO {
+public class PlaceCreateRequest {
 
     @NotBlank(message = "장소명을 입력해주세요.")
     @Size(max = 100, message = "장소명은 100자 이하로 입력해주세요.")
