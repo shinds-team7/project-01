@@ -1,6 +1,6 @@
 package com.example.petnow.service;
 
-import com.example.petnow.dto.request.PlaceCreateRequestDTO;
+import com.example.petnow.dto.request.PlaceCreateRequest;
 
 public interface PlaceService {
     /**
@@ -9,5 +9,5 @@ public interface PlaceService {
      * @param userId 장소를 등록하는 호스트의 ID
      * @param requestDTO 장소 등록 요청 정보
      */
-    void createPlace(Long userId, PlaceCreateRequestDTO requestDTO);
+    void createPlace(Long userId, PlaceCreateRequest requestDTO);
 }
