@@ -1,6 +1,6 @@
 package com.example.petnow.service;
 
-import com.example.petnow.dto.ReviewCreateRequest;
+import com.example.petnow.dto.request.ReviewCreateRequest;
 import com.example.petnow.entity.Review;
 import com.example.petnow.mapper.ReviewMapper;
 import lombok.RequiredArgsConstructor;
