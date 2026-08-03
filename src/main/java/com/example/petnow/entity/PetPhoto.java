@@ -15,7 +15,9 @@ public class PetPhoto {
 
     private Long petId;
 
-    private String photoUrl;
+    private String imageUrl;
+
+    private Integer sortOrder;
 
     private LocalDateTime createdAt;
 

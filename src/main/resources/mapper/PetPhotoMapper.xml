@@ -11,15 +11,13 @@
         INSERT INTO pet_photos
         (
         pet_id,
-        photo_url,
-        is_thumbnail,
+        image_url,
         sort_order
         )
         VALUES
         (
         #{petId},
-        #{photoUrl},
-        #{isThumbnail},
+        #{imageUrl},
         #{sortOrder}
         )
 
@@ -32,8 +30,7 @@
         SELECT
         id,
         pet_id,
-        photo_url,
-        is_thumbnail,
+        image_url,
         sort_order,
         created_at,
         updated_at
