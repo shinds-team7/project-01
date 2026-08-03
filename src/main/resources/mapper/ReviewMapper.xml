@@ -7,8 +7,8 @@
 <mapper namespace="com.example.petnow.mapper.ReviewMapper">
 
     <insert id="insertReview">
-        INSERT INTO reviews ( score, comment, reservation_id )
-        VALUES ( #{score}, #{comment}, #{reservationId} )
+        INSERT INTO reviews ( rating, content, reservation_id )
+        VALUES ( #{rating}, #{content}, #{reservationId} )
     </insert>
 
 </mapper>
