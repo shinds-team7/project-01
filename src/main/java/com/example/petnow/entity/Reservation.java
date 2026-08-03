@@ -18,12 +18,12 @@ import lombok.Setter;
 @AllArgsConstructor
 public class Reservation extends BaseEntity {
 	private Long id;
+	private Long userId;
+	private Long placeId;
 	private ReservationStatus status;
 	private LocalDateTime checkIn;
 	private LocalDateTime checkOut;
 	private String memo;
 
-	private User user;
-	private Place place;
 	private List<Pet> pets;
 }

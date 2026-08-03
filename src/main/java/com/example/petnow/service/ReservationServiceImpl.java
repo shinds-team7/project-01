@@ -4,11 +4,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.petnow.dto.request.ReservationRequest;
-import com.example.petnow.entity.Pet;
-import com.example.petnow.entity.Place;
 import com.example.petnow.entity.Reservation;
 import com.example.petnow.entity.ReservationStatus;
-import com.example.petnow.entity.User;
 import com.example.petnow.mapper.ReservationMapper;
 
 import lombok.RequiredArgsConstructor;
@@ -22,8 +19,8 @@ public class ReservationServiceImpl implements ReservationService {
 	@Transactional
 	public Long save(ReservationRequest request, Long userId) {
 		Reservation reservation = Reservation.builder()
-			.place(Place.builder().id(request.getPlaceId()).build())
-			.user(User.builder().id(userId).build())
+			.placeId(request.getPlaceId())
+			.userId(userId)
 			.memo(request.getMemo())
 			.checkIn(request.getCheckIn())
 			.checkOut(request.getCheckOut())
