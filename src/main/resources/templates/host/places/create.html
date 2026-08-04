@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>장소 등록 | PetNow</title>
+    <style>
+        :root {
+            --green: #22a45c;
+            --green-dark: #178448;
+            --green-soft: #e8f6ee;
+            --ink: #1f2937;
+            --muted: #8a8f96;
+            --line: #e3e3e5;
+            --surface: #f7f7f8;
+            --danger: #e5484d;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            min-height: 100vh;
+            margin: 0;
+            background: #f2f3f4;
+            color: var(--ink);
+            font-family: Arial, "Noto Sans KR", sans-serif;
+        }
+
+        button, input, textarea { font: inherit; }
+
+        .page {
+            width: min(100%, 460px);
+            min-height: 100vh;
+            margin: 0 auto;
+            background: #fff;
+            box-shadow: 0 0 30px rgba(31, 41, 55, .06);
+        }
+
+        .topbar {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            display: grid;
+            grid-template-columns: 44px 1fr 44px;
+            align-items: center;
+            min-height: 74px;
+            padding: 10px 14px;
+            border-bottom: 1px solid #f0f0f1;
+            background: rgba(255, 255, 255, .96);
+        }
+
+        .back {
+            width: 40px;
+            height: 40px;
+            border: 0;
+            border-radius: 12px;
+            background: transparent;
+            color: var(--ink);
+            cursor: pointer;
+            font-size: 25px;
+        }
+
+        .heading { text-align: center; }
+        .heading h1 { margin: 0; font-size: 17px; font-weight: 800; }
+        .heading p { margin: 4px -50px 0; color: var(--muted); font-size: 11px; }
+
+        form { padding: 24px 20px 38px; }
+
+        .section + .section {
+            margin-top: 30px;
+            padding-top: 28px;
+            border-top: 8px solid var(--surface);
+            box-shadow: 20px 0 0 var(--surface), -20px 0 0 var(--surface);
+        }
+
+        .section-title {
+            margin: 0 0 18px;
+            font-size: 16px;
+            font-weight: 800;
+        }
+
+        .field { margin-top: 20px; }
+        .field:first-child { margin-top: 0; }
+
+        .label {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            margin-bottom: 9px;
+            font-size: 14px;
+            font-weight: 800;
+        }
+
+        .required { color: var(--danger); font-size: 11px; }
+        .optional { color: var(--muted); font-size: 11px; font-weight: 600; }
+
+        .control {
+            width: 100%;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 14px;
+            outline: none;
+            background: #fff;
+            color: var(--ink);
+            font-size: 13.5px;
+            transition: border-color .15s, box-shadow .15s;
+        }
+
+        .control:focus {
+            border-color: var(--green);
+            box-shadow: 0 0 0 3px rgba(34, 164, 92, .11);
+        }
+
+        textarea.control { min-height: 112px; resize: vertical; line-height: 1.6; }
+
+        .hint { margin: 7px 2px 0; color: var(--muted); font-size: 11.5px; line-height: 1.5; }
+        .error { margin: 7px 2px 0; color: var(--danger); font-size: 12px; font-weight: 600; }
+        .has-error { border-color: var(--danger); }
+
+        .type-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+
+        .type-card input { position: absolute; opacity: 0; pointer-events: none; }
+        .type-card span {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 46px;
+            border: 1px solid transparent;
+            border-radius: 12px;
+            background: var(--surface);
+            color: #6b7280;
+            cursor: pointer;
+            font-size: 13.5px;
+            font-weight: 700;
+        }
+
+        .type-card input:checked + span {
+            border-color: var(--green);
+            background: var(--green-soft);
+            color: var(--green-dark);
+        }
+
+        .two-column { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+        .unit-control {
+            display: flex;
+            align-items: center;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 0 14px;
+        }
+
+        .unit-control:focus-within {
+            border-color: var(--green);
+            box-shadow: 0 0 0 3px rgba(34, 164, 92, .11);
+        }
+
+        .unit-control input {
+            width: 100%;
+            min-width: 0;
+            border: 0;
+            padding: 14px 4px 14px 0;
+            outline: none;
+            color: var(--ink);
+        }
+
+        .unit { flex: none; color: var(--muted); font-size: 12px; }
+
+        .option-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 13px 10px;
+        }
+
+        .option {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            color: #374151;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .option input { width: 18px; height: 18px; margin: 0; accent-color: var(--green); }
+        .etc-field { display: none; margin-top: 12px; }
+        .etc-field.is-visible { display: block; }
+
+        .submit {
+            width: 100%;
+            margin-top: 30px;
+            border: 0;
+            border-radius: 14px;
+            padding: 17px;
+            background: var(--green);
+            color: #fff;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 800;
+            transition: background .15s, transform .15s;
+        }
+
+        .submit:hover { background: var(--green-dark); }
+        .submit:active { transform: translateY(1px); }
+
+        @media (max-width: 360px) {
+            .two-column, .option-grid { grid-template-columns: 1fr; }
+            .heading p { display: none; }
+        }
+    </style>
+</head>
+<body>
+<main class="page">
+    <header class="topbar">
+        <button class="back" type="button" aria-label="이전 페이지" onclick="history.back()">‹</button>
+        <div class="heading">
+            <h1>게시글 작성</h1>
+            <p>정성껏 돌볼 수 있는 공간을 소개해주세요</p>
+        </div>
+        <span aria-hidden="true"></span>
+    </header>
+
+    <form th:action="@{/host/places}" th:object="${placeCreateRequest}" method="post">
+        <section class="section">
+            <div class="field">
+                <label class="label" for="name">장소명 <span class="required">필수</span></label>
+                <input class="control" id="name" type="text" th:field="*{name}"
+                       th:classappend="${#fields.hasErrors('name')} ? ' has-error'"
+                       maxlength="100" placeholder="예) 성수 조용한 단독주택 마당">
+                <p class="error" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></p>
+            </div>
+
+            <div class="field">
+                <label class="label" for="description">소개글 <span class="required">필수</span></label>
+                <textarea class="control" id="description" th:field="*{description}"
+                          th:classappend="${#fields.hasErrors('description')} ? ' has-error'"
+                          placeholder="공간과 돌봄 환경을 자세히 소개해주세요."></textarea>
+                <p class="error" th:if="${#fields.hasErrors('description')}" th:errors="*{description}"></p>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2 class="section-title">수용 조건</h2>
+
+            <div class="field">
+                <div class="label">주거 형태 <span class="required">필수</span></div>
+                <div class="type-grid">
+                    <label class="type-card" th:each="type : ${placeTypes}">
+                        <input type="radio" th:field="*{placeType}" th:value="${type}">
+                        <span th:text="${type.label}">아파트</span>
+                    </label>
+                </div>
+                <p class="error" th:if="${#fields.hasErrors('placeType')}" th:errors="*{placeType}"></p>
+            </div>
+
+            <div class="two-column field">
+                <div>
+                    <label class="label" for="areaSize">평수 <span class="required">필수</span></label>
+                    <div class="unit-control">
+                        <input id="areaSize" type="number" min="1" max="500" step="1" th:field="*{areaSize}" placeholder="32" required>
+                        <span class="unit">평</span>
+                    </div>
+                    <p class="error" th:if="${#fields.hasErrors('areaSize')}" th:errors="*{areaSize}"></p>
+                </div>
+                <div>
+                    <label class="label" for="capacity">최대 수용 <span class="required">필수</span></label>
+                    <div class="unit-control">
+                        <input id="capacity" type="number" min="1" max="20" step="1" th:field="*{capacity}" placeholder="2" required>
+                        <span class="unit">마리</span>
+                    </div>
+                    <p class="error" th:if="${#fields.hasErrors('capacity')}" th:errors="*{capacity}"></p>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2 class="section-title">서비스 옵션 <span class="optional">선택</span></h2>
+            <div class="option-grid">
+                <label class="option"><input type="checkbox" th:field="*{allowsSmallDog}">소형견 가능</label>
+                <label class="option"><input type="checkbox" th:field="*{allowsMediumDog}">중형견 가능</label>
+                <label class="option"><input type="checkbox" th:field="*{allowsLargeDog}">대형견 가능</label>
+                <label class="option"><input type="checkbox" th:field="*{providesHomeCamera}">홈캠 제공</label>
+                <label class="option"><input type="checkbox" th:field="*{providesRealtimePhoto}">실시간 사진 전송</label>
+                <label class="option"><input type="checkbox" th:field="*{providesYard}">마당 있음</label>
+                <label class="option"><input type="checkbox" th:field="*{providesWalk}">산책 제공</label>
+                <label class="option"><input id="otherOptionsEnabled" type="checkbox" th:field="*{otherOptionsEnabled}">기타</label>
+            </div>
+            <div id="otherOptionsField" class="etc-field" th:classappend="*{otherOptionsEnabled} ? ' is-visible'">
+                <label class="label" for="otherOptions">기타 옵션</label>
+                <input class="control" id="otherOptions" type="text" th:field="*{otherOptions}"
+                       placeholder="예) 노령견 투약 케어 가능">
+            </div>
+        </section>
+
+        <section class="section">
+            <h2 class="section-title">요금</h2>
+            <div class="two-column">
+                <div>
+                    <label class="label" for="hourlyPrice">시간당 요금 <span class="required">필수</span></label>
+                    <div class="unit-control">
+                        <input id="hourlyPrice" type="number" min="1" max="10000000" step="1" th:field="*{hourlyPrice}" placeholder="10000" required>
+                        <span class="unit">원</span>
+                    </div>
+                    <p class="error" th:if="${#fields.hasErrors('hourlyPrice')}" th:errors="*{hourlyPrice}"></p>
+                </div>
+                <div>
+                    <label class="label" for="nightlyPrice">1박 요금 <span class="required">필수</span></label>
+                    <div class="unit-control">
+                        <input id="nightlyPrice" type="number" min="1" max="10000000" step="1" th:field="*{nightlyPrice}" placeholder="50000" required>
+                        <span class="unit">원</span>
+                    </div>
+                    <p class="error" th:if="${#fields.hasErrors('nightlyPrice')}" th:errors="*{nightlyPrice}"></p>
+                </div>
+            </div>
+        </section>
+
+        <button class="submit" type="submit">게시글 등록</button>
+    </form>
+</main>
+
+<script>
+    const otherOptionsCheckbox = document.getElementById('otherOptionsEnabled');
+    const otherOptionsField = document.getElementById('otherOptionsField');
+
+    function syncOtherOptionsField() {
+        otherOptionsField.classList.toggle('is-visible', otherOptionsCheckbox.checked);
+        if (!otherOptionsCheckbox.checked) {
+            document.getElementById('otherOptions').value = '';
+        }
+    }
+
+    otherOptionsCheckbox.addEventListener('change', syncOtherOptionsField);
+</script>
+</body>
+</html>
