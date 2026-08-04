@@ -31,6 +31,14 @@ build/
 !**/src/main/**/build/
 !**/src/test/**/build/
 
+# local-only config (팀원별 로컬 DB 접속 정보, 커밋 금지)
+application-local.yaml
+application-local.yml
+application-local.properties
+
+# docker-compose secrets
+.env
+
 ### STS ###
 .apt_generated
 .classpath
@@ -61,3 +69,10 @@ out/
 
 ### VS Code ###
 .vscode/
+
+### 로컬 전용 설정 (커밋 금지) ###
+# 개인 DB 계정이 들어가므로 Git에 올리지 않는다.
+# 생성 방법은 docs/LOCAL_SETUP.md 참고
+src/main/resources/application-local.yaml
+src/main/resources/application-local.yml
+.env
