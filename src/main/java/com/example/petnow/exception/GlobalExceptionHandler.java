@@ -3,14 +3,19 @@ package com.example.petnow.exception;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.example.petnow.dto.ErrorResponse;
 
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * @RestController가 붙은(JSON 응답) 컨트롤러 전용 예외 처리기.
+ * 뷰를 렌더링하는 @Controller는 {@link MvcExceptionHandler}가 담당한다.
+ */
 @Slf4j
-@RestControllerAdvice
+@RestControllerAdvice(annotations = RestController.class)
 public class GlobalExceptionHandler {
 
 	@ExceptionHandler(BusinessException.class)
