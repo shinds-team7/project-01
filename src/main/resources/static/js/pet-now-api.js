@@ -3,6 +3,7 @@
 
     const PLACES_ENDPOINT = "/api/places";
     const CAPABILITIES_ENDPOINT = "/api/frontend/capabilities";
+    const REQUEST_TIMEOUT_MS = 8000;
 
     function appendParam(params, key, value) {
         if (value === undefined || value === null || value === "") return;
@@ -29,7 +30,8 @@
         const response = await fetch(`${PLACES_ENDPOINT}?${params.toString()}`, {
             method: "GET",
             headers: { Accept: "application/json" },
-            credentials: "same-origin"
+            credentials: "same-origin",
+            signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS)
         });
 
         if (!response.ok) {
@@ -59,7 +61,8 @@
         try {
             const capabilityResponse = await fetch(CAPABILITIES_ENDPOINT, {
                 headers: { Accept: "application/json" },
-                credentials: "same-origin"
+                credentials: "same-origin",
+                signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS)
             });
             if (!capabilityResponse.ok) {
                 return { available: false, items: [], reason: "capability endpoint unavailable", status: capabilityResponse.status };

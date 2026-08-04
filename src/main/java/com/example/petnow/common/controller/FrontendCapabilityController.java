@@ -9,6 +9,8 @@ import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/frontend")
@@ -19,18 +21,15 @@ public class FrontendCapabilityController {
 
     @GetMapping("/capabilities")
     public Map<String, Boolean> capabilities() {
-        return Map.of(
-                "places", hasGetRoute("/api/places"),
-                "map", hasGetRoute("/api/places/map"),
-                "bookmarks", hasGetRoute("/api/bookmarks")
-        );
-    }
-
-    private boolean hasGetRoute(String route) {
-        return handlerMapping.getHandlerMethods().keySet().stream()
+        Set<String> getRoutes = handlerMapping.getHandlerMethods().keySet().stream()
                 .filter(this::supportsGet)
                 .flatMap(info -> info.getPatternValues().stream())
-                .anyMatch(route::equals);
+                .collect(Collectors.toSet());
+        return Map.of(
+                "places", getRoutes.contains("/api/places"),
+                "map", getRoutes.contains("/api/places/map"),
+                "bookmarks", getRoutes.contains("/api/bookmarks")
+        );
     }
 
     private boolean supportsGet(RequestMappingInfo info) {

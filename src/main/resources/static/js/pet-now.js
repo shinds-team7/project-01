@@ -245,6 +245,7 @@
         cards = $$('[data-host-card]');
         bindCardInteractions();
         updateFavoriteButtons();
+        sortCards(sortSelect?.value || "distance");
         applyFilters();
         if (apiStatus) apiStatus.textContent = `${places.length}개의 실제 장소 데이터를 불러왔습니다.`;
     }
@@ -345,15 +346,24 @@
         const region = $(".host-kicker", card)?.textContent.trim() || "";
         const rating = ($(".host-title-row > span", card)?.textContent.trim() || "").replace(/^★\s*/, "");
         const description = $(".host-description", card)?.textContent.trim() || "";
-        const price = $(".host-price", card)?.innerHTML || "";
+        const priceNode = $(".host-price", card);
 
-        image.src = cardImage?.currentSrc || cardImage?.src || "";
+        const imageSource = cardImage?.currentSrc || cardImage?.src || "";
+        if (imageSource) {
+            image.src = imageSource;
+            image.hidden = false;
+        } else {
+            image.removeAttribute("src");
+            image.hidden = true;
+        }
         image.alt = `${title} 공간 사진`;
         $("[data-detail-title]", dialog).textContent = title;
         $("[data-detail-region]", dialog).textContent = region;
         $("[data-detail-rating]", dialog).textContent = `★ ${rating}`;
         $("[data-detail-description]", dialog).textContent = description;
-        $("[data-detail-price]", dialog).innerHTML = price;
+        const priceTarget = $("[data-detail-price]", dialog);
+        priceTarget.replaceChildren();
+        if (priceNode) priceTarget.append(...[...priceNode.childNodes].map((node) => node.cloneNode(true)));
 
         const detailTags = $("[data-detail-tags]", dialog);
         detailTags.replaceChildren();
@@ -515,6 +525,8 @@
 
     $('[data-close-detail]')?.addEventListener("click", () => setDialogState($("#host-detail-dialog"), false));
 
+    const PLACE_TYPE_BY_FILTER = { house: "HOUSE", apartment: "APARTMENT" };
+
     $('[data-search-form]')?.addEventListener("submit", async (event) => {
         event.preventDefault();
         const scheduleForm = $('[data-schedule-form]');
@@ -527,7 +539,7 @@
             startTime: scheduleForm?.elements.startTime.value || "",
             endTime: scheduleForm?.elements.endTime.value || "",
             pets: $$('[name="pet"]:checked', petForm).map((input) => input.value),
-            placeType: state.filter === "all" ? "" : state.filter,
+            placeType: PLACE_TYPE_BY_FILTER[state.filter] || "",
             sort: sortSelect?.value || "distance"
         };
 
