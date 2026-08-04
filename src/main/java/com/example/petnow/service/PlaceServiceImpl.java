@@ -20,7 +20,7 @@ public class PlaceServiceImpl implements PlaceService{
         Place place = requestDTO.toEntity(userId);
 
         int result = placeMapper.insert(place);
-        if (result != 1 || place.getPlaceId() == null) {
+        if (result != 1 || place.getId() == null) {
             throw new BusinessException(PlaceErrorCode.PLACE_CREATE_FAILED);
         }
     }

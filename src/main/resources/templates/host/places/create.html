@@ -260,7 +260,7 @@
                 <div>
                     <label class="label" for="areaSize">평수 <span class="required">필수</span></label>
                     <div class="unit-control">
-                        <input id="areaSize" type="number" min="0.01" step="0.01" th:field="*{areaSize}" placeholder="32.00">
+                        <input id="areaSize" type="number" min="1" max="500" step="1" th:field="*{areaSize}" placeholder="32" required>
                         <span class="unit">평</span>
                     </div>
                     <p class="error" th:if="${#fields.hasErrors('areaSize')}" th:errors="*{areaSize}"></p>
@@ -268,7 +268,7 @@
                 <div>
                     <label class="label" for="capacity">최대 수용 <span class="required">필수</span></label>
                     <div class="unit-control">
-                        <input id="capacity" type="number" min="1" th:field="*{capacity}" placeholder="2">
+                        <input id="capacity" type="number" min="1" max="20" step="1" th:field="*{capacity}" placeholder="2" required>
                         <span class="unit">마리</span>
                     </div>
                     <p class="error" th:if="${#fields.hasErrors('capacity')}" th:errors="*{capacity}"></p>
@@ -299,18 +299,20 @@
             <h2 class="section-title">요금</h2>
             <div class="two-column">
                 <div>
-                    <label class="label" for="hourlyPrice">시간당 요금</label>
+                    <label class="label" for="hourlyPrice">시간당 요금 <span class="required">필수</span></label>
                     <div class="unit-control">
-                        <input id="hourlyPrice" type="number" min="0" step="100" th:field="*{hourlyPrice}" placeholder="10000">
+                        <input id="hourlyPrice" type="number" min="1" max="10000000" step="1" th:field="*{hourlyPrice}" placeholder="10000" required>
                         <span class="unit">원</span>
                     </div>
+                    <p class="error" th:if="${#fields.hasErrors('hourlyPrice')}" th:errors="*{hourlyPrice}"></p>
                 </div>
                 <div>
-                    <label class="label" for="nightlyPrice">1박 요금</label>
+                    <label class="label" for="nightlyPrice">1박 요금 <span class="required">필수</span></label>
                     <div class="unit-control">
-                        <input id="nightlyPrice" type="number" min="0" step="100" th:field="*{nightlyPrice}" placeholder="50000">
+                        <input id="nightlyPrice" type="number" min="1" max="10000000" step="1" th:field="*{nightlyPrice}" placeholder="50000" required>
                         <span class="unit">원</span>
                     </div>
+                    <p class="error" th:if="${#fields.hasErrors('nightlyPrice')}" th:errors="*{nightlyPrice}"></p>
                 </div>
             </div>
         </section>

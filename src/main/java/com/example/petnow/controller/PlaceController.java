@@ -3,6 +3,7 @@ package com.example.petnow.controller;
 import com.example.petnow.dto.request.PlaceCreateRequest;
 import com.example.petnow.entity.PlaceType;
 import com.example.petnow.service.PlaceService;
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
@@ -21,28 +22,35 @@ public class PlaceController {
     private final PlaceService placeService;
 
     @GetMapping("/create")
-    public String createForm(Model model) {
-        model.addAttribute(
-                "placeCreateRequest",
-                new PlaceCreateRequest()
-        );
+    public String createForm(Model model, HttpSession session) {
+        Long loginUserId = (Long) session.getAttribute("loginUserId");
+        if (loginUserId == null) {
+            return "redirect:/";
+        }
+
+        model.addAttribute("placeCreateRequest", new PlaceCreateRequest());
         addCreateFormAttributes(model);
 
         return "host/places/create";
     }
 
-    //TODO: 로그인 구현 후 세션 사용자 ID로 교체
     @PostMapping
     public String create(@Valid @ModelAttribute("placeCreateRequest") PlaceCreateRequest requestDTO,
                          BindingResult bindingResult,
-                         Model model) {
+                         Model model,
+                         HttpSession session) {
+
+        Long loginUserId = (Long) session.getAttribute("loginUserId");
+        if (loginUserId == null) {
+            return "redirect:/";
+        }
+
         if (bindingResult.hasErrors()) {
             addCreateFormAttributes(model);
             return "host/places/create";
         }
 
-        Long userId = 1L;
-        placeService.createPlace(userId, requestDTO);
+        placeService.createPlace(loginUserId, requestDTO);
 
         return "redirect:/host/places/success";
     }

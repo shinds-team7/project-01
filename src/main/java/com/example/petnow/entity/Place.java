@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Builder
 public class Place {
-    private Long placeId;
+    private Long id;
     private Long hostUserId;
     private String name;
     private String description;

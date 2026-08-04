@@ -6,8 +6,8 @@
     <insert id="insert"
             parameterType="com.example.petnow.entity.Place"
             useGeneratedKeys="true"
-            keyProperty="placeId"
-            keyColumn="place_id">
+            keyProperty="id"
+            keyColumn="id">
         INSERT INTO places (
         host_user_id,
         name,
