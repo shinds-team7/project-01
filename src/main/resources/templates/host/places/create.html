@@ -224,38 +224,21 @@
     </header>
 
     <form th:action="@{/host/places}" th:object="${placeCreateRequest}" method="post">
-        <input type="hidden" name="placeStatus" value="PUBLISHED">
-
         <section class="section">
             <div class="field">
-                <label class="label" for="title">장소명 <span class="required">필수</span></label>
-                <input class="control" id="title" type="text" th:field="*{title}"
-                       th:classappend="${#fields.hasErrors('title')} ? ' has-error'"
+                <label class="label" for="name">장소명 <span class="required">필수</span></label>
+                <input class="control" id="name" type="text" th:field="*{name}"
+                       th:classappend="${#fields.hasErrors('name')} ? ' has-error'"
                        maxlength="100" placeholder="예) 성수 조용한 단독주택 마당">
-                <p class="error" th:if="${#fields.hasErrors('title')}" th:errors="*{title}"></p>
+                <p class="error" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></p>
             </div>
 
             <div class="field">
-                <label class="label" for="address">주소 <span class="required">필수</span></label>
-                <input class="control" id="address" type="text" th:field="*{address}"
-                       th:classappend="${#fields.hasErrors('address')} ? ' has-error'"
-                       placeholder="예) 서울특별시 성동구 성수동 1가">
-                <p class="hint">주소 검색 기능 연결 전까지 직접 입력할 수 있습니다.</p>
-                <p class="error" th:if="${#fields.hasErrors('address')}" th:errors="*{address}"></p>
-            </div>
-
-            <div class="field">
-                <label class="label" for="detailAddress">상세주소 <span class="optional">선택</span></label>
-                <input class="control" id="detailAddress" type="text" th:field="*{detailAddress}"
-                       placeholder="동/호수, 출입 방법 등을 입력해주세요">
-            </div>
-
-            <div class="field">
-                <label class="label" for="info">소개글 <span class="required">필수</span></label>
-                <textarea class="control" id="info" th:field="*{info}"
-                          th:classappend="${#fields.hasErrors('info')} ? ' has-error'"
+                <label class="label" for="description">소개글 <span class="required">필수</span></label>
+                <textarea class="control" id="description" th:field="*{description}"
+                          th:classappend="${#fields.hasErrors('description')} ? ' has-error'"
                           placeholder="공간과 돌봄 환경을 자세히 소개해주세요."></textarea>
-                <p class="error" th:if="${#fields.hasErrors('info')}" th:errors="*{info}"></p>
+                <p class="error" th:if="${#fields.hasErrors('description')}" th:errors="*{description}"></p>
             </div>
         </section>
 
@@ -275,20 +258,20 @@
 
             <div class="two-column field">
                 <div>
-                    <label class="label" for="placeArea">평수 <span class="required">필수</span></label>
+                    <label class="label" for="areaSize">평수 <span class="required">필수</span></label>
                     <div class="unit-control">
-                        <input id="placeArea" type="number" min="1" th:field="*{placeArea}" placeholder="32">
+                        <input id="areaSize" type="number" min="1" max="500" step="1" th:field="*{areaSize}" placeholder="32" required>
                         <span class="unit">평</span>
                     </div>
-                    <p class="error" th:if="${#fields.hasErrors('placeArea')}" th:errors="*{placeArea}"></p>
+                    <p class="error" th:if="${#fields.hasErrors('areaSize')}" th:errors="*{areaSize}"></p>
                 </div>
                 <div>
-                    <label class="label" for="maxDogCount">최대 수용 <span class="required">필수</span></label>
+                    <label class="label" for="capacity">최대 수용 <span class="required">필수</span></label>
                     <div class="unit-control">
-                        <input id="maxDogCount" type="number" min="1" th:field="*{maxDogCount}" placeholder="2">
+                        <input id="capacity" type="number" min="1" max="20" step="1" th:field="*{capacity}" placeholder="2" required>
                         <span class="unit">마리</span>
                     </div>
-                    <p class="error" th:if="${#fields.hasErrors('maxDogCount')}" th:errors="*{maxDogCount}"></p>
+                    <p class="error" th:if="${#fields.hasErrors('capacity')}" th:errors="*{capacity}"></p>
                 </div>
             </div>
         </section>
@@ -296,18 +279,18 @@
         <section class="section">
             <h2 class="section-title">서비스 옵션 <span class="optional">선택</span></h2>
             <div class="option-grid">
-                <label class="option"><input type="checkbox" th:field="*{optionSmallDog}">소형견 가능</label>
-                <label class="option"><input type="checkbox" th:field="*{optionMediumDog}">중형견 가능</label>
-                <label class="option"><input type="checkbox" th:field="*{optionLargeDog}">대형견 가능</label>
-                <label class="option"><input type="checkbox" th:field="*{optionHomeCam}">홈캠 제공</label>
-                <label class="option"><input type="checkbox" th:field="*{optionRealTimePhoto}">실시간 사진 전송</label>
-                <label class="option"><input type="checkbox" th:field="*{optionYard}">마당 있음</label>
-                <label class="option"><input type="checkbox" th:field="*{optionWalkService}">산책 제공</label>
-                <label class="option"><input id="optionEtc" type="checkbox" th:field="*{optionEtc}">기타</label>
+                <label class="option"><input type="checkbox" th:field="*{allowsSmallDog}">소형견 가능</label>
+                <label class="option"><input type="checkbox" th:field="*{allowsMediumDog}">중형견 가능</label>
+                <label class="option"><input type="checkbox" th:field="*{allowsLargeDog}">대형견 가능</label>
+                <label class="option"><input type="checkbox" th:field="*{providesHomeCamera}">홈캠 제공</label>
+                <label class="option"><input type="checkbox" th:field="*{providesRealtimePhoto}">실시간 사진 전송</label>
+                <label class="option"><input type="checkbox" th:field="*{providesYard}">마당 있음</label>
+                <label class="option"><input type="checkbox" th:field="*{providesWalk}">산책 제공</label>
+                <label class="option"><input id="otherOptionsEnabled" type="checkbox" th:field="*{otherOptionsEnabled}">기타</label>
             </div>
-            <div id="etcField" class="etc-field" th:classappend="*{optionEtc} ? ' is-visible'">
-                <label class="label" for="optionText">기타 옵션</label>
-                <input class="control" id="optionText" type="text" th:field="*{optionText}"
+            <div id="otherOptionsField" class="etc-field" th:classappend="*{otherOptionsEnabled} ? ' is-visible'">
+                <label class="label" for="otherOptions">기타 옵션</label>
+                <input class="control" id="otherOptions" type="text" th:field="*{otherOptions}"
                        placeholder="예) 노령견 투약 케어 가능">
             </div>
         </section>
@@ -316,18 +299,20 @@
             <h2 class="section-title">요금</h2>
             <div class="two-column">
                 <div>
-                    <label class="label" for="hourPrice">시간당 요금</label>
+                    <label class="label" for="hourlyPrice">시간당 요금 <span class="required">필수</span></label>
                     <div class="unit-control">
-                        <input id="hourPrice" type="number" min="0" step="100" th:field="*{hourPrice}" placeholder="10000">
+                        <input id="hourlyPrice" type="number" min="1" max="10000000" step="1" th:field="*{hourlyPrice}" placeholder="10000" required>
                         <span class="unit">원</span>
                     </div>
+                    <p class="error" th:if="${#fields.hasErrors('hourlyPrice')}" th:errors="*{hourlyPrice}"></p>
                 </div>
                 <div>
-                    <label class="label" for="dayPrice">1박 요금</label>
+                    <label class="label" for="nightlyPrice">1박 요금 <span class="required">필수</span></label>
                     <div class="unit-control">
-                        <input id="dayPrice" type="number" min="0" step="100" th:field="*{dayPrice}" placeholder="50000">
+                        <input id="nightlyPrice" type="number" min="1" max="10000000" step="1" th:field="*{nightlyPrice}" placeholder="50000" required>
                         <span class="unit">원</span>
                     </div>
+                    <p class="error" th:if="${#fields.hasErrors('nightlyPrice')}" th:errors="*{nightlyPrice}"></p>
                 </div>
             </div>
         </section>
@@ -337,17 +322,17 @@
 </main>
 
 <script>
-    const etcCheckbox = document.getElementById('optionEtc');
-    const etcField = document.getElementById('etcField');
+    const otherOptionsCheckbox = document.getElementById('otherOptionsEnabled');
+    const otherOptionsField = document.getElementById('otherOptionsField');
 
-    function syncEtcField() {
-        etcField.classList.toggle('is-visible', etcCheckbox.checked);
-        if (!etcCheckbox.checked) {
-            document.getElementById('optionText').value = '';
+    function syncOtherOptionsField() {
+        otherOptionsField.classList.toggle('is-visible', otherOptionsCheckbox.checked);
+        if (!otherOptionsCheckbox.checked) {
+            document.getElementById('otherOptions').value = '';
         }
     }
 
-    etcCheckbox.addEventListener('change', syncEtcField);
+    otherOptionsCheckbox.addEventListener('change', syncOtherOptionsField);
 </script>
 </body>
 </html>

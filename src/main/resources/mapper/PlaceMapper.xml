@@ -6,53 +6,44 @@
     <insert id="insert"
             parameterType="com.example.petnow.entity.Place"
             useGeneratedKeys="true"
-            keyProperty="id">
-        INSERT INTO place (
-        user_id,
-        title,
-        address,
-        detail_address,
-        info,
+            keyProperty="id"
+            keyColumn="id">
+        INSERT INTO places (
+        host_user_id,
+        name,
+        description,
         place_type,
-        place_area,
-        max_dog_count,
-        option_small_dog,
-        option_medium_dog,
-        option_large_dog,
-        option_home_cam,
-        option_real_time_photo,
-        option_yard,
-        option_walk_service,
-        option_etc,
-        option_text,
-        hour_price,
-        day_price,
-        place_status,
-        created_at,
-        updated_at
+        area_size,
+        capacity,
+        allows_small_dog,
+        allows_medium_dog,
+        allows_large_dog,
+        provides_home_camera,
+        provides_realtime_photo,
+        provides_yard,
+        provides_walk,
+        other_options,
+        hourly_price,
+        nightly_price,
+        status
         ) VALUES (
-        #{userId},
-        #{title},
-        #{address},
-        #{detailAddress},
-        #{info},
+        #{hostUserId},
+        #{name},
+        #{description},
         #{placeType},
-        #{placeArea},
-        #{maxDogCount},
-        #{optionSmallDog},
-        #{optionMediumDog},
-        #{optionLargeDog},
-        #{optionHomeCam},
-        #{optionRealTimePhoto},
-        #{optionYard},
-        #{optionWalkService},
-        #{optionEtc},
-        #{optionText},
-        #{hourPrice},
-        #{dayPrice},
-        #{placeStatus},
-        NOW(),
-        NOW()
+        #{areaSize},
+        #{capacity},
+        #{allowsSmallDog},
+        #{allowsMediumDog},
+        #{allowsLargeDog},
+        #{providesHomeCamera},
+        #{providesRealtimePhoto},
+        #{providesYard},
+        #{providesWalk},
+        #{otherOptions},
+        #{hourlyPrice},
+        #{nightlyPrice},
+        #{status}
         )
     </insert>
     <select id="findAllByUserId"

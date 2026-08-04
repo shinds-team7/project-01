@@ -1,0 +1,17 @@
+services:
+  mariadb:
+    image: mariadb:11
+    container_name: petnow-mariadb
+    restart: unless-stopped
+    environment:
+      MARIADB_DATABASE: petnow
+      MARIADB_USER: ${DB_USERNAME}
+      MARIADB_PASSWORD: ${DB_PASSWORD}
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mariadb-data:/var/lib/mysql
+
+volumes:
+  mariadb-data:

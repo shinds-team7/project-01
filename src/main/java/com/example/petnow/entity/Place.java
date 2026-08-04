@@ -1,7 +1,12 @@
 package com.example.petnow.entity;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Getter
@@ -11,26 +16,24 @@ import java.time.LocalDateTime;
 @Builder
 public class Place {
     private Long id;
-    private Long userId;
-    private String title;
-    private String address;
-    private String detailAddress;
-    private String info;
+    private Long hostUserId;
+    private String name;
+    private String description;
     private PlaceType placeType;
-    private Integer placeArea;
-    private Integer maxDogCount;
-    private boolean optionSmallDog;
-    private boolean optionMediumDog;
-    private boolean optionLargeDog;
-    private boolean optionHomeCam;
-    private boolean optionRealTimePhoto;
-    private boolean optionYard;
-    private boolean optionWalkService;
-    private boolean optionEtc;
-    private String optionText;
-    private Long hourPrice;
-    private Long dayPrice;
-    private PlaceStatus placeStatus;
+    private BigDecimal areaSize;
+    private Integer capacity;
+    private boolean allowsSmallDog;
+    private boolean allowsMediumDog;
+    private boolean allowsLargeDog;
+    private boolean providesHomeCamera;
+    private boolean providesRealtimePhoto;
+    private boolean providesYard;
+    private boolean providesWalk;
+    private String otherOptions;
+    private BigDecimal hourlyPrice;
+    private BigDecimal nightlyPrice;
+    private PlaceStatus status;
+    private boolean visible;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private LocalDateTime deletedAt;

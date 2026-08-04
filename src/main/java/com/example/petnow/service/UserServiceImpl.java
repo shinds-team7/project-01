@@ -3,8 +3,8 @@ package com.example.petnow.service;
 import com.example.petnow.dto.request.UserLoginRequest;
 import com.example.petnow.dto.request.UserSignupRequest;
 import com.example.petnow.entity.User;
+import com.example.petnow.exception.AuthErrorCode;
 import com.example.petnow.exception.BusinessException;
-import com.example.petnow.exception.ErrorCode;
 import com.example.petnow.mapper.UserMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -30,16 +30,17 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void login(UserLoginRequest request) {
+    public Long login(UserLoginRequest request) {
 
         User user = userMapper.findByEmail(request.getEmail());
 
         if (user == null) {
-            throw new BusinessException(ErrorCode.INVALID_CREDENTIALS);
+            throw new BusinessException(AuthErrorCode.INVALID_CREDENTIALS);
         }
 
-        if (!user.getPassword().equals(request.getPassword())) {
-            throw new BusinessException(ErrorCode.INVALID_CREDENTIALS);
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            throw new BusinessException(AuthErrorCode.INVALID_CREDENTIALS);
         }
+        return user.getId();
     }
 }

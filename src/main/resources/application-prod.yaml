@@ -1,0 +1,19 @@
+spring:
+  datasource:
+    driver-class-name: org.mariadb.jdbc.Driver
+    # EC2 안에서 docker-compose로 mariadb 컨테이너를 같이 띄우는 구성 -> 호스트는 서비스명(mariadb)
+    url: jdbc:mariadb://${DB_HOST:mariadb}:3306/petnow
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 10
+  flyway:
+    # 기존 운영 DB를 처음 연결할 때만 true로 설정한다.
+    baseline-on-migrate: ${FLYWAY_BASELINE_ON_MIGRATE:false}
+    baseline-version: ${FLYWAY_BASELINE_VERSION:4}
+
+logging:
+  level:
+    root: warn
+    com.example.petnow: info

@@ -4,7 +4,7 @@ import com.example.petnow.dto.request.PlaceCreateRequest;
 import com.example.petnow.dto.response.PlaceListResponse;
 import com.example.petnow.entity.Place;
 import com.example.petnow.exception.BusinessException;
-import com.example.petnow.exception.ErrorCode;
+import com.example.petnow.exception.PlaceErrorCode;
 import com.example.petnow.mapper.PlaceMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -25,7 +25,7 @@ public class PlaceServiceImpl implements PlaceService{
 
         int result = placeMapper.insert(place);
         if (result != 1 || place.getId() == null) {
-            throw new BusinessException(ErrorCode.PLACE_CREATE_FAILED);
+            throw new BusinessException(PlaceErrorCode.PLACE_CREATE_FAILED);
         }
     }
 

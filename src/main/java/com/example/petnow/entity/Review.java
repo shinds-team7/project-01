@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 @Builder
 public class Review extends BaseEntity {
     private Long id;
-    private Integer score;
-    private String comment;
+    private Integer rating;
+    private String content;
     private Long reservationId;     // FK
 }

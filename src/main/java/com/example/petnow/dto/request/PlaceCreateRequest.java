@@ -3,12 +3,11 @@ package com.example.petnow.dto.request;
 import com.example.petnow.entity.Place;
 import com.example.petnow.entity.PlaceStatus;
 import com.example.petnow.entity.PlaceType;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.math.BigDecimal;
 
 @Data
 @NoArgsConstructor
@@ -16,65 +15,79 @@ public class PlaceCreateRequest {
 
     @NotBlank(message = "장소명을 입력해주세요.")
     @Size(max = 100, message = "장소명은 100자 이하로 입력해주세요.")
-    private String title;
-
-    @NotBlank(message = "주소를 입력해주세요.")
-    private String address;
-
-    private String detailAddress;
+    private String name;
 
     @NotBlank(message = "소개글을 필수로 입력해주세요")
-    private String info;
+    private String description;
 
     @NotNull(message = "장소 유형을 선택해주세요.")
     private PlaceType placeType;
 
     @NotNull(message = "장소 면적을 입력해주세요.")
     @Positive(message = "장소 면적은 0보다 커야 합니다.")
-    private Integer placeArea;
+    @DecimalMax("500.00")
+    @Digits(
+            integer = 3,
+            fraction = 0,
+            message = "장소 면적은 소수점 없이 입력해주세요."
+    )
+    private BigDecimal areaSize;
 
     @NotNull(message = "최대 마릿수를 입력해주세요.")
     @Positive(message = "최대 마릿수는 1마리 이상이어야 합니다.")
-    private Integer maxDogCount;
+    @Max(value = 20, message = "최대 마릿수는 20마리 이하여야 합니다.")
+    private Integer capacity;
 
-    private boolean optionSmallDog;
-    private boolean optionMediumDog;
-    private boolean optionLargeDog;
-    private boolean optionHomeCam;
-    private boolean optionRealTimePhoto;
-    private boolean optionYard;
-    private boolean optionWalkService;
-    private boolean optionEtc;
+    private boolean allowsSmallDog;
+    private boolean allowsMediumDog;
+    private boolean allowsLargeDog;
+    private boolean providesHomeCamera;
+    private boolean providesRealtimePhoto;
+    private boolean providesYard;
+    private boolean providesWalk;
+    private boolean otherOptionsEnabled;
 
-    private String optionText;
-    private Long hourPrice;
-    private Long dayPrice;
+    private String otherOptions;
 
-    @NotNull(message = "게시 상태를 선택해주세요.")
-    private PlaceStatus placeStatus;
+    @NotNull(message = "시간당 요금을 입력해주세요.")
+    @Positive(message = "시간당 요금은 0보다 커야 합니다.")
+    @DecimalMax(value = "10000000", message = "시간당 요금의 최대값은 1천만원 이하이어야 합니다.")
+    @Digits(
+            integer = 8,
+            fraction = 0,
+            message = "시간당 요금은 소수점 없이 입력해주세요."
+    )
+    private BigDecimal hourlyPrice;
+
+    @NotNull(message = "1박당 요금을 입력해주세요.")
+    @Positive(message = "1박당 요금은 0보다 커야 합니다.")
+    @DecimalMax(value = "10000000", message = "1박당 요금의 최대값은 1천만원 이하이어야 합니다.")
+    @Digits(
+            integer = 8,
+            fraction = 0,
+            message = "1박당 요금은 소수점 없이 입력해주세요."
+    )
+    private BigDecimal nightlyPrice;
 
     public Place toEntity(Long userId) {
         return Place.builder()
-                .userId(userId)
-                .title(title)
-                .address(address)
-                .detailAddress(detailAddress)
-                .info(info)
+                .hostUserId(userId)
+                .name(name)
+                .description(description)
                 .placeType(placeType)
-                .placeArea(placeArea)
-                .maxDogCount(maxDogCount)
-                .optionSmallDog(optionSmallDog)
-                .optionMediumDog(optionMediumDog)
-                .optionLargeDog(optionLargeDog)
-                .optionHomeCam(optionHomeCam)
-                .optionRealTimePhoto(optionRealTimePhoto)
-                .optionYard(optionYard)
-                .optionWalkService(optionWalkService)
-                .optionEtc(optionEtc)
-                .optionText(optionEtc ? optionText : null)
-                .hourPrice(hourPrice)
-                .dayPrice(dayPrice)
-                .placeStatus(placeStatus)
+                .areaSize(areaSize)
+                .capacity(capacity)
+                .allowsSmallDog(allowsSmallDog)
+                .allowsMediumDog(allowsMediumDog)
+                .allowsLargeDog(allowsLargeDog)
+                .providesHomeCamera(providesHomeCamera)
+                .providesRealtimePhoto(providesRealtimePhoto)
+                .providesYard(providesYard)
+                .providesWalk(providesWalk)
+                .otherOptions(otherOptionsEnabled ? otherOptions : null)
+                .hourlyPrice(hourlyPrice)
+                .nightlyPrice(nightlyPrice)
+                .status(PlaceStatus.PENDING)
                 .build();
     }
 }
