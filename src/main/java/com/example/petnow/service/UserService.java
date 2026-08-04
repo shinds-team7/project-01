@@ -7,5 +7,5 @@ import com.example.petnow.entity.User;
 public interface UserService {
     void signup(UserSignupRequest request);
 
-    User login(UserLoginRequest request);
+    Long login(UserLoginRequest request);
 }

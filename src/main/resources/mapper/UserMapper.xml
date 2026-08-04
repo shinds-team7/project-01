@@ -22,7 +22,7 @@
 
     <select id="findByEmail" resultType="com.example.petnow.entity.User">
 
-        SELECT email, nickname, password
+        SELECT id, email, nickname, password
         FROM users
         WHERE email = #{email}
 
