@@ -1,5 +1,6 @@
 package com.example.petnow.controller;
 
+import com.example.petnow.common.constant.SessionConst;
 import com.example.petnow.dto.request.UserLoginRequest;
 import com.example.petnow.dto.request.UserSignupRequest;
 import com.example.petnow.entity.User;
@@ -33,7 +34,7 @@ public class UserController {
 
         Long userId = userService.login(request);
 
-        session.setAttribute("loginUserId", userId);
+        session.setAttribute(SessionConst.LOGIN_USER_ID, userId);
 
         return "mypage";
     }
