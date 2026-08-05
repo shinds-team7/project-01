@@ -1,6 +1,7 @@
 package com.example.petnow.service;
 
 import com.example.petnow.dto.request.PlaceCreateRequest;
+import com.example.petnow.dto.response.PlaceDetailResponse;
 import com.example.petnow.dto.response.PlaceListResponse;
 
 import java.util.List;
@@ -20,4 +21,6 @@ public interface PlaceService {
      * @return 호스트 ID로 조회되는 장소정보의 리스트형
      */
     List<PlaceListResponse> getPlacesByUserId(Long userId);
+
+    PlaceDetailResponse getPlaceDetail(Long placeId, Long loginUserId);
 }
