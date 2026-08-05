@@ -104,7 +104,7 @@
 
     exitButton?.addEventListener("click", () => {
         if (!dirty) {
-            window.location.assign("/");
+            window.location.assign("/places");
             return;
         }
         if (typeof exitDialog?.showModal === "function") {

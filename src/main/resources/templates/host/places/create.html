@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#123b33">
+    <meta name="theme-color" content="#22a45c">
     <title>돌봄 공간 등록 | Pet NOW</title>
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
     <link rel="alternate icon" href="/favicon.ico">
@@ -11,20 +11,26 @@
     <link rel="preconnect" href="https://cdn.jsdelivr.net">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
+    <link rel="stylesheet" href="../../../static/css/pet-now.css" th:href="@{/css/pet-now.css}">
     <link rel="stylesheet" href="../../../static/css/host-place.css" th:href="@{/css/host-place.css}">
     <script defer src="../../../static/js/host-place.js" th:src="@{/js/host-place.js}"></script>
 </head>
 <body class="host-place-page">
 <a class="skip-link" href="#place-form">등록 양식으로 바로가기</a>
 
-<header class="host-header">
-    <div class="host-header-inner">
-        <a class="brand" href="/" aria-label="Pet NOW 홈">
+<header class="site-header is-scrolled host-header">
+    <div class="header-inner host-header-inner">
+        <a class="brand" href="/places" aria-label="Pet NOW 홈">
             <span class="brand-mark material-symbols-rounded" aria-hidden="true">pets</span>
             <span>Pet <b>NOW</b></span>
         </a>
         <span class="host-center-label"><i aria-hidden="true"></i> 호스트 센터</span>
+        <nav class="desktop-nav host-nav" aria-label="주요 메뉴">
+            <a href="/places">펫시터 찾기</a>
+            <a href="/places#care">안심 돌봄</a>
+            <a href="/places#how-it-works">이용 방법</a>
+        </nav>
         <div class="header-actions">
             <span class="save-status" data-save-status><i aria-hidden="true"></i> 브라우저에서 입력 중</span>
             <button type="button" data-exit-form><span class="material-symbols-rounded" aria-hidden="true">close</span><span>나가기</span></button>
@@ -250,7 +256,7 @@
         <span class="material-symbols-rounded" aria-hidden="true">edit_note</span>
         <h2 id="exit-title">작성을 그만할까요?</h2>
         <p>아직 임시 저장 기능이 없어 입력한 내용이 사라질 수 있어요.</p>
-        <div><button type="button" data-stay-form>계속 작성</button><a href="/">나가기</a></div>
+        <div><button type="button" data-stay-form>계속 작성</button><a href="/places">나가기</a></div>
     </div>
 </dialog>
 
