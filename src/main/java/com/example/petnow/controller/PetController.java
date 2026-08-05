@@ -25,8 +25,9 @@ public class PetController {
     }
 
     @GetMapping("/detail/{petId}")
-    public String getDetail(@PathVariable Long petId, Model model){
-        PetDetailResponse pet = petService.getDetail(petId);
+    public String getDetail(@PathVariable Long petId, Model model, HttpSession session){
+        Long userId = (Long) session.getAttribute(SessionConst.LOGIN_USER_ID);
+        PetDetailResponse pet = petService.getDetail(userId, petId);
         model.addAttribute("pet",pet);
         return "mypage/petUpdate";
     }

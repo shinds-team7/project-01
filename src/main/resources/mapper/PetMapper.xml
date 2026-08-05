@@ -67,6 +67,8 @@
         memo
         FROM pets
         WHERE id = #{petId}
+        AND
+        user_id = #{userId}
         AND deleted_at IS NULL
     </select>
 

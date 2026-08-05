@@ -55,7 +55,7 @@ public class PetServiceImpl implements PetService {
 
     @Override
     @Transactional(readOnly = true)
-    public PetDetailResponse getDetail(Long petId){
-        return petMapper.getDetail(petId);
+    public PetDetailResponse getDetail(Long userId, Long petId){
+        return petMapper.getDetail(userId, petId);
     }
 }

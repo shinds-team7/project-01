@@ -16,5 +16,5 @@ public interface PetMapper {
 
     void updatePet(PetUpdateRequest pet);
 
-    PetDetailResponse getDetail(Long petId);
+    PetDetailResponse getDetail(Long userId, Long petId);
 }
