@@ -1,4 +1,4 @@
-package com.example.petnow.dto;
+package com.example.petnow.dto.response;
 
 import lombok.Builder;
 import lombok.Getter;
