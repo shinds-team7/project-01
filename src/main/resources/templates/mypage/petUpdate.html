@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>반려동물 상세조회 테스트</title>
+</head>
+<body>
+
+<h2>반려동물 상세조회</h2>
+
+<p>이름 : <span th:text="${pet.name}"></span></p>
+<p>크기 : <span th:text="${pet.size}"></span></p>
+<p>몸무게 : <span th:text="${pet.weight}"></span></p>
+<p>출생연도 : <span th:text="${pet.birthYear}"></span></p>
+<p>성별 : <span th:text="${pet.sex}"></span></p>
+<p>중성화 : <span th:text="${pet.isNeutered}"></span></p>
+<p>메모 : <span th:text="${pet.memo}"></span></p>
+
+</body>
+</html>
