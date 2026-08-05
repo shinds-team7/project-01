@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import com.example.petnow.dto.ErrorResponse;
+import com.example.petnow.dto.response.ErrorResponse;
 
 import lombok.extern.slf4j.Slf4j;
 
