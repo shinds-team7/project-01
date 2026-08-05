@@ -67,4 +67,32 @@
         AND deleted_at IS NULL
         ORDER BY id DESC
     </select>
+
+    <select id="findDetailById"
+            resultType="com.example.petnow.dto.response.PlaceDetailResponse">
+        SELECT
+        id,
+        host_user_id AS hostUserId,
+        nickname,
+        name,
+        description,
+        place_type AS placeType,
+        area_size AS areaSize,
+        capacity,
+        allows_small_dog AS allowsSmallDog,
+        allows_medium_dog AS allowsMediumDog,
+        allows_large_dog AS allowsLargeDog,
+        provides_home_camera AS providesHomeCamera,
+        provides_realtime_photo AS providesRealtimePhoto,
+        provides_yard AS providesYard,
+        provides_walk AS providesWalk,
+        other_options AS otherOptions,
+        hourly_price AS hourlyPrice,
+        nightly_price AS nightlyPrice,
+        status,
+        is_visible AS visible
+        FROM places
+        WHERE id = #{placeId}
+        AND deleted_at IS NULL
+    </select>
 </mapper>
