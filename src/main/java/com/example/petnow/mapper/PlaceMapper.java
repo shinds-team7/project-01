@@ -11,5 +11,7 @@ import java.util.List;
 public interface PlaceMapper {
     int insert(Place place);
 
+    Place findById(@Param("id") Long id);
+  
     List<PlaceListResponse> findAllByUserId(@Param("userId") Long userId);
 }
