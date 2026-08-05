@@ -3,19 +3,27 @@
 <mapper namespace="com.example.petnow.mapper.ReservationMapper">
 
     <resultMap id="ReservationDetailMap" type="com.example.petnow.entity.Reservation">
-        <id property="id" column="reservation_id"/>
-        <result property="userId" column="user_id"/>
+        <id property="id" column="id"/>
+        <result property="userId" column="guest_user_id"/>
         <result property="placeId" column="place_id"/>
+        <result property="reservationType" column="reservation_type"/>
+        <result property="checkIn" column="check_in_at"/>
+        <result property="checkOut" column="check_out_at"/>
         <result property="status" column="status"/>
-        <result property="checkIn" column="check_in"/>
-        <result property="checkOut" column="check_out"/>
+        <result property="memo" column="request_message"/>
+        <result property="totalPrice" column="total_price"/>
+        <result property="respondedAt" column="responded_at"/>
+        <result property="canceledAt" column="canceled_at"/>
+        <result property="cancelReason" column="cancel_reason"/>
         <result property="createdAt" column="created_at"/>
         <result property="updatedAt" column="updated_at"/>
     </resultMap>
 
     <insert id="save" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO reservations (user_id, place_id, check_in, check_out, status, memo)
-        VALUES (#{userId}, #{placeId}, #{checkIn}, #{checkOut}, #{status}, #{memo})
+        INSERT INTO reservations
+        (guest_user_id, place_id, reservation_type, check_in_at, check_out_at, status, request_message, total_price)
+        VALUES
+        (#{userId}, #{placeId}, #{reservationType}, #{checkIn}, #{checkOut}, #{status}, #{memo}, #{totalPrice})
     </insert>
 
     <insert id="saveReservationPets">
