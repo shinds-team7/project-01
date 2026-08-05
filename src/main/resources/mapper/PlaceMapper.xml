@@ -46,4 +46,15 @@
         #{status}
         )
     </insert>
+    <select id="findAllByUserId"
+            resultType="com.example.petnow.dto.response.PlaceListResponse">
+        SELECT
+        id,
+        name,
+        status
+        FROM places
+        WHERE host_user_id = #{userId}
+        AND deleted_at IS NULL
+        ORDER BY id DESC
+    </select>
 </mapper>

@@ -39,7 +39,6 @@ public class PlaceController {
                          BindingResult bindingResult,
                          Model model,
                          HttpSession session) {
-
         Long loginUserId = (Long) session.getAttribute("loginUserId");
         if (loginUserId == null) {
             return "redirect:/";
@@ -62,5 +61,17 @@ public class PlaceController {
 
     private void addCreateFormAttributes(Model model) {
         model.addAttribute("placeTypes", PlaceType.values());
+    }
+
+    @GetMapping
+    public String list(Model model, HttpSession session) {
+        Long loginUserId = (Long) session.getAttribute("loginUserId");
+        if (loginUserId == null) {
+            return "redirect:/";
+        }
+
+        model.addAttribute("places", placeService.getPlacesByUserId(loginUserId));
+
+        return "host/places/list";
     }
 }
