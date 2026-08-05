@@ -14,5 +14,10 @@ public interface PlaceService {
      */
     void createPlace(Long userId, PlaceCreateRequest request);
 
+    /**
+     *
+     * @param userId 현재 호스트의 ID
+     * @return 호스트 ID로 조회되는 장소정보의 리스트형
+     */
     List<PlaceListResponse> getPlacesByUserId(Long userId);
 }
