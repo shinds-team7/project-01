@@ -11,11 +11,12 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
-@RequestMapping("/host/places")
+@RequestMapping("/places")
 @RequiredArgsConstructor
 public class PlaceController {
 
@@ -31,7 +32,7 @@ public class PlaceController {
         model.addAttribute("placeCreateRequest", new PlaceCreateRequest());
         addCreateFormAttributes(model);
 
-        return "host/places/create";
+        return "places/create";
     }
 
     @PostMapping
@@ -46,32 +47,42 @@ public class PlaceController {
 
         if (bindingResult.hasErrors()) {
             addCreateFormAttributes(model);
-            return "host/places/create";
+            return "places/create";
         }
 
         placeService.createPlace(loginUserId, requestDTO);
 
-        return "redirect:/host/places/success";
+        return "redirect:/places/success";
     }
 
     @GetMapping("/success")
     public String createSuccess() {
-        return "host/places/success";
+        return "places/success";
     }
 
     private void addCreateFormAttributes(Model model) {
         model.addAttribute("placeTypes", PlaceType.values());
     }
 
-    @GetMapping
+    @GetMapping("/manage")
     public String list(Model model, HttpSession session) {
-        Long loginUserId = (Long) session.getAttribute("loginUserId");
+        Long loginUserId = 1L;
+//        Long loginUserId = (Long) session.getAttribute("loginUserId");
         if (loginUserId == null) {
             return "redirect:/";
         }
 
         model.addAttribute("places", placeService.getPlacesByUserId(loginUserId));
 
-        return "host/places/list";
+        return "places/manage";
+    }
+
+    @GetMapping("/{placeId:\\d+}")
+    public String detail(@PathVariable Long placeId, Model model, HttpSession session) {
+        Long loginUserId = (Long) session.getAttribute("loginUserId");
+
+        model.addAttribute("place", placeService.getPlaceDetail(placeId, loginUserId));
+
+        return "places/detail";
     }
 }
