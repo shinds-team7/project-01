@@ -6,9 +6,18 @@
 
 <mapper namespace="com.example.petnow.mapper.ReviewMapper">
 
+    <!-- 리뷰 등록 -->
     <insert id="insertReview">
-        INSERT INTO reviews ( rating, content, reservation_id )
-        VALUES ( #{rating}, #{content}, #{reservationId} )
+        INSERT INTO reviews ( reservation_id, rating, content )
+        VALUES ( #{reservationId}, #{rating}, #{content} )
     </insert>
+
+    <!-- 리뷰 작성 권한 체크 (해당 예약이 로그인된 유저의 예약이 맞는지 학인) -->
+    <select id="countReservationOwnedByMember" resultType="int">
+        SELECT COUNT(*)
+        FROM reservations
+        WHERE id = #{reservationId}
+        AND guest_user_id = #{memberId}
+    </select>
 
 </mapper>
