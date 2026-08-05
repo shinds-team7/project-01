@@ -27,4 +27,12 @@
         WHERE email = #{email}
 
     </select>
+
+    <select id="findById" resultType="com.example.petnow.entity.User">
+
+        SELECT id, email, nickname
+        FROM users
+        WHERE id = #{userId}
+
+    </select>
 </mapper>

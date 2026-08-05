@@ -8,11 +8,13 @@ import com.example.petnow.service.UserService;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+@Slf4j
 @Controller
 @RequestMapping("/user")
 @RequiredArgsConstructor
@@ -34,6 +36,10 @@ public class UserController {
         Long userId = userService.login(request);
 
         session.setAttribute(SessionConst.LOGIN_USER_ID, userId);
+
+        // 세션 저장 test
+        log.info("세션에 저장된 userId: {}",
+                session.getAttribute(SessionConst.LOGIN_USER_ID));
 
         return "mypage";
     }
