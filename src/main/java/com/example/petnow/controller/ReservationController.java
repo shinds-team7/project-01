@@ -11,7 +11,7 @@ import com.example.petnow.dto.request.ReservationRequest;
 import com.example.petnow.service.ReservationService;
 
 @Controller
-@RequestMapping("/api/reservation")
+@RequestMapping("/reservation")
 public class ReservationController {
 	private final ReservationService reservationService;
 
@@ -20,8 +20,8 @@ public class ReservationController {
 	}
 
 	@PostMapping("/create")
-	public String save(@RequestBody ReservationRequest request, @RequestParam Long userId) {
-		reservationService.save(request, userId);
+	public String saveReservation(@RequestBody ReservationRequest request, @RequestParam Long userId) {
+		reservationService.saveReservation(request, userId);
 		return "reservationDetail";
 	}
 }
