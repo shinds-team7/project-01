@@ -6,7 +6,7 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public enum PlaceStatus {
-    PENDING("승인 대기"),
+    PENDING("임시저장"),
     PUBLISHED("게시");
 
     private final String label;
