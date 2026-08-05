@@ -3,10 +3,12 @@ package com.example.petnow.controller;
 import com.example.petnow.common.constant.SessionConst;
 import com.example.petnow.dto.request.PetCreateRequest;
 import com.example.petnow.dto.request.PetUpdateRequest;
+import com.example.petnow.dto.response.PetDetailResponse;
 import com.example.petnow.service.PetService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 @Controller
@@ -20,6 +22,13 @@ public class PetController {
         Long userId = (Long) session.getAttribute(SessionConst.LOGIN_USER_ID);
         petService.createPet(userId, createRequest);
         return "mypage";
+    }
+
+    @GetMapping("/detail/{petId}")
+    public String getDetail(@PathVariable Long petId, Model model){
+        PetDetailResponse pet = petService.getDetail(petId);
+        model.addAttribute("pet",pet);
+        return "mypage/petUpdate";
     }
 
     @PostMapping("/update")
