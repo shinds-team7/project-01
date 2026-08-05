@@ -1,5 +1,6 @@
 package com.example.petnow.controller;
 
+import com.example.petnow.common.constant.SessionConst;
 import com.example.petnow.dto.request.ReviewCreateRequest;
 import com.example.petnow.dto.response.ReviewResponse;
 import com.example.petnow.service.ReviewService;
@@ -23,7 +24,7 @@ public class ReviewController {
     /**
      * 리뷰 작성 폼 화면
      * GET /reviews/new?reservationId=1
-     * -> templates/review/form.html
+     * -> templates/reviews/form.html
      */
     @GetMapping("/new")
     public String reviewForm(@RequestParam Long reservationId, Model model,  HttpSession session) {
@@ -37,7 +38,7 @@ public class ReviewController {
         form.setReservationId(reservationId);
         model.addAttribute("form", form);
 
-        return "review/create";     // 테스트용.
+        return "reviews/create";     // 테스트용.
     }
 
     /**
@@ -51,7 +52,7 @@ public class ReviewController {
                                HttpSession session) {
         if (bindingResult.hasErrors()) {
             // 검증 실패 시 다시 작성 폼으로
-            return "review/create";     // 테스트용.
+            return "reviews/create";     // 테스트용.
         }
 
         // 로그인 안 되어 있으면 "redirect:/" 리턴
@@ -62,7 +63,7 @@ public class ReviewController {
 
         reviewService.createReview(loginUserId, request);
 
-        return "redirect:/reviews/create";      // 테스트용. 내 리뷰 목록으로 바꿔야함
+        return "redirect:/reviews/list";      // 테스트용. 내 리뷰 목록으로 바꿔야함
     }
 
 
