@@ -7,6 +7,7 @@
 --   1) 모든 테이블의 자체 PK는 id로 통일한다.
 --   2) FK는 참조 대상에 따라 {대상}_id 형식으로 작성한다.
 --   3) place_type은 PlaceType enum(APARTMENT, HOUSE, OFFICETEL)과 동기화한다.
+--   4) pets.size는 SMALL, MEDIUM, LARGE enum 값으로 관리한다.
 -- =====================================================================
 
 CREATE DATABASE IF NOT EXISTS petnow
@@ -81,8 +82,8 @@ CREATE TABLE pets (
     breed       VARCHAR(50)   NULL,
     sex         VARCHAR(10)   NULL,
     is_neutered BOOLEAN       NOT NULL DEFAULT FALSE,
-    size        VARCHAR(10)   NULL,
-    birth_year  SMALLINT      NULL,
+    size        ENUM('SMALL', 'MEDIUM', 'LARGE') NULL,
+    birth_year  YEAR          NULL,
     memo        VARCHAR(500)  NULL,
     created_at  DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at  DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

@@ -87,7 +87,7 @@ public class PlaceCreateRequest {
                 .otherOptions(otherOptionsEnabled ? otherOptions : null)
                 .hourlyPrice(hourlyPrice)
                 .nightlyPrice(nightlyPrice)
-                .status(PlaceStatus.PENDING)
+                .status(PlaceStatus.PUBLISHED)
                 .build();
     }
 }
