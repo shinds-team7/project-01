@@ -46,4 +46,14 @@
         #{status}
         )
     </insert>
+    <select id="findById"
+            resultType="com.example.petnow.entity.Place">
+        SELECT
+        id,
+        hourly_price AS hourlyPrice,
+        nightly_price AS nightlyPrice
+        FROM places
+        WHERE id = #{id}
+        AND deleted_at IS NULL
+    </select>
 </mapper>
