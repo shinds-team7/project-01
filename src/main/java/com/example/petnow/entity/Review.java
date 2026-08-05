@@ -11,7 +11,11 @@ import java.time.LocalDateTime;
 @Builder
 public class Review extends BaseEntity {
     private Long id;
+    private Long reservationId;     // FK
     private Integer rating;
     private String content;
-    private Long reservationId;     // FK
+    private boolean isReadByHost;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+    private LocalDateTime deletedAt;
 }
