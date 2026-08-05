@@ -8,6 +8,11 @@
     </thead>
 
     <tbody>
+    <tr>
+        <td th:text="${user.nickname}">닉네임</td>
+        <td th:text="${user.email}">이메일</td>
+    </tr>
+
     <tr th:each="pet : ${petList}">
         <td th:text="${pet.name}"></td>
         <td th:text="${pet.getsize().getLabel()}"></td>
