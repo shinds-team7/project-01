@@ -31,7 +31,7 @@
             <a href="#how-it-works">이용 방법</a>
         </nav>
 
-        <div class="header-actions">
+        <div class="header-actions" th:if="${loginUserId != null}">
             <button class="icon-button" type="button" data-locked-feature="알림" aria-label="알림">
                 <span class="material-symbols-rounded" aria-hidden="true">notifications</span>
             </button>
@@ -39,6 +39,10 @@
                 <span class="profile-avatar">초</span>
                 <span class="profile-copy"><small>반가워요</small><strong>초코 보호자님</strong></span>
             </a>
+        </div>
+        <div class="header-actions" th:if="${loginUserId == null}">
+            <a class="auth-link" href="/auth/login" th:href="@{/auth/login}">로그인</a>
+            <a class="auth-link auth-link-primary" href="/auth/signup" th:href="@{/auth/signup}">회원가입</a>
         </div>
     </div>
 </header>
