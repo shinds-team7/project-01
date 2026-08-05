@@ -8,22 +8,11 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class PetCreateRequest {
-
+public class PetUpdateRequest {
+    private Long petId;
     private String name;
-
-    private Integer birthYear;
-
-    private String sex;
-
     private Double weight;
-
-    private Boolean neutered;
-
-    private String note;
-
     private Pet.Size size;
-
-    private String photoUrl;
-
+    private Boolean neutered;
+    private String note;
 }

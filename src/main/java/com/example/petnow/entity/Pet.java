@@ -7,7 +7,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Getter
 @Setter
@@ -24,7 +23,7 @@ public class Pet {
 
     private Integer birthYear;
 
-    private String gender;
+    private String sex;
 
     private Double weight;
 
@@ -32,11 +31,25 @@ public class Pet {
 
     private String note;
 
-    private String sizeCode;
+    private Size size;
 
     private PetPhoto photo;
 
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;
+
+    public enum Size {
+        small("소형"), medium("중형"), large("대형");
+
+        private final String label;
+
+        Size(String label) {
+            this.label = label;
+        }
+
+        public String getLabel() {
+            return label;
+        }
+    }
 }
