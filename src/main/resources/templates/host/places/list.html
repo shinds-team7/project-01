@@ -92,14 +92,9 @@
             color: #16834a;
         }
 
-        .status-draft {
+        .status-pending {
             background: #fff5dc;
             color: #9a6700;
-        }
-
-        .status-hidden {
-            background: #f1f1f3;
-            color: #6b7280;
         }
     </style>
 </head>
@@ -117,15 +112,15 @@
     <section class="place-list" th:unless="${#lists.isEmpty(places)}">
         <article class="place-card" th:each="place : ${places}">
             <div class="place-card__top">
-                <h2 th:text="${place.title}">장소명</h2>
+                <h2 th:text="${place.name}">장소명</h2>
 
                 <span th:switch="${place.status != null ? place.status.name() : ''}">
                     <span class="status-badge status-published"
-                          th:case="'PUBLISHED'">게시 중</span>
-                    <span class="status-badge status-draft"
-                          th:case="'DRAFT'">임시 저장</span>
-                    <span class="status-badge status-hidden"
-                          th:case="'HIDDEN'">숨김</span>
+                          th:case="'PUBLISHED'"
+                          th:text="${place.status.label}">게시</span>
+                    <span class="status-badge status-pending"
+                          th:case="'PENDING'"
+                          th:text="${place.status.label}">임시저장</span>
                     <span class="status-badge"
                           th:case="*">상태 없음</span>
                 </span>
