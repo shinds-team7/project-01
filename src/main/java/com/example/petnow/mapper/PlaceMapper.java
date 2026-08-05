@@ -12,4 +12,6 @@ public interface PlaceMapper {
     int insert(Place place);
 
     List<PlaceListResponse> findAllByUserId(@Param("userId") Long userId);
+
+    Place findById(@Param("id") Long id);
 }
