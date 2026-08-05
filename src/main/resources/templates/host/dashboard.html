@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#22a45c">
+    <title>호스트 센터 | Pet NOW</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link rel="alternate icon" href="/favicon.ico">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
+    <link rel="stylesheet" href="../../static/css/pet-now.css" th:href="@{/css/pet-now.css}">
+    <link rel="stylesheet" href="../../static/css/app-flow.css" th:href="@{/css/app-flow.css}">
+    <script defer src="../../static/js/app-flow.js" th:src="@{/js/app-flow.js}"></script>
+</head>
+<body class="flow-page">
+<a class="skip-link" href="#main-content">본문으로 바로가기</a>
+
+<header class="site-header is-scrolled" data-header>
+    <div class="header-inner">
+        <a class="brand" href="/places" aria-label="Pet NOW 홈">
+            <span class="brand-mark material-symbols-rounded" aria-hidden="true">pets</span>
+            <span>Pet <b>NOW</b></span>
+        </a>
+        <div class="header-actions">
+            <a class="profile-button" href="/mypage" aria-label="마이페이지">
+                <span class="profile-avatar">지</span>
+                <span class="profile-copy"><small>반가워요</small><strong>지우 보호자님</strong></span>
+            </a>
+        </div>
+    </div>
+</header>
+
+<main id="main-content" class="flow-shell">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;">
+        <h1 style="margin:0;font-size:24px;font-weight:800;color:var(--ink-deep);letter-spacing:-0.03em;">호스트 센터</h1>
+        <a href="/mypage" style="display:flex;align-items:center;gap:2px;font-size:13.5px;font-weight:600;color:var(--muted);">사용자 모드 <span class="material-symbols-rounded" aria-hidden="true">chevron_right</span></a>
+    </div>
+
+    <div class="segment-tabs">
+        <a th:href="@{/host(tab='booking')}" th:classappend="${tab == 'booking'} ? 'is-active'">예약 관리</a>
+        <a th:href="@{/host(tab='reviews')}" th:classappend="${tab == 'reviews'} ? 'is-active'">리뷰 관리</a>
+        <a th:href="@{/host(tab='places')}" th:classappend="${tab == 'places'} ? 'is-active'">내 호스팅</a>
+    </div>
+
+    <!-- 예약 관리 (데모) -->
+    <div th:if="${tab == 'booking'}" style="display:flex;flex-direction:column;gap:14px;">
+        <article class="request-card" th:each="req : ${bookings}">
+            <div class="request-top">
+                <div class="media-placeholder" style="width:66px;height:66px;flex:none;border-radius:var(--radius-sm);font-size:24px;">
+                    <span class="material-symbols-rounded" aria-hidden="true">weekend</span>
+                </div>
+                <div class="who">
+                    <strong th:text="${req.place}">성수 단독주택 마당</strong>
+                    <small th:text="${req.when}">2026.08.09 (일) 13:00~18:00</small>
+                    <div class="request-pet">
+                        <span class="avatar"><span class="material-symbols-rounded" aria-hidden="true" style="font-size:15px;">pets</span></span>
+                        <span><b th:text="${req.guestName}" style="color:var(--ink);">김하늘</b> · <span th:text="${req.petLine}">초코 · 푸들 · 6kg</span></span>
+                    </div>
+                </div>
+            </div>
+            <div class="request-actions">
+                <a th:href="@{/host/bookings/{id}(id=${req.id})}">예약 상세</a>
+                <a th:if="${req.waiting}" class="is-approve" th:href="@{/host/bookings/{id}(id=${req.id})}">승인하기</a>
+                <span th:unless="${req.waiting}" class="is-done"><span class="material-symbols-rounded" aria-hidden="true">check_circle</span>승인 완료</span>
+            </div>
+        </article>
+    </div>
+
+    <!-- 리뷰 관리 (데모) -->
+    <div th:if="${tab == 'reviews'}" style="display:flex;flex-direction:column;gap:14px;">
+        <p style="font-size:13px;color:var(--muted);margin:0 0 4px;">미확인 리뷰 <b style="color:var(--pet-green-dark);">1</b>건 · 최신순</p>
+        <article class="review-card">
+            <div class="review-head">
+                <span style="display:flex;align-items:center;gap:6px;"><span class="material-symbols-rounded" aria-hidden="true" style="color:var(--pet-green);font-variation-settings:'FILL' 1;">home_work</span>성수 단독주택 마당</span>
+                <span>3일 전</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;margin-top:10px;">
+                <span style="width:30px;height:30px;border-radius:50%;background:#eceae5;display:inline-flex;align-items:center;justify-content:center;color:#b9b1a2;"><span class="material-symbols-rounded" aria-hidden="true" style="font-variation-settings:'FILL' 1;">person</span></span>
+                <strong style="color:var(--ink-deep);font-size:14px;">김하늘</strong>
+                <span style="display:flex;align-items:center;gap:2px;font-size:12px;font-weight:700;color:var(--ink);margin-left:auto;"><span class="material-symbols-rounded" aria-hidden="true" style="color:#f5a623;font-size:14px;font-variation-settings:'FILL' 1;">star</span>4.9</span>
+            </div>
+            <p>마당이 넓어서 우리 강아지가 정말 좋아했어요. 사진도 자주 보내주셔서 안심됐습니다.</p>
+            <div style="display:flex;gap:8px;margin-top:12px;">
+                <button type="button" class="link-action" data-pending-feature="답글 달기" style="flex:1;border:1px solid var(--line);border-radius:10px;padding:10px;font-size:12.5px;font-weight:700;color:var(--pet-green-dark);">답글 달기</button>
+                <button type="button" class="link-action" data-pending-feature="읽음 처리" style="flex:1;border:1px solid var(--line);border-radius:10px;padding:10px;font-size:12.5px;font-weight:700;color:var(--muted);">읽음</button>
+            </div>
+        </article>
+    </div>
+
+    <!-- 내 호스팅 (실제 데이터) -->
+    <div th:if="${tab == 'places'}">
+        <p style="font-size:13px;color:var(--muted);margin:0 0 14px;" th:if="${!places.isEmpty()}">
+            총 <b style="color:var(--ink);" th:text="${places.size()}">1</b>곳을 호스팅하고 있어요.
+        </p>
+        <div style="display:flex;flex-direction:column;gap:14px;">
+            <article class="place-manage-card" th:each="place : ${places}">
+                <div class="place-top">
+                    <div class="media-placeholder"><span class="material-symbols-rounded" aria-hidden="true">weekend</span></div>
+                    <div class="place-info">
+                        <div class="row-top">
+                            <strong th:text="${place.name}">성수 단독주택 마당</strong>
+                            <span class="status-tag" th:classappend="${place.status.name() == 'PENDING'} ? 'is-pending'"
+                                  th:text="${place.status.label}">게시 중</span>
+                        </div>
+                        <div class="place-stats">
+                            <span th:text="${place.placeType.label} + ' · ' + ${place.areaSize} + '평 · 최대 ' + ${place.capacity} + '마리'">아파트 · 32평 · 최대 2마리</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="place-actions">
+                    <button type="button" class="link-action" data-pending-feature="일정 관리 및 수정"><span class="material-symbols-rounded" aria-hidden="true" style="font-size:16px;">edit_calendar</span>일정 관리 및 수정</button>
+                    <a th:href="@{/host(tab='reviews')}"><span class="material-symbols-rounded" aria-hidden="true" style="font-size:16px;">reviews</span>리뷰 관리</a>
+                    <button type="button" class="link-action is-danger" data-pending-feature="장소 삭제"><span class="material-symbols-rounded" aria-hidden="true">delete</span></button>
+                </div>
+            </article>
+        </div>
+        <a class="place-add-cta" href="/host/places/create"><span class="material-symbols-rounded" aria-hidden="true">add</span>새 장소 등록하기</a>
+    </div>
+</main>
+
+<div class="toast" data-toast role="status" aria-live="polite" aria-atomic="true"></div>
+</body>
+</html>

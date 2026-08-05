@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#22a45c">
+    <title>예약 완료 | Pet NOW</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link rel="alternate icon" href="/favicon.ico">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
+    <link rel="stylesheet" href="../static/css/pet-now.css" th:href="@{/css/pet-now.css}">
+    <link rel="stylesheet" href="../static/css/app-flow.css" th:href="@{/css/app-flow.css}">
+    <script defer src="../static/js/app-flow.js" th:src="@{/js/app-flow.js}"></script>
+</head>
+<body class="flow-page">
+<header class="site-header is-scrolled" data-header>
+    <div class="header-inner">
+        <a class="brand" href="/places" aria-label="Pet NOW 홈">
+            <span class="brand-mark material-symbols-rounded" aria-hidden="true">pets</span>
+            <span>Pet <b>NOW</b></span>
+        </a>
+        <div class="header-actions">
+            <a class="profile-button" href="/mypage" aria-label="마이페이지">
+                <span class="profile-avatar">지</span>
+                <span class="profile-copy"><small>반가워요</small><strong>지우 보호자님</strong></span>
+            </a>
+        </div>
+    </div>
+</header>
+
+<main class="flow-shell">
+    <div class="success-hero">
+        <span class="success-mark"><span class="material-symbols-rounded" aria-hidden="true">check</span></span>
+        <h1>예약 요청이 완료되었어요</h1>
+        <p>호스트 승인 후 예약이 확정됩니다.<br>결과는 알림으로 알려드릴게요.</p>
+
+        <div class="success-summary">
+            <strong th:text="${place.name}">성수 조용한 단독주택 마당</strong>
+            <small th:text="'8월 9일 13:00-18:00 · 초코 · ' + ${#numbers.formatInteger(place.hourlyPrice * 5 + 3000, 0, 'COMMA')} + '원'">8월 9일 13:00-18:00 · 초코 · 63,000원</small>
+        </div>
+
+        <div class="success-actions">
+            <button type="button" class="flow-cta is-block" data-pending-feature="예약 상세">예약 상세 보기</button>
+            <a class="flow-cta is-block" style="background:var(--white);color:var(--ink);border:1px solid var(--line);" href="/places">홈으로 돌아가기</a>
+        </div>
+    </div>
+</main>
+
+<div class="toast" data-toast role="status" aria-live="polite" aria-atomic="true"></div>
+</body>
+</html>

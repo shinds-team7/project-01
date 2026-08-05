@@ -10,6 +10,7 @@
         (
             user_id,
             name,
+            breed,
             birth_year,
             sex,
             weight,
@@ -21,6 +22,7 @@
             (
                 #{userId},
                 #{name},
+                #{breed},
                 #{birthYear},
                 #{sex},
                 #{weight},

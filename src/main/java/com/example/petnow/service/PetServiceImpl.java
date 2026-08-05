@@ -27,6 +27,7 @@ public class PetServiceImpl implements PetService {
         Pet pet = Pet.builder()
                 .userId(userId)
                 .name(request.getName())
+                .breed(request.getBreed())
                 .birthYear(request.getBirthYear())
                 .sex(request.getSex())
                 .weight(request.getWeight())

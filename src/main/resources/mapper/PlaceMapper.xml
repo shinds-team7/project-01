@@ -61,7 +61,10 @@
         SELECT
         id,
         name,
-        status
+        status,
+        place_type AS placeType,
+        area_size AS areaSize,
+        capacity
         FROM places
         WHERE host_user_id = #{userId}
         AND deleted_at IS NULL

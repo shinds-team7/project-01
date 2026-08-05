@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#174a3a">
+    <meta name="theme-color" content="#22a45c">
     <title>마이페이지 | Pet NOW</title>
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
     <link rel="alternate icon" href="/favicon.ico">
@@ -11,28 +11,36 @@
     <link rel="preconnect" href="https://cdn.jsdelivr.net">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
+    <link rel="stylesheet" href="../static/css/pet-now.css" th:href="@{/css/pet-now.css}">
+    <link rel="stylesheet" href="../static/css/app-flow.css" th:href="@{/css/app-flow.css}">
     <link rel="stylesheet" href="../static/css/mypage.css" th:href="@{/css/mypage.css}">
     <script defer src="../static/js/mypage.js" th:src="@{/js/mypage.js}"></script>
 </head>
-<body>
+<body class="account-page">
 <a class="skip-link" href="#main-content">본문으로 바로가기</a>
 
-<header class="site-header">
+<header class="site-header is-scrolled account-header">
     <div class="header-inner">
-        <a class="brand" href="/" aria-label="Pet NOW 홈">
+        <a class="brand" href="/places" aria-label="Pet NOW 홈">
             <span class="brand-mark material-symbols-rounded" aria-hidden="true">pets</span>
             <span>Pet <b>NOW</b></span>
         </a>
         <nav class="desktop-nav" aria-label="주요 메뉴">
-            <a href="/places">돌봄 공간 찾기</a>
-            <button type="button" data-pending-feature="호스트 센터">호스트 센터</button>
-            <a class="is-current" href="/mypage" aria-current="page">마이페이지</a>
+            <a href="/places#places">펫시터 찾기</a>
+            <a href="/places#care">안심 돌봄</a>
+            <a href="/places#how-it-works">이용 방법</a>
         </nav>
-        <button class="notice-button" type="button" data-pending-feature="알림" aria-label="새 알림 2개">
-            <span class="material-symbols-rounded" aria-hidden="true">notifications</span>
-            <i aria-hidden="true">2</i>
-        </button>
+        <div class="header-actions">
+            <button class="icon-button notice-button" type="button" data-pending-feature="알림" aria-label="새 알림 2개">
+                <span class="material-symbols-rounded" aria-hidden="true">notifications</span>
+                <i aria-hidden="true">2</i>
+            </button>
+            <a class="profile-button is-current" href="/mypage" aria-current="page" aria-label="마이페이지">
+                <span class="profile-avatar">지</span>
+                <span class="profile-copy"><small>반가워요</small><strong>지우 보호자님</strong></span>
+            </a>
+        </div>
     </div>
 </header>
 
@@ -66,7 +74,7 @@
                     <div class="route-labels"><span>14:00 맡기기</span><span>20:00 데려오기</span></div>
                     <p class="host-line"><span class="mini-avatar">윤</span> 연남동 윤슬 호스트 · 도보 12분</p>
                 </div>
-                <button type="button" data-pending-feature="예약 상세">일정 보기 <span aria-hidden="true">→</span></button>
+                <a href="/mypage/bookings/1">일정 보기 <span aria-hidden="true">→</span></a>
             </article>
         </div>
     </section>
@@ -74,8 +82,8 @@
     <div class="dashboard-shell">
         <aside class="profile-side" aria-label="계정 요약">
             <div class="side-owner">
-                <span class="side-avatar">지</span>
-                <div><strong>김지우</strong><small>jiwoo@petnow.kr</small></div>
+                <span class="side-avatar" th:text="${user != null ? #strings.substring(user.nickname, 0, 1) : '?'}">지</span>
+                <div><strong th:text="${user != null ? user.nickname : '로그인이 필요해요'}">김지우</strong><small th:text="${user != null ? user.email : ''}">jiwoo@petnow.kr</small></div>
                 <button type="button" data-pending-feature="프로필 편집" aria-label="프로필 편집">
                     <span class="material-symbols-rounded" aria-hidden="true">edit</span>
                 </button>
@@ -90,6 +98,10 @@
                 <p><strong>안심 프로필 80%</strong><small>본인 인증을 완료하면 호스트의 응답이 더 빨라져요.</small></p>
             </div>
             <button class="trust-action" type="button" data-pending-feature="본인 인증">인증 이어하기</button>
+            <a class="host-cta" href="/host">
+                <span><strong>호스팅 장소 관리하기</strong><small>예약·리뷰·장소를 한 곳에서 관리하세요</small></span>
+                <span class="material-symbols-rounded" aria-hidden="true">chevron_right</span>
+            </a>
         </aside>
 
         <div class="dashboard-main">
@@ -99,6 +111,7 @@
                     <button id="tab-pets" type="button" role="tab" aria-selected="false" aria-controls="panel-pets" data-tab="pets">반려동물 <i>3</i></button>
                     <button id="tab-reservations" type="button" role="tab" aria-selected="false" aria-controls="panel-reservations" data-tab="reservations">예약 관리</button>
                     <button id="tab-favorites" type="button" role="tab" aria-selected="false" aria-controls="panel-favorites" data-tab="favorites">찜한 공간 <i>6</i></button>
+                    <button id="tab-reviews" type="button" role="tab" aria-selected="false" aria-controls="panel-reviews" data-tab="reviews">내 리뷰 <i>1</i></button>
                 </div>
             </div>
 
@@ -140,7 +153,7 @@
                             <span class="care-divider" aria-hidden="true"></span>
                             <p><strong>연남동 윤슬 호스트</strong><small>단독 주택 · 6시간 돌봄</small></p>
                         </div>
-                        <button class="card-action" type="button" data-pending-feature="예약 상세">예약 상세 보기</button>
+                        <a class="card-action" href="/mypage/bookings/1">예약 상세 보기</a>
                     </article>
                 </div>
 
@@ -154,7 +167,7 @@
             <section id="panel-pets" class="tab-panel" role="tabpanel" aria-labelledby="tab-pets" data-panel="pets" hidden>
                 <div class="section-heading">
                     <div><p class="eyebrow">MY FAMILY</p><h2>반려동물 프로필</h2></div>
-                    <button class="primary-small" type="button" data-pending-feature="반려동물 등록"><span class="material-symbols-rounded" aria-hidden="true">add</span> 아이 등록</button>
+                    <a class="primary-small" href="/pets/new"><span class="material-symbols-rounded" aria-hidden="true">add</span> 아이 등록</a>
                 </div>
                 <div class="pet-detail-grid">
                     <article><span class="pet-face pet-face-cocoa">초</span><div><p><strong>초코</strong><i>대표 반려동물</i></p><small>토이 푸들 · 여아 · 3살 · 4.2kg</small><span>낯선 강아지와 천천히 인사해요</span></div><button type="button" data-pending-feature="초코 프로필 편집">편집</button></article>
@@ -169,8 +182,9 @@
                     <a class="primary-small" href="/places">새 돌봄 찾기</a>
                 </div>
                 <div class="reservation-list">
-                    <article><time datetime="2026-08-08"><strong>08</strong><span>AUG</span></time><div><p><i class="status-pill">확정</i> 초코의 포근한 오후</p><strong>연남동 윤슬 호스트</strong><small>14:00 — 20:00 · 6시간 돌봄</small></div><button type="button" data-pending-feature="예약 상세">보기</button></article>
-                    <article><time datetime="2026-08-21"><strong>21</strong><span>AUG</span></time><div><p><i class="status-pill status-wait">응답 대기</i> 보리의 주말 산책 돌봄</p><strong>성수 조용한 단독주택</strong><small>10:00 — 17:00 · 7시간 돌봄</small></div><button type="button" data-pending-feature="예약 상세">보기</button></article>
+                    <article><time datetime="2026-08-08"><strong>08</strong><span>AUG</span></time><div><p><i class="status-pill">확정</i> 초코의 포근한 오후</p><strong>연남동 윤슬 호스트</strong><small>14:00 — 20:00 · 6시간 돌봄</small></div><a href="/mypage/bookings/1">보기</a></article>
+                    <article><time datetime="2026-08-21"><strong>21</strong><span>AUG</span></time><div><p><i class="status-pill status-wait">응답 대기</i> 보리의 주말 산책 돌봄</p><strong>성수 조용한 단독주택</strong><small>10:00 — 17:00 · 7시간 돌봄</small></div><a href="/mypage/bookings/2">보기</a></article>
+                    <article><time datetime="2026-07-18"><strong>18</strong><span>JUL</span></time><div><p><i class="status-pill status-done">이용 완료</i> 모카의 넓은 거실 하루</p><strong>넓은 거실 아파트</strong><small>1박 · 모카</small></div><span class="reservation-actions"><a href="/mypage/bookings/3">보기</a><a href="/reviews/new?reservationId=3&amp;placeName=넓은 거실 아파트&amp;stayInfo=7월 18일 · 1박 · 모카" class="is-accent">리뷰 쓰기</a></span></article>
                 </div>
             </section>
 
@@ -186,14 +200,29 @@
                     <a href="/places">돌봄 공간 둘러보기</a>
                 </div>
             </section>
+
+            <section id="panel-reviews" class="tab-panel" role="tabpanel" aria-labelledby="tab-reviews" data-panel="reviews" hidden>
+                <div class="section-heading">
+                    <div><p class="eyebrow">MY WORDS</p><h2>내가 남긴 리뷰</h2></div>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:12px;">
+                    <article class="review-card">
+                        <div class="review-head">
+                            <strong>넓은 거실 아파트</strong>
+                            <span><span class="material-symbols-rounded" aria-hidden="true">star</span>5.0 · 2주 전</span>
+                        </div>
+                        <p>마당이 넓어서 우리 강아지가 정말 좋아했어요. 사진도 자주 보내주셔서 안심됐습니다.</p>
+                    </article>
+                </div>
+            </section>
         </div>
     </div>
 </main>
 
 <nav class="mobile-nav" aria-label="모바일 메뉴">
-    <a href="/"><span class="material-symbols-rounded" aria-hidden="true">home</span><small>홈</small></a>
+    <a href="/places"><span class="material-symbols-rounded" aria-hidden="true">home</span><small>홈</small></a>
     <a href="/places"><span class="material-symbols-rounded" aria-hidden="true">search</span><small>검색</small></a>
-    <button type="button" data-pending-feature="예약 관리"><span class="material-symbols-rounded" aria-hidden="true">calendar_month</span><small>예약</small></button>
+    <a href="/mypage#reservations"><span class="material-symbols-rounded" aria-hidden="true">calendar_month</span><small>예약</small></a>
     <a class="is-current" href="/mypage" aria-current="page"><span class="material-symbols-rounded" aria-hidden="true">person</span><small>마이</small></a>
 </nav>
 

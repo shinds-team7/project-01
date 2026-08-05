@@ -1,10 +1,13 @@
 package com.example.petnow.dto.response;
 
 import com.example.petnow.entity.PlaceStatus;
+import com.example.petnow.entity.PlaceType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.math.BigDecimal;
 
 @Data
 @Builder
@@ -18,6 +21,9 @@ public class PlaceListResponse {
 //  private Double averageRating;
 //  private int reservationCount;
     private PlaceStatus status;
+    private PlaceType placeType;
+    private BigDecimal areaSize;
+    private Integer capacity;
 
 }
 

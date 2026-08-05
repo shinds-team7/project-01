@@ -12,6 +12,8 @@ public class PetCreateRequest {
 
     private String name;
 
+    private String breed;
+
     private Integer birthYear;
 
     private String sex;

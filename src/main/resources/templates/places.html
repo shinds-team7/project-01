@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
     <link rel="stylesheet" href="../static/css/pet-now.css" th:href="@{/css/pet-now.css}">
+    <link rel="stylesheet" href="../static/css/app-flow.css" th:href="@{/css/app-flow.css}">
     <script defer src="../static/js/pet-now-api.js" th:src="@{/js/pet-now-api.js}"></script>
     <script defer src="../static/js/pet-now.js" th:src="@{/js/pet-now.js}"></script>
 </head>
@@ -34,10 +35,10 @@
             <button class="icon-button" type="button" data-locked-feature="알림" aria-label="알림">
                 <span class="material-symbols-rounded" aria-hidden="true">notifications</span>
             </button>
-            <button class="profile-button" type="button" data-locked-feature="마이페이지">
+            <a class="profile-button" href="/mypage">
                 <span class="profile-avatar">초</span>
                 <span class="profile-copy"><small>반가워요</small><strong>초코 보호자님</strong></span>
-            </button>
+            </a>
         </div>
     </div>
 </header>
@@ -104,12 +105,38 @@
         </form>
     </section>
 
+    <section class="recent-section section-shell" aria-labelledby="recent-title">
+        <div class="section-heading reveal">
+            <div><p class="eyebrow">RECENTLY VIEWED</p><h2 id="recent-title">최근 조회한 호스트</h2></div>
+        </div>
+        <div class="recent-scroll reveal">
+            <a class="recent-card" href="/places/sunny" th:href="@{/places/sunny}">
+                <span class="media-placeholder"><span class="material-symbols-rounded" aria-hidden="true">pets</span></span>
+                <strong>햇살 가득한 마당</strong>
+                <small><span class="material-symbols-rounded" aria-hidden="true">location_on</span>연남동 · 도보 5분</small>
+                <span class="recent-price">5,000원~</span>
+            </a>
+            <a class="recent-card" href="/places/mangwon" th:href="@{/places/mangwon}">
+                <span class="media-placeholder"><span class="material-symbols-rounded" aria-hidden="true">pets</span></span>
+                <strong>조용한 망원 하루</strong>
+                <small><span class="material-symbols-rounded" aria-hidden="true">location_on</span>망원동 · 도보 13분</small>
+                <span class="recent-price">4,000원~</span>
+            </a>
+            <a class="recent-card" href="/places/seocho" th:href="@{/places/seocho}">
+                <span class="media-placeholder"><span class="material-symbols-rounded" aria-hidden="true">pets</span></span>
+                <strong>구름이네 캣 스테이</strong>
+                <small><span class="material-symbols-rounded" aria-hidden="true">location_on</span>서초동 · 도보 16분</small>
+                <span class="recent-price">5,500원~</span>
+            </a>
+        </div>
+    </section>
+
     <section class="places section-shell" id="places" aria-labelledby="places-title">
         <div class="section-heading reveal">
             <div>
                 <p class="eyebrow">NEARBY HOSTS</p>
                 <h2 id="places-title">지금 만날 수 있는 이웃 호스트</h2>
-                <p class="api-status"><span class="material-symbols-rounded" aria-hidden="true">construction</span><span data-api-status>장소 API 연결 대기 · 아래 카드는 화면 구조를 확인하기 위한 자리입니다.</span></p>
+                <p class="api-status"><span class="material-symbols-rounded" aria-hidden="true">construction</span><span data-api-status>지금은 담당자가 엄선한 호스트를 보여드려요 · 실시간 검색 연동은 곧 열려요.</span></p>
             </div>
             <button class="map-toggle" type="button" data-map-toggle data-requires-api="map" aria-pressed="false">
                 <span class="material-symbols-rounded" aria-hidden="true">map</span>
@@ -141,13 +168,21 @@
             </label>
         </div>
 
+        <div class="recent-search-row reveal" aria-label="최근 검색어">
+            <span>최근 검색어</span>
+            <button type="button" class="filter-chip" data-requires-api="places">연남동</button>
+            <button type="button" class="filter-chip" data-requires-api="places">성수동 펫시터</button>
+            <button type="button" class="filter-chip" data-requires-api="places">강남구 소형견</button>
+            <button type="button" class="filter-chip" data-requires-api="places">마당 있는 집</button>
+        </div>
+
         <div class="results-layout" data-results-layout>
             <div class="host-grid" data-host-grid>
-                <article class="host-card reveal is-api-placeholder" data-host-card data-id="sunny" data-filter-tags="house cat yard" data-region="마포구" data-distance="5" data-rating="4.98" data-price="5000">
+                <article class="host-card reveal is-visible" data-host-card data-id="sunny" data-filter-tags="house cat yard" data-region="마포구" data-distance="5" data-rating="4.98" data-price="5000">
                     <button class="favorite-button" type="button" data-favorite="sunny" data-requires-api="bookmarks" aria-label="찜 기능 준비 중" aria-pressed="false">
                         <span class="material-symbols-rounded" aria-hidden="true">favorite</span>
                     </button>
-                    <button class="host-card-main" type="button" data-open-detail data-requires-api="places">
+                    <a class="host-card-main" href="/places/sunny" th:href="@{/places/sunny}">
                         <span class="host-photo">
                             <img src="../static/images/pet-friend.jpg" th:src="@{/images/pet-friend.jpg}" alt="햇살 가득한 마당의 반려동물 공간">
                             <span class="availability"><i></i> 오늘 예약 가능</span>
@@ -159,14 +194,14 @@
                             <span class="host-tags"><i>마당 있음</i><i>고양이 가능</i><i>실시간 사진</i></span>
                             <span class="host-price"><strong>5,000원</strong><small> / 시간</small></span>
                         </span>
-                    </button>
+                    </a>
                 </article>
 
-                <article class="host-card reveal is-api-placeholder" data-host-card data-id="seongsu" data-filter-tags="house yard" data-region="성동구" data-distance="7" data-rating="4.92" data-price="7000">
+                <article class="host-card reveal is-visible" data-host-card data-id="seongsu" data-filter-tags="house yard" data-region="성동구" data-distance="7" data-rating="4.92" data-price="7000">
                     <button class="favorite-button" type="button" data-favorite="seongsu" data-requires-api="bookmarks" aria-label="찜 기능 준비 중" aria-pressed="false">
                         <span class="material-symbols-rounded" aria-hidden="true">favorite</span>
                     </button>
-                    <button class="host-card-main" type="button" data-open-detail data-requires-api="places">
+                    <a class="host-card-main" href="/places/seongsu" th:href="@{/places/seongsu}">
                         <span class="host-photo">
                             <img src="../static/images/pet-home.jpg" th:src="@{/images/pet-home.jpg}" alt="성수 조용한 단독주택의 반려동물 공간">
                             <span class="availability"><i></i> 8월 4일 가능</span>
@@ -178,14 +213,14 @@
                             <span class="host-tags"><i>마당 있음</i><i>중형견 가능</i><i>CCTV</i></span>
                             <span class="host-price"><strong>7,000원</strong><small> / 시간</small></span>
                         </span>
-                    </button>
+                    </a>
                 </article>
 
-                <article class="host-card reveal is-api-placeholder" data-host-card data-id="songpa" data-filter-tags="apartment" data-region="송파구" data-distance="11" data-rating="4.88" data-price="4500">
+                <article class="host-card reveal is-visible" data-host-card data-id="songpa" data-filter-tags="apartment" data-region="송파구" data-distance="11" data-rating="4.88" data-price="4500">
                     <button class="favorite-button" type="button" data-favorite="songpa" data-requires-api="bookmarks" aria-label="찜 기능 준비 중" aria-pressed="false">
                         <span class="material-symbols-rounded" aria-hidden="true">favorite</span>
                     </button>
-                    <button class="host-card-main" type="button" data-open-detail data-requires-api="places">
+                    <a class="host-card-main" href="/places/songpa" th:href="@{/places/songpa}">
                         <span class="host-photo">
                             <img src="../static/images/pet-outing.jpg" th:src="@{/images/pet-outing.jpg}" alt="산책을 준비하는 반려묘">
                             <span class="availability availability-warm"><i></i> 문의 후 예약</span>
@@ -197,14 +232,14 @@
                             <span class="host-tags"><i>1:1 돌봄</i><i>매일 산책</i><i>CCTV</i></span>
                             <span class="host-price"><strong>4,500원</strong><small> / 시간</small></span>
                         </span>
-                    </button>
+                    </a>
                 </article>
 
-                <article class="host-card reveal is-api-placeholder" data-host-card data-id="mangwon" data-filter-tags="apartment cat" data-region="마포구" data-distance="13" data-rating="4.84" data-price="4000">
+                <article class="host-card reveal is-visible" data-host-card data-id="mangwon" data-filter-tags="apartment cat" data-region="마포구" data-distance="13" data-rating="4.84" data-price="4000">
                     <button class="favorite-button" type="button" data-favorite="mangwon" data-requires-api="bookmarks" aria-label="찜 기능 준비 중" aria-pressed="false">
                         <span class="material-symbols-rounded" aria-hidden="true">favorite</span>
                     </button>
-                    <button class="host-card-main" type="button" data-open-detail data-requires-api="places">
+                    <a class="host-card-main" href="/places/mangwon" th:href="@{/places/mangwon}">
                         <span class="host-photo">
                             <img src="../static/images/pet-home.jpg" th:src="@{/images/pet-home.jpg}" alt="조용한 망원 하루의 햇살 드는 공간">
                             <span class="availability"><i></i> 오늘 예약 가능</span>
@@ -216,14 +251,14 @@
                             <span class="host-tags"><i>고양이 가능</i><i>복약 가능</i><i>실시간 사진</i></span>
                             <span class="host-price"><strong>4,000원</strong><small> / 시간</small></span>
                         </span>
-                    </button>
+                    </a>
                 </article>
 
-                <article class="host-card reveal is-api-placeholder" data-host-card data-id="seocho" data-filter-tags="apartment cat" data-region="서초구" data-distance="16" data-rating="4.79" data-price="5500">
+                <article class="host-card reveal is-visible" data-host-card data-id="seocho" data-filter-tags="apartment cat" data-region="서초구" data-distance="16" data-rating="4.79" data-price="5500">
                     <button class="favorite-button" type="button" data-favorite="seocho" data-requires-api="bookmarks" aria-label="찜 기능 준비 중" aria-pressed="false">
                         <span class="material-symbols-rounded" aria-hidden="true">favorite</span>
                     </button>
-                    <button class="host-card-main" type="button" data-open-detail data-requires-api="places">
+                    <a class="host-card-main" href="/places/seocho" th:href="@{/places/seocho}">
                         <span class="host-photo">
                             <img src="../static/images/pet-friend.jpg" th:src="@{/images/pet-friend.jpg}" alt="구름이네 캣 스테이의 반려묘">
                             <span class="availability"><i></i> 2자리 남음</span>
@@ -235,14 +270,14 @@
                             <span class="host-tags"><i>고양이 전용</i><i>분리 공간</i><i>복약 가능</i></span>
                             <span class="host-price"><strong>5,500원</strong><small> / 시간</small></span>
                         </span>
-                    </button>
+                    </a>
                 </article>
 
-                <article class="host-card reveal is-api-placeholder" data-host-card data-id="gwanak" data-filter-tags="house yard cat" data-region="관악구" data-distance="20" data-rating="4.76" data-price="6000">
+                <article class="host-card reveal is-visible" data-host-card data-id="gwanak" data-filter-tags="house yard cat" data-region="관악구" data-distance="20" data-rating="4.76" data-price="6000">
                     <button class="favorite-button" type="button" data-favorite="gwanak" data-requires-api="bookmarks" aria-label="찜 기능 준비 중" aria-pressed="false">
                         <span class="material-symbols-rounded" aria-hidden="true">favorite</span>
                     </button>
-                    <button class="host-card-main" type="button" data-open-detail data-requires-api="places">
+                    <a class="host-card-main" href="/places/gwanak" th:href="@{/places/gwanak}">
                         <span class="host-photo">
                             <img src="../static/images/pet-outing.jpg" th:src="@{/images/pet-outing.jpg}" alt="외출을 즐기는 반려묘">
                             <span class="availability availability-warm"><i></i> 주말 예약 가능</span>
@@ -254,7 +289,7 @@
                             <span class="host-tags"><i>마당 있음</i><i>고양이 가능</i><i>장기 돌봄</i></span>
                             <span class="host-price"><strong>6,000원</strong><small> / 시간</small></span>
                         </span>
-                    </button>
+                    </a>
                 </article>
             </div>
 
@@ -336,7 +371,7 @@
     <a href="#places" data-mobile-nav="search" data-requires-api="places"><span class="material-symbols-rounded" aria-hidden="true">search</span><small>검색</small></a>
     <button type="button" data-mobile-nav="nearby" data-map-shortcut data-requires-api="map"><span class="material-symbols-rounded" aria-hidden="true">near_me</span><small>내 주변</small></button>
     <button type="button" data-mobile-nav="favorite" data-favorites-only data-requires-api="bookmarks" aria-pressed="false"><span class="material-symbols-rounded" aria-hidden="true">favorite</span><small>찜</small></button>
-    <button type="button" data-mobile-nav="my" data-locked-feature="마이페이지"><span class="material-symbols-rounded" aria-hidden="true">person</span><small>마이</small></button>
+    <a data-mobile-nav="my" href="/mypage"><span class="material-symbols-rounded" aria-hidden="true">person</span><small>마이</small></a>
 </nav>
 
 <dialog class="sheet-dialog" id="region-dialog" aria-labelledby="region-title">
@@ -390,7 +425,7 @@
             <label><input type="checkbox" name="pet" value="보리"><span class="pet-option-avatar pet-option-avatar-orange">보</span><span><strong>보리</strong><small>비글 · 11kg · 5살</small></span><i class="material-symbols-rounded" aria-hidden="true">check_circle</i></label>
             <label><input type="checkbox" name="pet" value="모카"><span class="pet-option-avatar pet-option-avatar-blue">모</span><span><strong>모카</strong><small>말티즈 · 4kg · 2살</small></span><i class="material-symbols-rounded" aria-hidden="true">check_circle</i></label>
         </div>
-        <button class="add-pet-button" type="button" data-locked-feature="반려동물 등록"><span class="material-symbols-rounded" aria-hidden="true">add</span> 새 반려동물 등록</button>
+        <a class="add-pet-button" href="/pets/new"><span class="material-symbols-rounded" aria-hidden="true">add</span> 새 반려동물 등록</a>
         <button class="dialog-apply" type="submit" value="apply">선택 완료</button>
     </form>
 </dialog>

@@ -21,6 +21,8 @@ public class Pet {
 
     private String name;
 
+    private String breed;
+
     private Integer birthYear;
 
     private String sex;
@@ -40,7 +42,7 @@ public class Pet {
     private LocalDateTime updatedAt;
 
     public enum Size {
-        small("소형"), medium("중형"), large("대형");
+        SMALL("소형"), MEDIUM("중형"), LARGE("대형");
 
         private final String label;
 
