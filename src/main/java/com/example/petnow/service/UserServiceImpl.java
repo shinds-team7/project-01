@@ -50,10 +50,6 @@ public class UserServiceImpl implements UserService {
 
         User user = userMapper.findById(userId);
 
-        if (user == null) {
-            throw new IllegalArgumentException("회원 정보를 찾을 수 없습니다.");
-        }
-
         return  UserMyPageResponse.from(user);
     }
 }
