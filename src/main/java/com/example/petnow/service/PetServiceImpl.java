@@ -2,6 +2,7 @@ package com.example.petnow.service;
 
 import com.example.petnow.dto.request.PetCreateRequest;
 import com.example.petnow.dto.request.PetUpdateRequest;
+import com.example.petnow.dto.response.PetDetailResponse;
 import com.example.petnow.dto.response.PetListResponse;
 import com.example.petnow.entity.Pet;
 import com.example.petnow.mapper.PetMapper;
@@ -30,8 +31,8 @@ public class PetServiceImpl implements PetService {
                 .birthYear(request.getBirthYear())
                 .sex(request.getSex())
                 .weight(request.getWeight())
-                .neutered(request.getNeutered())
-                .note(request.getNote())
+                .isNeutered(request.getIsNeutered())
+                .memo(request.getMemo())
                 .size(request.getSize())
                 .build();
 
@@ -50,5 +51,11 @@ public class PetServiceImpl implements PetService {
     public void updatePet(Long petId, PetUpdateRequest request){
         request.setPetId(petId);
         petMapper.updatePet(request);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PetDetailResponse getDetail(Long petId){
+        return petMapper.getDetail(petId);
     }
 }

@@ -13,6 +13,6 @@ public class PetUpdateRequest {
     private String name;
     private Double weight;
     private Pet.Size size;
-    private Boolean neutered;
-    private String note;
+    private Boolean isNeutered;
+    private String memo;
 }

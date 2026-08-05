@@ -18,9 +18,9 @@ public class PetCreateRequest {
 
     private Double weight;
 
-    private Boolean neutered;
+    private Boolean isNeutered;
 
-    private String note;
+    private String memo;
 
     private Pet.Size size;
 
