@@ -1,0 +1,20 @@
+<table>
+    <thead>
+    <tr>
+        <th>이름</th>
+        <th>크기</th>
+        <th>몸무게</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    <tr th:each="pet : ${petList}">
+        <td th:text="${pet.name}"></td>
+        <td th:text="${pet.getsize().getLabel()}"></td>
+        <td th:text="${pet.weight} + 'kg'"></td>
+    </tr>
+    <tr th:if="${#lists.isEmpty(petList)}">
+        <td colspan="3">등록된 반려동물이 없습니다.</td>
+    </tr>
+    </tbody>
+</table>

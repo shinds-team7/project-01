@@ -1,24 +1,30 @@
 package com.example.petnow.controller;
 
+import com.example.petnow.common.constant.SessionConst;
 import com.example.petnow.dto.request.PetCreateRequest;
+import com.example.petnow.dto.request.PetUpdateRequest;
 import com.example.petnow.service.PetService;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.Mapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.*;
 
 @Controller
+@RequestMapping("/pet")
 @RequiredArgsConstructor
 public class PetController {
     private final PetService petService;
 
-    @PostMapping("/addpet")
-    public String addpet(@RequestBody PetCreateRequest request){
+    @PostMapping("/create")
+    public String addPet(@ModelAttribute PetCreateRequest createRequest, HttpSession session){
+        Long userId = (Long) session.getAttribute(SessionConst.LOGIN_USER_ID);
+        petService.createPet(userId, createRequest);
+        return "mypage";
+    }
 
-        petService.createPet(1L,request);
+    @PostMapping("/update")
+    public String updatePet(@ModelAttribute PetUpdateRequest updateRequest){
+        petService.updatePet(3L,updateRequest);
         return "mypage";
     }
 }
