@@ -8,4 +8,6 @@ public interface UserMapper {
     void signup(User user);
 
     User findByEmail(String email);
+
+    User findById(Long userId);
 }
