@@ -50,11 +50,22 @@
             resultType="com.example.petnow.dto.response.PlaceListResponse">
         SELECT
         id,
-        title,
-        place_status AS status
-        FROM place
-        WHERE user_id = #{userId}
+        name,
+        status
+        FROM places
+        WHERE host_user_id = #{userId}
         AND deleted_at IS NULL
         ORDER BY id DESC
+    </select>
+
+    <select id="findById"
+            resultType="com.example.petnow.entity.Place">
+        SELECT
+        id,
+        hourly_price AS hourlyPrice,
+        nightly_price AS nightlyPrice
+        FROM places
+        WHERE id = #{id}
+        AND deleted_at IS NULL
     </select>
 </mapper>
