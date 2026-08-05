@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#123b33">
+    <meta name="theme-color" content="#22a45c">
     <title>장소 등록 접수 완료 | Pet NOW</title>
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
     <link rel="alternate icon" href="/favicon.ico">
@@ -11,18 +11,24 @@
     <link rel="preconnect" href="https://cdn.jsdelivr.net">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
+    <link rel="stylesheet" href="../../../static/css/pet-now.css" th:href="@{/css/pet-now.css}">
     <link rel="stylesheet" href="../../../static/css/host-place.css" th:href="@{/css/host-place.css}">
 </head>
 <body class="success-page">
-<header class="host-header">
-    <div class="host-header-inner">
-        <a class="brand" href="/" aria-label="Pet NOW 홈">
+<header class="site-header is-scrolled host-header">
+    <div class="header-inner host-header-inner">
+        <a class="brand" href="/places" aria-label="Pet NOW 홈">
             <span class="brand-mark material-symbols-rounded" aria-hidden="true">pets</span>
             <span>Pet <b>NOW</b></span>
         </a>
         <span class="host-center-label"><i aria-hidden="true"></i> 호스트 센터</span>
-        <a class="header-home-link" href="/">홈으로</a>
+        <nav class="desktop-nav host-nav" aria-label="주요 메뉴">
+            <a href="/places">펫시터 찾기</a>
+            <a href="/places#care">안심 돌봄</a>
+            <a href="/places#how-it-works">이용 방법</a>
+        </nav>
+        <a class="header-home-link" href="/places">홈으로</a>
     </div>
 </header>
 
@@ -60,7 +66,7 @@
         </div>
 
         <div class="success-actions">
-            <a class="success-primary" href="/">홈으로 돌아가기 <span aria-hidden="true">→</span></a>
+            <a class="success-primary" href="/places">홈으로 돌아가기 <span aria-hidden="true">→</span></a>
             <a class="success-secondary" th:href="@{/host/places/create}" href="/host/places/create">다른 공간 등록</a>
         </div>
     </section>
