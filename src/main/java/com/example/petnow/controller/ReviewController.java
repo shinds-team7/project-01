@@ -1,13 +1,17 @@
 package com.example.petnow.controller;
 
 import com.example.petnow.dto.request.ReviewCreateRequest;
+import com.example.petnow.dto.response.ReviewResponse;
 import com.example.petnow.service.ReviewService;
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @Controller
 @RequestMapping("/reviews")
@@ -16,26 +20,60 @@ public class ReviewController {
 
     private final ReviewService reviewService;
 
-    // 리뷰 작성 폼
+    /**
+     * 리뷰 작성 폼 화면
+     * GET /reviews/new?reservationId=1
+     * -> templates/review/form.html
+     */
     @GetMapping("/new")
-    public String showCreateForm(Model model) {
-        model.addAttribute("reviewCreateRequest", new ReviewCreateRequest());
-        return "reviews/create";
-    }
-
-    // 리뷰 등록
-    @PostMapping
-    public String createReview(
-            @Valid @ModelAttribute ReviewCreateRequest request,
-            BindingResult bindingResult,
-            Model model) {
-
-        if (bindingResult.hasErrors()) {
-            // 검증 실패 시 다시 작성 폼으로
-            return "reviews/create";
+    public String reviewForm(@RequestParam Long reservationId, Model model,  HttpSession session) {
+        // 로그인 안 되어 있으면 "redirect:/" 리턴
+        Long loginUserId = getLoginUserId(session);
+        if (loginUserId == null) {
+            return "redirect:/";
         }
 
-        reviewService.insertReview(request);
-        return "redirect:/reviews"; // 저장 후 리다이렉트 (예약 내역 페이지로 바꿔야함)
+        ReviewCreateRequest form = new ReviewCreateRequest();
+        form.setReservationId(reservationId);
+        model.addAttribute("form", form);
+
+        return "review/create";     // 테스트용.
     }
+
+    /**
+     * 리뷰 작성 처리
+     * POST /reviews
+     * 성공 시 내 리뷰 목록 페이지로 redirect
+     */
+    @PostMapping
+    public String createReview(@ModelAttribute("form") @Valid ReviewCreateRequest request,
+                               BindingResult bindingResult,
+                               HttpSession session) {
+        if (bindingResult.hasErrors()) {
+            // 검증 실패 시 다시 작성 폼으로
+            return "review/create";     // 테스트용.
+        }
+
+        // 로그인 안 되어 있으면 "redirect:/" 리턴
+        Long loginUserId = getLoginUserId(session);
+        if (loginUserId == null) {
+            return "redirect:/";
+        }
+
+        reviewService.createReview(loginUserId, request);
+
+        return "redirect:/reviews/create";      // 테스트용. 내 리뷰 목록으로 바꿔야함
+    }
+
+
+    /**
+     * 세션에서 로그인 유저 id를 꺼내오는 헬퍼.
+     * 다른 컨트롤러에서도
+     * (Long) session.getAttribute(SessionConst.LOGIN_USER_ID) 를 반복 사용하므로
+     * 공통 클래스로 빼면 좋을 듯
+     */
+    private Long getLoginUserId(HttpSession session) {
+        return (Long) session.getAttribute(SessionConst.LOGIN_USER_ID);
+    }
+
 }
