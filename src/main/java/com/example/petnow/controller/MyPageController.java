@@ -1,6 +1,8 @@
 package com.example.petnow.controller;
 
+import com.example.petnow.common.constant.SessionConst;
 import com.example.petnow.service.PetService;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -15,10 +17,10 @@ public class MyPageController {
     private final PetService petService;
 
     @GetMapping
-    public String myPage(Model model) {
+    public String myPage(Model model, HttpSession session) {
 
-        // TODO 로그인 구현 되었을때 사용 petService.petlist(user.getId())
-        model.addAttribute("petList", petService.getPetList(1L));
+        Long userId = (Long) session.getAttribute(SessionConst.LOGIN_USER_ID);
+        model.addAttribute("petList", petService.getPetList(userId));
 
         return "mypage/index";
     }
