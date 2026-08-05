@@ -28,11 +28,11 @@ public class PetServiceImpl implements PetService {
                 .userId(userId)
                 .name(request.getName())
                 .birthYear(request.getBirthYear())
-                .gender(request.getGender())
+                .sex(request.getSex())
                 .weight(request.getWeight())
                 .neutered(request.getNeutered())
                 .note(request.getNote())
-                .sizeCode(request.getSizeCode())
+                .size(request.getSize())
                 .build();
 
         // pets 테이블 저장

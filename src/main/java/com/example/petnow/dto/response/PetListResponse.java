@@ -12,6 +12,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class PetListResponse {
     private String name;
-    private Pet.SizeCode sizeCode;
+    private Pet.Size size;
     private Double weight;
 }

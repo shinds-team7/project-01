@@ -23,7 +23,7 @@ public class Pet {
 
     private Integer birthYear;
 
-    private String gender;
+    private String sex;
 
     private Double weight;
 
@@ -31,7 +31,7 @@ public class Pet {
 
     private String note;
 
-    private SizeCode sizeCode;
+    private Size size;
 
     private PetPhoto photo;
 
@@ -39,12 +39,12 @@ public class Pet {
 
     private LocalDateTime updatedAt;
 
-    public enum SizeCode {
+    public enum Size {
         small("소형"), medium("중형"), large("대형");
 
         private final String label;
 
-        SizeCode(String label) {
+        Size(String label) {
             this.label = label;
         }
 

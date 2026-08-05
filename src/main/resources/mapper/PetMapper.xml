@@ -22,11 +22,11 @@
                 #{userId},
                 #{name},
                 #{birthYear},
-                #{gender},
+                #{sex},
                 #{weight},
                 #{neutered},
                 #{note},
-                #{sizeCode}
+                #{size}
             )
     </insert>
 
@@ -36,7 +36,7 @@
 
         SELECT
             name,
-            size_code,
+            size,
             weight
         FROM pets
         WHERE user_id = #{userId}
@@ -46,7 +46,7 @@
 
     <update id="updatePet">
     UPDATE pets
-    SET name = #{name}, size_code = #{sizeCode},
+    SET name = #{name}, size = #{size},
         weight = #{weight}, neutered = #{neutered},
         note = #{note}
 

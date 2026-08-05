@@ -12,7 +12,7 @@ public class PetUpdateRequest {
     private Long petId;
     private String name;
     private Double weight;
-    private Pet.SizeCode sizeCode;
+    private Pet.Size size;
     private Boolean neutered;
     private String note;
 }

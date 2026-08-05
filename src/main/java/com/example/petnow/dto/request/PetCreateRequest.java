@@ -14,7 +14,7 @@ public class PetCreateRequest {
 
     private Integer birthYear;
 
-    private String gender;
+    private String sex;
 
     private Double weight;
 
@@ -22,7 +22,7 @@ public class PetCreateRequest {
 
     private String note;
 
-    private Pet.SizeCode sizeCode;
+    private Pet.Size size;
 
     private String photoUrl;
 
