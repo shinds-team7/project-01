@@ -1,11 +1,20 @@
 package com.example.petnow.mapper;
 
+import com.example.petnow.dto.response.ReviewResponse;
 import com.example.petnow.entity.Review;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
 
 @Mapper
 public interface ReviewMapper {
 
+    // 리뷰 등록
     void insertReview(Review review);
+
+    // 리뷰 작성 권한 체크 (해당 예약이 로그인된 유저의 예약이 맞는지 학인)
+    int countReservationOwnedByMember(@Param("reservationId") Long reservationId,
+                                      @Param("memberId") Long memberId);
 
 }
