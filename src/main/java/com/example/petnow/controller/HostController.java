@@ -65,8 +65,7 @@ public class HostController {
 
     @GetMapping
     public String list(Model model, HttpSession session) {
-        Long loginUserId = 1L;
-//        Long loginUserId = (Long) session.getAttribute("loginUserId");
+        Long loginUserId = (Long) session.getAttribute("loginUserId");
         if (loginUserId == null) {
             return "redirect:/";
         }
