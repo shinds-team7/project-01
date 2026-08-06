@@ -75,5 +75,4 @@
         SELET * FROM reservations WHERE id = #{reservationId}
     </select>
 
-
 </mapper>
