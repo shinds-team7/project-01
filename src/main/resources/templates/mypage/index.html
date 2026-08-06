@@ -14,12 +14,12 @@
         <td th:text="${pet.weight} + 'kg'"></td>
         <td>
             <a th:href="@{/pet/detail/{petId}(petId=${pet.id})}">
-                수정
+                정보 수정하기
             </a>
         </td>
     </tr>
     <tr th:if="${#lists.isEmpty(petList)}">
-        <td colspan="3">등록된 반려동물이 없습니다.</td>
+        <td colspan="4">등록된 반려동물이 없습니다.</td>
     </tr>
     </tbody>
 </table>
