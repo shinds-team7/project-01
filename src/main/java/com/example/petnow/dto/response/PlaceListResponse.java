@@ -1,10 +1,12 @@
 package com.example.petnow.dto.response;
 
-import com.example.petnow.entity.PlaceStatus;
+import com.example.petnow.entity.PlaceType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.math.BigDecimal;
 
 @Data
 @Builder
@@ -13,11 +15,16 @@ import lombok.NoArgsConstructor;
 public class PlaceListResponse {
 
     private Long id;
+    private String nickname;
     private String name;
-//  private String thumbnailUrl; TODO:추후 게시글 사진 이미지 첨부 기능 구현 후 DTO 추가
-//  private Double averageRating;
-//  private int reservationCount;
-    private PlaceStatus status;
-
+    private String description;
+    private PlaceType placeType;
+    private boolean allowsSmallDog;
+    private boolean allowsMediumDog;
+    private boolean allowsLargeDog;
+    private boolean providesHomeCamera;
+    private boolean providesRealtimePhoto;
+    private boolean providesYard;
+    private boolean providesWalk;
+    private BigDecimal hourlyPrice;
 }
-

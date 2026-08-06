@@ -10,11 +10,9 @@ import java.util.List;
 
 @Mapper
 public interface PlaceMapper {
-    int insert(Place place);
-
     Place findById(@Param("id") Long id);
-  
-    List<PlaceListResponse> findAllByUserId(@Param("userId") Long userId);
+
+    List<PlaceListResponse> findAllPublished();
 
     PlaceDetailResponse findDetailById(@Param("placeId") Long placeId);
 }

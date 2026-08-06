@@ -3,49 +3,6 @@
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.example.petnow.mapper.PlaceMapper">
-    <insert id="insert"
-            parameterType="com.example.petnow.entity.Place"
-            useGeneratedKeys="true"
-            keyProperty="id"
-            keyColumn="id">
-        INSERT INTO places (
-        host_user_id,
-        name,
-        description,
-        place_type,
-        area_size,
-        capacity,
-        allows_small_dog,
-        allows_medium_dog,
-        allows_large_dog,
-        provides_home_camera,
-        provides_realtime_photo,
-        provides_yard,
-        provides_walk,
-        other_options,
-        hourly_price,
-        nightly_price,
-        status
-        ) VALUES (
-        #{hostUserId},
-        #{name},
-        #{description},
-        #{placeType},
-        #{areaSize},
-        #{capacity},
-        #{allowsSmallDog},
-        #{allowsMediumDog},
-        #{allowsLargeDog},
-        #{providesHomeCamera},
-        #{providesRealtimePhoto},
-        #{providesYard},
-        #{providesWalk},
-        #{otherOptions},
-        #{hourlyPrice},
-        #{nightlyPrice},
-        #{status}
-        )
-    </insert>
     <select id="findById"
             resultType="com.example.petnow.entity.Place">
         SELECT
@@ -56,18 +13,28 @@
         WHERE id = #{id}
         AND deleted_at IS NULL
     </select>
-    <select id="findAllByUserId"
+    <select id="findAllPublished"
             resultType="com.example.petnow.dto.response.PlaceListResponse">
         SELECT
         id,
+        nickname,
         name,
-        status
+        description,
+        place_type AS placeType,
+        allows_small_dog AS allowsSmallDog,
+        allows_medium_dog AS allowsMediumDog,
+        allows_large_dog AS allowsLargeDog,
+        provides_home_camera AS providesHomeCamera,
+        provides_realtime_photo AS providesRealtimePhoto,
+        provides_yard AS providesYard,
+        provides_walk AS providesWalk,
+        hourly_price AS hourlyPrice
         FROM places
-        WHERE host_user_id = #{userId}
+        WHERE status = 'PUBLISHED'
+        AND is_visible = TRUE
         AND deleted_at IS NULL
         ORDER BY id DESC
     </select>
-
     <select id="findDetailById"
             resultType="com.example.petnow.dto.response.PlaceDetailResponse">
         SELECT

@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import com.example.petnow.common.controller.HomeController;
 import com.example.petnow.controller.PetController;
+import com.example.petnow.controller.HostController;
 import com.example.petnow.controller.PlaceController;
 import com.example.petnow.controller.UserController;
 
@@ -22,6 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 @ControllerAdvice(assignableTypes = {
 	HomeController.class,
 	PetController.class,
+	HostController.class,
 	PlaceController.class,
 	UserController.class
 })
