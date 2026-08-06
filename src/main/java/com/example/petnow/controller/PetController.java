@@ -38,4 +38,10 @@ public class PetController {
         petService.updatePet(userId,updateRequest);
         return "mypage";
     }
+
+    @PostMapping("/delete/{petId}")
+    public String DeletePet(@PathVariable Long petId){
+        petService.deletePet(petId);
+        return "mypage";
+    }
 }
