@@ -12,6 +12,7 @@ import com.example.petnow.dto.request.ReservationRequest;
 import com.example.petnow.entity.Place;
 import com.example.petnow.entity.Reservation;
 import com.example.petnow.entity.ReservationStatus;
+import com.example.petnow.entity.ReservationType;
 import com.example.petnow.mapper.PlaceMapper;
 import com.example.petnow.mapper.ReservationMapper;
 
@@ -28,7 +29,7 @@ public class ReservationServiceImpl implements ReservationService {
 	public Long saveReservation(ReservationRequest request, Long userId) {
 		Place place = placeMapper.findById(request.getPlaceId());
 
-		String reservationType = determineReservationType(request.getCheckIn(), request.getCheckOut());
+		ReservationType reservationType = determineReservationType(request.getCheckIn(), request.getCheckOut());
 		BigDecimal totalPrice = calculateTotalPrice(place, reservationType, request.getCheckIn(), request.getCheckOut());
 
 		Reservation reservation = Reservation.builder()
@@ -36,7 +37,7 @@ public class ReservationServiceImpl implements ReservationService {
 			.userId(userId)
 			.memo(request.getMemo())
 			.totalPrice(totalPrice)
-			.reservationType(reservationType)
+			.reservationType(reservationType.getDatabaseValue())
 			.checkIn(request.getCheckIn())
 			.checkOut(request.getCheckOut())
 			.status(ReservationStatus.PENDING)
@@ -47,24 +48,26 @@ public class ReservationServiceImpl implements ReservationService {
 		return reservation.getId();
 	}
 
-	private String determineReservationType(LocalDateTime checkIn, LocalDateTime checkOut) {
+	private ReservationType determineReservationType(LocalDateTime checkIn, LocalDateTime checkOut) {
 		if (checkIn.toLocalDate().equals(checkOut.toLocalDate())) {
-			return "당일";
+			return ReservationType.DAY_USE;
 		} else {
-			return "숙박";
+			return ReservationType.OVERNIGHT;
 		}
 	}
 
-	private BigDecimal calculateTotalPrice(Place place, String reservationType, LocalDateTime checkIn, LocalDateTime checkOut) {
-		BigDecimal totalPrice;
-		if ("당일".equals(reservationType)) {
-			long totalHours = Duration.between(checkIn, checkOut).toHours();
-			totalPrice = place.getHourlyPrice().multiply(BigDecimal.valueOf(totalHours));
-		} else {
-			long totalDays = ChronoUnit.DAYS.between(checkIn.toLocalDate(), checkOut.toLocalDate());
-			totalPrice = place.getNightlyPrice().multiply(BigDecimal.valueOf(totalDays));
-		}
-		return totalPrice;
+	private BigDecimal calculateTotalPrice(Place place, ReservationType reservationType,
+		LocalDateTime checkIn, LocalDateTime checkOut) {
+		return switch (reservationType) {
+			case DAY_USE -> {
+				long totalHours = Duration.between(checkIn, checkOut).toHours();
+				yield place.getHourlyPrice().multiply(BigDecimal.valueOf(totalHours));
+			}
+			case OVERNIGHT -> {
+				long totalDays = ChronoUnit.DAYS.between(checkIn.toLocalDate(), checkOut.toLocalDate());
+				yield place.getNightlyPrice().multiply(BigDecimal.valueOf(totalDays));
+			}
+		};
 	}
 
 }
