@@ -62,7 +62,7 @@
     <p th:if="${submitError}" th:text="${submitError}"
        style="margin-top:16px;padding:13px 16px;border-radius:12px;background:#fdeced;color:var(--danger);font-size:13px;font-weight:700;text-align:center;"></p>
 
-    <form id="review-form" th:action="@{/reviews}" th:object="${reviewCreateRequest}" method="post">
+    <form id="review-form" th:action="@{/reviews}" th:object="${form}" method="post">
         <input type="hidden" th:field="*{reservationId}">
         <input type="hidden" name="placeName" th:value="${placeName}">
         <input type="hidden" name="stayInfo" th:value="${stayInfo}">
