@@ -1,117 +1,100 @@
 <!DOCTYPE html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#22a45c">
-    <title>반려견 등록 | Pet NOW</title>
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-    <link rel="alternate icon" href="/favicon.ico">
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-    <link rel="preconnect" href="https://cdn.jsdelivr.net">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
-    <link rel="stylesheet" href="../static/css/pet-now.css" th:href="@{/css/pet-now.css}">
-    <link rel="stylesheet" href="../static/css/host-place.css" th:href="@{/css/host-place.css}">
-    <link rel="stylesheet" href="../static/css/app-flow.css" th:href="@{/css/app-flow.css}">
-    <script defer src="../static/js/app-flow.js" th:src="@{/js/app-flow.js}"></script>
-    <script defer src="../static/js/pet-form.js" th:src="@{/js/pet-form.js}"></script>
-</head>
-<body class="flow-page">
-<a class="skip-link" href="#pet-form">등록 양식으로 바로가기</a>
-
-<header class="site-header is-scrolled" data-header>
-    <div class="header-inner">
-        <a class="brand" href="/mypage" aria-label="Pet NOW 홈">
-            <span class="brand-mark material-symbols-rounded" aria-hidden="true">pets</span>
-            <span>Pet <b>NOW</b></span>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/base :: page('반려동물 등록', 'none', ~{::main})}">
+<body>
+<main id="main-content" class="app-main no-nav pet-editor-page">
+    <div class="topbar has-line pet-editor-topbar">
+        <a class="topbar-back" th:href="@{/mypage}" aria-label="마이페이지로 돌아가기">
+            <span class="ico" aria-hidden="true">arrow_back_ios_new</span>
         </a>
-        <div class="header-actions">
-            <a class="profile-button" href="/mypage" aria-label="마이페이지">
-                <span class="profile-avatar">지</span>
-                <span class="profile-copy"><small>반가워요</small><strong>지우 보호자님</strong></span>
-            </a>
-        </div>
-    </div>
-</header>
-
-<main class="flow-shell">
-    <div class="flow-topbar">
-        <a class="flow-back" href="/mypage#pets" aria-label="뒤로 가기">
-            <span class="material-symbols-rounded" aria-hidden="true">arrow_back_ios_new</span>
-        </a>
-        <h1>반려견 등록</h1>
+        <h1>반려동물 등록</h1>
     </div>
 
-    <form id="pet-form" data-pet-form>
-        <div style="text-align:center;">
-            <div class="avatar-upload">
-                <span class="material-symbols-rounded" aria-hidden="true">pets</span>
-                <span class="material-symbols-rounded is-camera" aria-hidden="true">photo_camera</span>
+    <form class="pet-editor" th:action="@{/pet/create}" method="post">
+        <section class="pet-editor-intro" aria-labelledby="pet-create-title">
+            <span class="pet-editor-portrait" aria-hidden="true">
+                <span class="ico is-filled">pets</span>
+                <i class="ico">add_a_photo</i>
+            </span>
+            <div>
+                <span class="pet-editor-kicker">NEW FAMILY</span>
+                <h2 id="pet-create-title">새 가족을<br>소개해 주세요</h2>
+                <p>돌봄에 꼭 필요한 정보만 먼저 받을게요. 나중에 언제든 바꿀 수 있어요.</p>
             </div>
-        </div>
+        </section>
 
-        <div class="field" style="margin-top:28px;">
-            <div class="field-label"><label for="pet-name">이름</label></div>
-            <input class="control" id="pet-name" name="name" type="text" placeholder="예) 초코" required maxlength="20">
-        </div>
-
-        <div class="split-fields">
-            <div class="field">
-                <div class="field-label"><label for="pet-breed">견종</label></div>
-                <input class="control" id="pet-breed" name="breed" type="text" placeholder="예) 푸들" maxlength="50">
+        <div class="pet-editor-fields">
+            <div class="field pet-editor-name">
+                <label for="create-name">이름 <span class="req">필수</span></label>
+                <input class="control" id="create-name" name="name" type="text"
+                       placeholder="예: 초코" maxlength="20" autocomplete="off" required>
             </div>
-            <div class="field">
-                <div class="field-label"><label for="pet-weight">몸무게</label></div>
-                <div class="unit-control">
-                    <input id="pet-weight" name="weight" type="number" step="0.1" min="0" placeholder="6">
-                    <span>kg</span>
+
+            <fieldset class="field pet-editor-fieldset">
+                <legend class="field-label">크기 <span class="req">필수</span></legend>
+                <div class="choice-row pet-size-choices">
+                    <label class="choice">
+                        <input type="radio" name="size" value="SMALL" required>
+                        <span><i class="ico" aria-hidden="true">pets</i><b>소형</b><small>10kg 미만</small></span>
+                    </label>
+                    <label class="choice">
+                        <input type="radio" name="size" value="MEDIUM">
+                        <span><i class="ico" aria-hidden="true">pets</i><b>중형</b><small>10–25kg</small></span>
+                    </label>
+                    <label class="choice">
+                        <input type="radio" name="size" value="LARGE">
+                        <span><i class="ico" aria-hidden="true">pets</i><b>대형</b><small>25kg 이상</small></span>
+                    </label>
+                </div>
+            </fieldset>
+
+            <div class="pet-editor-split">
+                <div class="field">
+                    <label for="create-birth-year">태어난 해</label>
+                    <select class="control" id="create-birth-year" name="birthYear">
+                        <option value="">선택해 주세요</option>
+                        <option th:each="year : ${#numbers.sequence(#dates.year(#dates.createNow()), 2000, -1)}"
+                                th:value="${year}" th:text="${year} + '년'">2024년</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="create-weight">몸무게</label>
+                    <span class="pet-unit-control">
+                        <input class="control" id="create-weight" name="weight" type="number"
+                               min="0.1" max="100" step="0.1" inputmode="decimal" placeholder="4.2">
+                        <span>kg</span>
+                    </span>
                 </div>
             </div>
-        </div>
 
-        <div class="field">
-            <div class="field-label"><label for="pet-birth-year">출생 연도</label></div>
-            <select class="control" id="pet-birth-year" name="birthYear">
-                <option value="">모름 · 추정 나이 선택</option>
-                <option th:each="y : ${#numbers.sequence(2026, 2010, -1)}" th:value="${y}" th:text="${y} + '년생'">2023년생</option>
-            </select>
-        </div>
+            <fieldset class="field pet-editor-fieldset">
+                <legend class="field-label">성별</legend>
+                <div class="choice-row pet-sex-choices">
+                    <label class="choice"><input type="radio" name="sex" value="M"><span>남아</span></label>
+                    <label class="choice"><input type="radio" name="sex" value="F"><span>여아</span></label>
+                </div>
+            </fieldset>
 
-        <div class="field">
-            <div class="field-label"><span>크기</span></div>
-            <input type="hidden" name="size" value="small" data-choice-input="size">
-            <div class="choice-row" data-choice-group="size">
-                <button type="button" class="is-active" aria-pressed="true" data-value="small">소형견</button>
-                <button type="button" aria-pressed="false" data-value="medium">중형견</button>
-                <button type="button" aria-pressed="false" data-value="large">대형견</button>
+            <input type="hidden" name="_isNeutered" value="on">
+            <label class="pet-toggle">
+                <input type="checkbox" name="isNeutered" value="true">
+                <span><strong>중성화를 했어요</strong><small>호스트에게 미리 알려드려요</small></span>
+                <i aria-hidden="true"></i>
+            </label>
+
+            <div class="field">
+                <label for="create-memo">돌봄 메모 <span class="opt">선택</span></label>
+                <textarea class="control pet-memo" id="create-memo" name="memo" rows="5" maxlength="500"
+                          placeholder="좋아하는 것, 낯선 환경에서의 반응, 주의할 점을 알려주세요."></textarea>
+                <p class="field-hint">예약할 때 호스트가 아이를 이해하는 데 도움이 돼요.</p>
+            </div>
+
+            <div class="pet-editor-actions">
+                <a class="btn btn-ghost" th:href="@{/mypage}">취소</a>
+                <button class="btn btn-primary" type="submit">가족으로 등록하기</button>
             </div>
         </div>
-
-        <div class="field">
-            <div class="field-label"><span>성별</span></div>
-            <input type="hidden" name="sex" value="남아" data-choice-input="sex">
-            <div class="choice-row" data-choice-group="sex">
-                <button type="button" class="is-active" aria-pressed="true" data-value="남아">남아</button>
-                <button type="button" aria-pressed="false" data-value="여아">여아</button>
-            </div>
-        </div>
-
-        <label class="check-row">
-            <input type="checkbox" name="neutered" checked>중성화 완료
-        </label>
-
-        <div class="field" style="margin-top:24px;">
-            <div class="field-label"><label for="pet-note">메모 <span>선택</span></label></div>
-            <textarea class="control" id="pet-note" name="note" rows="4"
-                      placeholder="예) 낯선 사람을 조금 무서워해요. 닭고기 알레르기가 있고, 산책은 하루 2번 필요합니다."></textarea>
-        </div>
-
-        <button class="flow-cta is-block is-green" type="submit" style="margin-top:30px;">등록하기</button>
     </form>
 </main>
-
-<div class="toast" data-toast role="status" aria-live="polite" aria-atomic="true"></div>
 </body>
 </html>
