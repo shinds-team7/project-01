@@ -8,12 +8,12 @@ public class HomeController {
 
     /** 루트 접속 시 장소 목록으로 보낸다. */
     @GetMapping("/")
-    public String home() {
-        return "redirect:/places";
+    public String root() {
+        return "redirect:/home";
     }
 
-    @GetMapping("/places")
-    public String places() {
-        return "places";
+    @GetMapping("/home")
+    public String home() {
+        return "home";
     }
 }
