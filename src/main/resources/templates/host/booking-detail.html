@@ -42,7 +42,11 @@
 
     <div style="display:flex;align-items:center;justify-content:space-between;">
         <strong style="font-size:20px;color:var(--ink-deep);font-weight:800;">예약 요청</strong>
-        <span style="font-size:12.5px;font-weight:700;padding:6px 12px;border-radius:8px;background:var(--pet-orange-soft);color:#ad5919;"
+        <span th:style="'font-size:12.5px;font-weight:700;padding:6px 12px;border-radius:8px;'
+              + (${booking.waiting}
+                 ? 'background:var(--pet-orange-soft);color:#ad5919;'
+                 : 'background:var(--pet-green-soft);color:var(--pet-green-dark);')"
+              style="font-size:12.5px;font-weight:700;padding:6px 12px;border-radius:8px;background:var(--pet-orange-soft);color:#ad5919;"
               th:text="${booking.status}">승인 대기</span>
     </div>
 

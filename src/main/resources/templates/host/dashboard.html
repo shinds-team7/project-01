@@ -64,7 +64,7 @@
             </div>
             <div class="request-actions">
                 <a th:href="@{/host/bookings/{id}(id=${req.id})}">예약 상세</a>
-                <a th:if="${req.waiting}" class="is-approve" th:href="@{/host/bookings/{id}(id=${req.id})}">승인하기</a>
+                <a th:if="${req.waiting}" class="is-approve" th:href="@{/host/bookings/{id}(id=${req.id})}">상세에서 승인</a>
                 <span th:unless="${req.waiting}" class="is-done"><span class="material-symbols-rounded" aria-hidden="true">check_circle</span>승인 완료</span>
             </div>
         </article>

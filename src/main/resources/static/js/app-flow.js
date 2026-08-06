@@ -28,7 +28,11 @@
         const labels = ["별로였어요", "아쉬웠어요", "보통이었어요", "좋았어요", "최고예요"];
 
         function paint(value) {
-            stars.forEach((star, index) => star.classList.toggle("is-active", index < value));
+            stars.forEach((star, index) => {
+                const filled = index < value;
+                star.classList.toggle("is-active", filled);
+                star.setAttribute("aria-pressed", String(filled));
+            });
             if (label) label.textContent = value ? labels[value - 1] : "별점을 선택해주세요";
         }
 
@@ -41,6 +45,20 @@
         });
 
         paint(Number(input?.value) || 0);
+    }
+
+    // Payment CTA follows the selected payment method
+    const payCta = document.querySelector("[data-pay-cta]");
+    if (payCta) {
+        const methods = [...document.querySelectorAll('input[name="payMethod"]')];
+        const syncPayCta = () => {
+            const checked = methods.find((method) => method.checked) || methods[0];
+            if (!checked) return;
+            payCta.textContent = `${checked.dataset.ctaLabel} ${payCta.dataset.payCta}원 결제하기`;
+            payCta.classList.toggle("is-toss", checked.value === "toss");
+        };
+        methods.forEach((method) => method.addEventListener("change", syncPayCta));
+        syncPayCta();
     }
 
     // Character counter for inputs/textareas with data-count-target

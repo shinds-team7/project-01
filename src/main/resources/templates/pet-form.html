@@ -81,20 +81,20 @@
 
         <div class="field">
             <div class="field-label"><span>크기</span></div>
-            <input type="hidden" name="sizeCode" value="SMALL" data-choice-input="size">
+            <input type="hidden" name="size" value="small" data-choice-input="size">
             <div class="choice-row" data-choice-group="size">
-                <button type="button" class="is-active" data-value="SMALL">소형견</button>
-                <button type="button" data-value="MEDIUM">중형견</button>
-                <button type="button" data-value="LARGE">대형견</button>
+                <button type="button" class="is-active" aria-pressed="true" data-value="small">소형견</button>
+                <button type="button" aria-pressed="false" data-value="medium">중형견</button>
+                <button type="button" aria-pressed="false" data-value="large">대형견</button>
             </div>
         </div>
 
         <div class="field">
             <div class="field-label"><span>성별</span></div>
-            <input type="hidden" name="gender" value="남아" data-choice-input="gender">
-            <div class="choice-row" data-choice-group="gender">
-                <button type="button" class="is-active" data-value="남아">남아</button>
-                <button type="button" data-value="여아">여아</button>
+            <input type="hidden" name="sex" value="남아" data-choice-input="sex">
+            <div class="choice-row" data-choice-group="sex">
+                <button type="button" class="is-active" aria-pressed="true" data-value="남아">남아</button>
+                <button type="button" aria-pressed="false" data-value="여아">여아</button>
             </div>
         </div>
 

@@ -53,13 +53,13 @@
     <div class="flow-section">
         <p class="flow-section-title">결제 수단</p>
         <label class="pay-method">
-            <input type="radio" name="payMethod" value="toss" checked>
+            <input type="radio" name="payMethod" value="toss" data-cta-label="토스로" checked>
             <span class="method-mark">t</span>
             <span class="method-name">토스페이 간편결제</span>
             <span class="material-symbols-rounded method-check" aria-hidden="true">check_circle</span>
         </label>
         <label class="pay-method">
-            <input type="radio" name="payMethod" value="card">
+            <input type="radio" name="payMethod" value="card" data-cta-label="카드로">
             <span class="method-mark is-card"><span class="material-symbols-rounded" aria-hidden="true">credit_card</span></span>
             <span class="method-name">신용·체크카드</span>
             <span class="material-symbols-rounded method-check" aria-hidden="true">check_circle</span>
@@ -81,6 +81,7 @@
 
 <div class="sticky-footer" style="flex-direction:column;align-items:stretch;gap:6px;">
     <a class="flow-cta is-block is-toss" th:href="@{/places/{id}/booking/success(id=${place.id})}"
+       th:attr="data-pay-cta=${#numbers.formatInteger(place.hourlyPrice * 5 + 3000, 0, 'COMMA')}"
        th:text="'토스로 ' + ${#numbers.formatInteger(place.hourlyPrice * 5 + 3000, 0, 'COMMA')} + '원 결제하기'">토스로 63,000원 결제하기</a>
     <p class="flow-note" style="justify-content:center;"><span class="material-symbols-rounded" aria-hidden="true">info</span>디자인 미리보기예요. 실제 결제와 예약 저장은 아직 연결되지 않았어요.</p>
 </div>

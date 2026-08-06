@@ -838,6 +838,9 @@
     width: 100%;
     min-height: 38px;
     margin-top: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     border: 0;
     border-radius: var(--radius-pill);
     background: var(--pet-green);
@@ -1374,7 +1377,9 @@
     }
 
     .pet-detail-grid article > button,
-    .reservation-list article > button {
+    .reservation-list article > button,
+    .reservation-list article > a,
+    .reservation-list article > .reservation-actions {
         grid-column: 2;
         justify-self: start;
     }
@@ -1428,6 +1433,8 @@
 
 @media (prefers-reduced-motion: reduce) {
     .care-ribbon > button,
+    .care-ribbon > a,
+    .host-cta,
     .trust-action,
     .pet-ribbon-list button,
     .page-tabs button,

@@ -9,7 +9,10 @@
         const buttons = [...group.querySelectorAll("button")];
         buttons.forEach((button) => {
             button.addEventListener("click", () => {
-                buttons.forEach((b) => b.classList.toggle("is-active", b === button));
+                buttons.forEach((b) => {
+                    b.classList.toggle("is-active", b === button);
+                    b.setAttribute("aria-pressed", String(b === button));
+                });
                 if (input) input.value = button.dataset.value;
             });
         });
@@ -18,25 +21,27 @@
     form.addEventListener("submit", async (event) => {
         event.preventDefault();
         const formData = new FormData(form);
-        const payload = {
-            name: formData.get("name"),
-            breed: formData.get("breed") || null,
-            weight: formData.get("weight") ? Number(formData.get("weight")) : null,
-            birthYear: formData.get("birthYear") ? Number(formData.get("birthYear")) : null,
-            sizeCode: formData.get("sizeCode"),
-            gender: formData.get("gender"),
-            neutered: formData.get("neutered") === "on",
-            note: formData.get("note") || null
+        // PetController 는 @ModelAttribute PetCreateRequest 를 받으므로 폼 인코딩으로 보낸다.
+        const params = new URLSearchParams();
+        const put = (key, value) => {
+            if (value !== null && value !== undefined && value !== "") params.set(key, value);
         };
+        put("name", formData.get("name"));
+        put("weight", formData.get("weight"));
+        put("birthYear", formData.get("birthYear"));
+        put("size", formData.get("size"));
+        put("sex", formData.get("sex"));
+        put("note", formData.get("note"));
+        params.set("neutered", String(formData.get("neutered") === "on"));
 
         const submitButton = form.querySelector('[type="submit"]');
         if (submitButton) submitButton.disabled = true;
 
         try {
-            const response = await fetch("/addpet", {
+            const response = await fetch("/pet/create", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload)
+                headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
+                body: params
             });
             if (!response.ok) throw new Error("request failed");
             window.location.href = "/mypage#pets";

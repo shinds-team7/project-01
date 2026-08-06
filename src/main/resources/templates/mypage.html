@@ -37,8 +37,11 @@
                 <i aria-hidden="true">2</i>
             </button>
             <a class="profile-button is-current" href="/mypage" aria-current="page" aria-label="마이페이지">
-                <span class="profile-avatar">지</span>
-                <span class="profile-copy"><small>반가워요</small><strong>지우 보호자님</strong></span>
+                <span class="profile-avatar"
+                      th:text="${user != null and !#strings.isEmpty(user.nickname) ? #strings.substring(user.nickname, 0, 1) : '?'}">지</span>
+                <span class="profile-copy"><small>반가워요</small>
+                    <strong th:text="${user != null ? user.nickname + ' 보호자님' : '로그인이 필요해요'}">지우 보호자님</strong>
+                </span>
             </a>
         </div>
     </div>
@@ -82,7 +85,7 @@
     <div class="dashboard-shell">
         <aside class="profile-side" aria-label="계정 요약">
             <div class="side-owner">
-                <span class="side-avatar" th:text="${user != null ? #strings.substring(user.nickname, 0, 1) : '?'}">지</span>
+                <span class="side-avatar" th:text="${user != null and !#strings.isEmpty(user.nickname) ? #strings.substring(user.nickname, 0, 1) : '?'}">지</span>
                 <div><strong th:text="${user != null ? user.nickname : '로그인이 필요해요'}">김지우</strong><small th:text="${user != null ? user.email : ''}">jiwoo@petnow.kr</small></div>
                 <button type="button" data-pending-feature="프로필 편집" aria-label="프로필 편집">
                     <span class="material-symbols-rounded" aria-hidden="true">edit</span>
@@ -220,8 +223,8 @@
 </main>
 
 <nav class="mobile-nav" aria-label="모바일 메뉴">
-    <a href="/places"><span class="material-symbols-rounded" aria-hidden="true">home</span><small>홈</small></a>
-    <a href="/places"><span class="material-symbols-rounded" aria-hidden="true">search</span><small>검색</small></a>
+    <a href="/places#home"><span class="material-symbols-rounded" aria-hidden="true">home</span><small>홈</small></a>
+    <a href="/places#places"><span class="material-symbols-rounded" aria-hidden="true">search</span><small>검색</small></a>
     <a href="/mypage#reservations"><span class="material-symbols-rounded" aria-hidden="true">calendar_month</span><small>예약</small></a>
     <a class="is-current" href="/mypage" aria-current="page"><span class="material-symbols-rounded" aria-hidden="true">person</span><small>마이</small></a>
 </nav>
