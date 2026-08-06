@@ -52,6 +52,7 @@
         memo = #{memo}
 
     WHERE id = #{petId}
+        AND user_id = #{userId}
     </update>
 
     <select id="getDetail"

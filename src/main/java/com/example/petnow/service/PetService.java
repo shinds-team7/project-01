@@ -10,6 +10,6 @@ import java.util.List;
 public interface PetService {
     void createPet(Long userId, PetCreateRequest request);
     List<PetListResponse> getPetList(Long userId);
-    void updatePet(Long petId, PetUpdateRequest request);
+    void updatePet(Long userId, PetUpdateRequest request);
     PetDetailResponse getDetail(Long userId, Long petId);
 }

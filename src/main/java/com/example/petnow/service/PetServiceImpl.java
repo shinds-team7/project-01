@@ -48,8 +48,8 @@ public class PetServiceImpl implements PetService {
     }
 
     @Override
-    public void updatePet(Long petId, PetUpdateRequest request){
-        request.setPetId(petId);
+    public void updatePet(Long userId, PetUpdateRequest request){
+        request.setUserId(userId);
         petMapper.updatePet(request);
     }
 
