@@ -1345,3 +1345,439 @@ textarea.control {
         height: 240px;
     }
 }
+
+/* ─────────────────────── 마이페이지 · 반려동물 ─────────────────────── */
+.my-page {
+    background: #f8faf8;
+}
+
+.my-hero {
+    position: relative;
+    min-height: 310px;
+    overflow: hidden;
+    padding: 42px 24px 84px;
+    background:
+        radial-gradient(circle at 110% -8%, rgba(255, 255, 255, 0.2) 0 27%, transparent 27.4%),
+        linear-gradient(145deg, #12683a 0%, var(--green) 100%);
+    color: #fff;
+}
+
+.my-hero::after {
+    content: "";
+    position: absolute;
+    right: -54px;
+    bottom: -86px;
+    width: 220px;
+    height: 220px;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 50%;
+    box-shadow:
+        0 0 0 34px rgba(255, 255, 255, 0.04),
+        0 0 0 68px rgba(255, 255, 255, 0.025);
+}
+
+.my-hero-copy,
+.my-family-count {
+    position: relative;
+    z-index: 2;
+}
+
+.my-kicker {
+    display: block;
+    color: var(--green-dark);
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: 0.14em;
+}
+
+.my-hero .my-kicker {
+    color: #b9f4d1;
+}
+
+.my-hero h1 {
+    margin: 14px 0 12px;
+    color: #fff;
+    font-size: clamp(31px, 9vw, 43px);
+    line-height: 1.16;
+    letter-spacing: -0.055em;
+}
+
+.my-hero h1 strong {
+    color: #d9ffab;
+}
+
+.my-hero-copy > p {
+    max-width: 460px;
+    margin: 0;
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 13px;
+    line-height: 1.65;
+}
+
+.my-hero-paws {
+    position: absolute;
+    top: 34px;
+    right: 22px;
+    display: grid;
+    gap: 7px;
+    color: rgba(255, 255, 255, 0.12);
+    transform: rotate(27deg);
+}
+
+.my-hero-paws .ico:nth-child(1) {
+    font-size: 30px;
+}
+
+.my-hero-paws .ico:nth-child(2) {
+    margin-left: 24px;
+    font-size: 23px;
+}
+
+.my-hero-paws .ico:nth-child(3) {
+    margin-left: 5px;
+    font-size: 17px;
+}
+
+.my-family-count {
+    width: fit-content;
+    margin-top: 26px;
+    display: grid;
+    grid-template-columns: auto auto;
+    align-items: end;
+    column-gap: 7px;
+}
+
+.my-family-count span {
+    grid-column: 1 / -1;
+    color: rgba(255, 255, 255, 0.62);
+    font-size: 10px;
+    font-weight: 700;
+}
+
+.my-family-count strong {
+    font-size: 42px;
+    line-height: 1;
+    letter-spacing: -0.06em;
+}
+
+.my-family-count small {
+    padding-bottom: 5px;
+    color: #c8efd7;
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.my-layout {
+    position: relative;
+    z-index: 3;
+    margin-top: -50px;
+    display: grid;
+    gap: 20px;
+}
+
+.my-family,
+.my-account {
+    border: 1px solid rgba(17, 24, 39, 0.06);
+    border-radius: var(--r-lg);
+    background: #fff;
+    box-shadow: 0 16px 46px rgba(30, 69, 45, 0.09);
+}
+
+.my-family {
+    padding: 24px 16px 16px;
+}
+
+.my-section-head {
+    margin: 0 4px 20px;
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.my-section-head h2,
+.my-account h2 {
+    margin: 5px 0 0;
+    color: var(--ink-strong);
+    font-size: 24px;
+    letter-spacing: -0.045em;
+}
+
+.my-add-button {
+    min-height: 42px;
+    padding: 0 13px;
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+.pet-passport-list {
+    display: grid;
+    gap: 12px;
+}
+
+.pet-passport {
+    position: relative;
+    min-height: 156px;
+    overflow: hidden;
+    padding: 20px 16px 17px;
+    display: grid;
+    grid-template-columns: 58px minmax(0, 1fr);
+    gap: 14px;
+    border: 1px solid var(--line-soft);
+    border-radius: 18px;
+    background:
+        linear-gradient(90deg, transparent 0 68px, rgba(34, 164, 92, 0.07) 68px 69px, transparent 69px),
+        #fcfdfc;
+}
+
+.pet-passport-index {
+    position: absolute;
+    top: 12px;
+    right: 14px;
+    color: #dce2de;
+    font-size: 33px;
+    font-weight: 900;
+    line-height: 1;
+    letter-spacing: -0.06em;
+}
+
+.pet-passport-avatar {
+    width: 58px;
+    height: 72px;
+    display: grid;
+    place-items: center;
+    border-radius: 18px 18px 8px 18px;
+    background: var(--green-soft);
+    color: var(--green);
+}
+
+.pet-passport-avatar .ico {
+    font-size: 29px;
+}
+
+.pet-passport-label {
+    color: var(--muted);
+    font-size: 8px;
+    font-weight: 900;
+    letter-spacing: 0.13em;
+}
+
+.pet-passport-copy h3 {
+    margin: 5px 40px 13px 0;
+    color: var(--ink-strong);
+    font-size: 22px;
+    letter-spacing: -0.04em;
+}
+
+.pet-passport-meta {
+    display: flex;
+    gap: 22px;
+}
+
+.pet-passport-meta span {
+    display: grid;
+    gap: 3px;
+}
+
+.pet-passport-meta small {
+    color: var(--muted);
+    font-size: 9px;
+}
+
+.pet-passport-meta strong {
+    color: var(--ink-soft);
+    font-size: 12px;
+}
+
+.pet-passport-edit {
+    grid-column: 1 / -1;
+    justify-self: end;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    color: var(--green-dark);
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.pet-passport-edit .ico {
+    font-size: 15px;
+    transition: transform 160ms ease;
+}
+
+.pet-passport-edit:hover .ico {
+    transform: translateX(3px);
+}
+
+.my-empty {
+    min-height: 330px;
+    justify-content: center;
+}
+
+.my-empty .btn {
+    margin-top: 8px;
+}
+
+.my-account {
+    padding: 24px 20px;
+}
+
+.my-account-profile {
+    margin-top: 17px;
+    display: flex;
+    align-items: center;
+    gap: 13px;
+}
+
+.my-account-avatar {
+    width: 54px;
+    height: 54px;
+    display: grid;
+    place-items: center;
+    border: 1px solid #f0ddc2;
+    border-radius: 18px 18px 18px 7px;
+    background: #fff5e7;
+    color: #b96b13;
+    font-size: 20px;
+    font-weight: 900;
+}
+
+.my-account-profile h2 {
+    font-size: 18px;
+}
+
+.my-account-profile p {
+    margin: 3px 0 0;
+    color: var(--muted);
+    font-size: 11px;
+}
+
+.my-account-note {
+    margin-top: 22px;
+    padding: 15px;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    border-radius: var(--r-md);
+    background: var(--green-soft);
+    color: var(--green-dark);
+}
+
+.my-account-note > .ico {
+    margin-top: 2px;
+    font-size: 21px;
+}
+
+.my-account-note p {
+    margin: 0;
+    color: #527160;
+    font-size: 10.5px;
+    line-height: 1.5;
+}
+
+.my-account-note strong {
+    display: block;
+    margin-bottom: 3px;
+    color: var(--green-dark);
+    font-size: 12px;
+}
+
+.my-quick-links {
+    margin-top: 10px;
+    display: grid;
+}
+
+.my-quick-links a {
+    padding: 14px 4px;
+    display: grid;
+    grid-template-columns: 28px 1fr 20px;
+    align-items: center;
+    gap: 9px;
+    border-bottom: 1px solid var(--line-soft);
+    color: var(--ink);
+}
+
+.my-quick-links a:last-child {
+    border-bottom: 0;
+}
+
+.my-quick-links a > .ico:first-child {
+    color: var(--green);
+    font-size: 20px;
+}
+
+.my-quick-links a > .ico:last-child {
+    color: var(--faint);
+    font-size: 18px;
+}
+
+.my-quick-links a > span:nth-child(2) {
+    display: grid;
+    gap: 2px;
+}
+
+.my-quick-links strong {
+    font-size: 12px;
+}
+
+.my-quick-links small {
+    color: var(--muted);
+    font-size: 9.5px;
+}
+
+@media (min-width: 1024px) {
+    .my-hero {
+        min-height: 300px;
+        padding: 58px 48px 78px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 48px;
+    }
+
+    .my-hero h1 {
+        font-size: 43px;
+    }
+
+    .my-hero-copy > p {
+        font-size: 13.5px;
+    }
+
+    .my-family-count {
+        flex: none;
+        margin: 0 54px 0 0;
+    }
+
+    .my-family-count strong {
+        font-size: 64px;
+    }
+
+    .my-layout {
+        grid-template-columns: minmax(0, 1fr) 250px;
+        align-items: start;
+        padding-inline: 32px;
+    }
+
+    .my-family {
+        padding: 30px 24px 24px;
+    }
+
+    .pet-passport-list {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .pet-passport {
+        min-height: 168px;
+    }
+
+    .my-account {
+        position: sticky;
+        top: 24px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .pet-passport-edit .ico {
+        transition: none;
+    }
+}
