@@ -73,10 +73,11 @@
         AND deleted_at IS NULL
     </select>
 
-    <delete id="deletePet">
-        DELETE
-        FROM pets
+    <update id="deletePet">
+        UPDATE pets
+        SET deleted_at = NOW()
         WHERE id = #{petId}
-    </delete>
+        AND deleted_at IS NULL
+    </update>
 
 </mapper>
