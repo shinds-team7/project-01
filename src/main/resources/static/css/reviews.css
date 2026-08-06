@@ -1,0 +1,228 @@
+@charset "UTF-8";
+
+/*
+ * 내 리뷰 내역(/reviews) 전용 스타일.
+ * PET NOW 프로토타입 660~690행의 리뷰 카드를 옮긴 것입니다.
+ *
+ * 페이지 골격(.flow-page / .flow-shell / .flow-topbar / .flow-empty / .flow-cta)과
+ * 색상 토큰은 app-flow.css, pet-now.css 를 그대로 씁니다. 여기에는 이 화면에만
+ * 필요한 것 — 카드 레이아웃과 삭제 확인 팝 — 만 담겨 있습니다.
+ */
+
+/* 서버가 내려준 오류 문구 */
+.review-alert {
+    margin: 0 0 16px;
+    padding: 13px 16px;
+    border-radius: var(--radius-sm);
+    background: #fdeced;
+    color: var(--danger);
+    font-size: 13px;
+    font-weight: 700;
+    text-align: center;
+}
+
+.my-review-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.my-review-card {
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    background: var(--white);
+    overflow: hidden;
+}
+
+.my-review-top {
+    display: flex;
+    gap: 12px;
+    padding: 16px 16px 0;
+}
+
+.my-review-top .media-placeholder {
+    flex: none;
+    width: 56px;
+    height: 56px;
+    border-radius: var(--radius-sm);
+}
+
+.my-review-top .media-placeholder .material-symbols-rounded {
+    font-size: 24px;
+}
+
+.my-review-head {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+}
+
+.my-review-head .place-name {
+    color: var(--ink-deep);
+    font-size: 15px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    text-decoration: none;
+}
+
+.my-review-head .place-name:hover {
+    color: var(--pet-green-dark);
+}
+
+.my-review-head .stay-info,
+.my-review-head .written-at {
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.my-review-rating {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    margin: 3px 0 0;
+}
+
+.my-review-rating .is-star {
+    font-size: 15px;
+    color: #f5a623;
+    font-variation-settings: 'FILL' 1;
+}
+
+.my-review-rating b {
+    color: var(--ink-deep);
+    font-size: 12.5px;
+    font-weight: 700;
+}
+
+.my-review-body {
+    margin: 12px 0 0;
+    padding: 0 16px 14px;
+    color: #4b5563;
+    font-size: 13.5px;
+    line-height: 1.6;
+    text-wrap: pretty;
+}
+
+/* ── 카드 하단 액션 ───────────────────────────────────────────────── */
+
+/*
+ * 닫혔을 때: [수정하기 50%][삭제하기 50%] 한 줄.
+ * 열렸을 때: .confirm-pop 의 flex-basis 가 100% 가 되어 줄바꿈되고,
+ *            수정하기가 윗줄을 혼자 채웁니다. 확인 영역이 카드 전체 폭을 씁니다.
+ * 이 방식이면 JS 도, 절대 위치도 필요 없습니다.
+ */
+.my-review-actions {
+    display: flex;
+    flex-wrap: wrap;
+    border-top: 1px solid #f2f2f3;
+}
+
+.review-action {
+    flex: 1 1 50%;
+    display: block;
+    padding: 14px;
+    background: #fafafa;
+    color: var(--ink);
+    font-family: inherit;
+    font-size: 13.5px;
+    font-weight: 700;
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background 0.18s ease, color 0.18s ease;
+}
+
+.review-action:hover {
+    background: var(--pet-green-pale);
+    color: var(--pet-green-dark);
+}
+
+.review-action.is-danger {
+    color: var(--muted);
+}
+
+.review-action.is-danger:hover {
+    background: #fdeced;
+    color: var(--danger);
+}
+
+/* ── 삭제 확인 (details/summary, JS 없음) ─────────────────────────── */
+
+.confirm-pop {
+    flex: 1 1 50%;
+    min-width: 0;
+}
+
+.confirm-pop[open] {
+    flex-basis: 100%;
+}
+
+/* summary 기본 삼각형 마커 제거 */
+.confirm-pop > summary {
+    list-style: none;
+    border-left: 1px solid #f2f2f3;
+}
+
+.confirm-pop[open] > summary {
+    border-left: 0;
+}
+
+.confirm-pop > summary::-webkit-details-marker {
+    display: none;
+}
+
+.confirm-pop[open] > summary {
+    background: #fdeced;
+    color: var(--danger);
+}
+
+.confirm-body {
+    padding: 16px;
+    border-top: 1px solid #f2f2f3;
+    background: var(--white);
+    text-align: center;
+}
+
+.confirm-body p {
+    margin: 0 0 12px;
+    color: var(--ink);
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.confirm-buttons {
+    display: flex;
+    justify-content: center;
+}
+
+.confirm-yes {
+    padding: 10px 26px;
+    border: 1px solid var(--danger);
+    border-radius: var(--radius-pill);
+    background: var(--danger);
+    color: var(--white);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 0.18s ease;
+}
+
+.confirm-yes:hover {
+    opacity: 0.88;
+}
+
+@media (max-width: 640px) {
+    .my-review-body {
+        font-size: 13px;
+    }
+
+    .review-action {
+        padding: 13px 8px;
+        font-size: 13px;
+    }
+}
