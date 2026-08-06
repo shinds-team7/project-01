@@ -3,7 +3,7 @@ package com.example.petnow.controller;
 import com.example.petnow.common.constant.SessionConst;
 import com.example.petnow.dto.response.UserMyPageResponse;
 import com.example.petnow.service.PetService;
-import com.example.petnow.service.UserService;
+import com.example.petnow.service.AuthService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 public class MyPageController {
 
     private final PetService petService;
-    private final UserService userService;
+    private final AuthService authService;
 
     @GetMapping
     public String myPage(Model model, HttpSession session) {
@@ -26,7 +26,7 @@ public class MyPageController {
 
         model.addAttribute("petList", petService.getPetList(userId));
 
-        UserMyPageResponse user = userService.getMyPage(userId);
+        UserMyPageResponse user = authService.getMyPage(userId);
         model.addAttribute("user", user);
 
         return "mypage/index";
