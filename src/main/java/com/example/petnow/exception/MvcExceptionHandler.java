@@ -9,7 +9,7 @@ import com.example.petnow.common.controller.HomeController;
 import com.example.petnow.controller.PetController;
 import com.example.petnow.controller.HostController;
 import com.example.petnow.controller.PlaceController;
-import com.example.petnow.controller.UserController;
+import com.example.petnow.controller.AuthController;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -25,7 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 	PetController.class,
 	HostController.class,
 	PlaceController.class,
-	UserController.class
+	AuthController.class
 })
 public class MvcExceptionHandler {
 
