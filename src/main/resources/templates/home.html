@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/base :: page('홈', 'home', ~{::main})}">
+<body>
+<main id="main-content" class="app-main">
+
+    <!-- 히어로 -->
+    <section class="home-hero">
+        <div class="home-hero-deco" aria-hidden="true">
+            <span class="ico is-filled">pets</span>
+        </div>
+        <div class="home-hero-inner">
+            <div class="home-hero-top">
+                <span class="home-brand">
+                    <span class="ico is-filled" aria-hidden="true">pets</span>
+                    <span>Pet NOW</span>
+                </span>
+                <span class="home-hero-actions">
+                    <button type="button" aria-label="알림"><span class="ico" aria-hidden="true">notifications</span></button>
+                    <button type="button" aria-label="채팅"><span class="ico" aria-hidden="true">chat_bubble</span></button>
+                </span>
+            </div>
+            <h1 class="home-headline">믿을 수 있는<br>우리 동네 <em>펫시터</em></h1>
+            <p class="home-sub">소중한 아이를 위한 편안한 하루</p>
+        </div>
+    </section>
+
+    <div class="screen">
+        <!-- 검색 조건 카드 -->
+        <div class="home-search">
+            <div class="home-search-row">
+                <a class="home-search-field" th:href="@{/search}">
+                    <span class="ico" aria-hidden="true">location_on</span>
+                    <span class="home-search-value" th:text="${regionLabel} ?: '지역 선택'">지역 선택</span>
+                    <span class="ico home-search-caret" aria-hidden="true">expand_more</span>
+                </a>
+                <span class="home-search-divider" aria-hidden="true"></span>
+                <a class="home-search-field" th:href="@{/search}">
+                    <span class="ico" aria-hidden="true">calendar_today</span>
+                    <span class="home-search-value" th:text="${dateLabel} ?: '날짜 선택'">날짜 선택</span>
+                    <span class="ico home-search-caret" aria-hidden="true">expand_more</span>
+                </a>
+            </div>
+            <div class="home-search-line" aria-hidden="true"></div>
+            <div class="home-search-row">
+                <a class="home-search-field" th:href="@{/search}">
+                    <span class="ico" aria-hidden="true">schedule</span>
+                    <span class="home-search-value" th:text="${timeLabel} ?: '시간 선택'">시간 선택</span>
+                    <span class="ico home-search-caret" aria-hidden="true">expand_more</span>
+                </a>
+                <span class="home-search-divider" aria-hidden="true"></span>
+                <a class="home-search-field" th:href="@{/search}">
+                    <span class="ico" aria-hidden="true">pets</span>
+                    <span class="home-search-value" th:text="${petLabel} ?: '반려동물 선택'">반려동물 선택</span>
+                    <span class="ico home-search-caret" aria-hidden="true">expand_more</span>
+                </a>
+            </div>
+            <a class="btn btn-primary btn-block home-search-submit" th:href="@{/search}">
+                <span class="ico" aria-hidden="true">search</span>검색하기
+            </a>
+        </div>
+
+        <!-- 최근 조회한 호스트 -->
+        <div class="section-head">
+            <h2 class="section-title">최근 조회한 호스트</h2>
+            <a class="section-more" th:href="@{/places}">더보기 <span class="ico" aria-hidden="true">chevron_right</span></a>
+        </div>
+        <div class="hscroll home-recent">
+            <a class="home-recent-card" th:each="place : ${recentPlaces}" th:href="@{/places/{id}(id=${place.id})}">
+                <span class="media media-warm home-recent-media">
+                    <span class="ico" aria-hidden="true">pets</span>
+                </span>
+                <span class="home-recent-title" th:text="${place.name}">햇살 가득한 마당</span>
+                <span class="home-recent-loc">
+                    <span class="ico" aria-hidden="true">location_on</span>
+                    <span th:text="${place.address}">연남동</span>
+                </span>
+                <span class="home-recent-price" th:text="${place.priceLabel}">5,000원~</span>
+            </a>
+
+            <!--/* 아직 조회 이력 API가 없어 비어 있을 때는 안내를 보여준다 */-->
+            <p class="home-recent-empty" th:if="${#lists.isEmpty(recentPlaces)}">
+                최근 조회한 호스트가 없어요. 마음에 드는 공간을 찾아보세요.
+            </p>
+        </div>
+
+        <!-- 우리 동네 인기 호스트 -->
+        <h2 class="section-title">우리 동네 인기 호스트</h2>
+        <a class="media home-feature" th:href="@{/places}">
+            <span class="ico" aria-hidden="true">weekend</span>
+            <span class="like-btn like-btn-lg" aria-hidden="true"><span class="ico">favorite</span></span>
+        </a>
+    </div>
+
+</main>
+</body>
+</html>
