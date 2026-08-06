@@ -12,6 +12,8 @@ public class PetUpdateRequest {
     private Long userId;
     private Long petId;
     private String name;
+    private Integer birthYear;
+    private String sex;
     private Double weight;
     private Pet.Size size;
     private Boolean isNeutered;

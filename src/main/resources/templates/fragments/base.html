@@ -34,7 +34,9 @@
 <a class="skip-link" href="#main-content">본문으로 바로가기</a>
 
 <div class="app">
-    <th:block th:if="${nav != 'none'}" th:replace="~{fragments/components :: nav(${nav})}"></th:block>
+    <th:block th:if="${nav != 'none'}">
+        <nav th:replace="~{fragments/components :: nav(${nav})}"></nav>
+    </th:block>
     <main id="main-content" class="app-main" th:replace="${content}"></main>
 </div>
 

@@ -1781,3 +1781,402 @@ textarea.control {
         transition: none;
     }
 }
+
+/* ─────────────────────── 반려동물 등록 · 정보 수정 ─────────────────────── */
+.pet-editor-page {
+    min-height: 100vh;
+    min-height: 100dvh;
+    background:
+        radial-gradient(circle at 92% 8%, rgba(34, 164, 92, 0.08), transparent 18rem),
+        #f7f5f1;
+}
+
+.pet-editor-topbar {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: rgba(255, 255, 255, 0.94);
+    backdrop-filter: blur(14px);
+}
+
+.pet-editor {
+    width: min(100%, 900px);
+    margin: 0 auto;
+    padding: 24px 20px 48px;
+}
+
+.pet-editor-intro {
+    position: relative;
+    overflow: hidden;
+    min-height: 250px;
+    padding: 26px 24px;
+    display: grid;
+    grid-template-columns: 92px minmax(0, 1fr);
+    align-items: center;
+    gap: 22px;
+    border-radius: 26px 26px 26px 9px;
+    background:
+        radial-gradient(circle at 115% -10%, rgba(255, 255, 255, 0.2) 0 29%, transparent 29.4%),
+        linear-gradient(145deg, #12683a, var(--green));
+    color: #fff;
+    box-shadow: 0 20px 45px rgba(22, 104, 58, 0.17);
+}
+
+.pet-editor-intro::after {
+    content: "";
+    position: absolute;
+    right: -58px;
+    bottom: -74px;
+    width: 180px;
+    height: 180px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 50%;
+    box-shadow: 0 0 0 28px rgba(255, 255, 255, 0.035);
+}
+
+.pet-editor-intro.is-edit {
+    background:
+        radial-gradient(circle at 115% -10%, rgba(255, 255, 255, 0.21) 0 29%, transparent 29.4%),
+        linear-gradient(145deg, #8a4c12, #e3932a);
+    box-shadow: 0 20px 45px rgba(138, 76, 18, 0.16);
+}
+
+.pet-editor-portrait,
+.pet-editor-intro > div {
+    position: relative;
+    z-index: 2;
+}
+
+.pet-editor-portrait {
+    width: 92px;
+    height: 112px;
+    display: grid;
+    place-items: center;
+    border: 4px solid rgba(255, 255, 255, 0.35);
+    border-radius: 26px 26px 8px 26px;
+    background: #f5f1e8;
+    color: var(--green);
+    box-shadow: 0 17px 32px rgba(20, 62, 36, 0.24);
+    transform: rotate(-3deg);
+}
+
+.is-edit .pet-editor-portrait {
+    color: #c7781b;
+}
+
+.pet-editor-portrait > .ico:first-child {
+    font-size: 40px;
+}
+
+.pet-editor-portrait > i {
+    position: absolute;
+    right: -8px;
+    bottom: -8px;
+    width: 34px;
+    height: 34px;
+    display: grid;
+    place-items: center;
+    border: 4px solid var(--green);
+    border-radius: 50%;
+    background: #fff;
+    color: var(--green);
+    font-size: 17px;
+    font-style: normal;
+}
+
+.is-edit .pet-editor-portrait > i {
+    border-color: #d78321;
+    color: #c7781b;
+}
+
+.pet-editor-kicker {
+    color: #c7f7d9;
+    font-size: 9px;
+    font-weight: 900;
+    letter-spacing: 0.15em;
+}
+
+.is-edit .pet-editor-kicker {
+    color: #ffedcd;
+}
+
+.pet-editor-intro h2 {
+    margin: 8px 0 9px;
+    color: #fff;
+    font-size: clamp(26px, 7.2vw, 35px);
+    line-height: 1.15;
+    letter-spacing: -0.055em;
+}
+
+.pet-editor-intro p {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 11px;
+    line-height: 1.55;
+}
+
+.pet-editor-fields {
+    margin-top: 16px;
+    padding: 26px 18px 20px;
+    border: 1px solid rgba(17, 24, 39, 0.05);
+    border-radius: 26px;
+    background: #fff;
+    box-shadow: 0 16px 42px rgba(53, 63, 56, 0.07);
+}
+
+.pet-editor-fields .field > label,
+.pet-editor-fields .field-label {
+    margin-bottom: 9px;
+    font-size: 12px;
+}
+
+.pet-editor-fields .req {
+    margin-left: 3px;
+    color: var(--danger);
+    font-size: 9px;
+    font-weight: 800;
+}
+
+.pet-editor-fields .opt {
+    margin-left: 3px;
+    color: var(--muted);
+    font-size: 9px;
+    font-weight: 600;
+}
+
+.pet-editor-name .control {
+    height: 58px;
+    font-size: 18px;
+    font-weight: 800;
+}
+
+.pet-editor-fieldset {
+    min-width: 0;
+    padding: 0;
+    border: 0;
+}
+
+.pet-size-choices {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.pet-size-choices .choice span {
+    min-height: 96px;
+    padding: 12px 4px;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.pet-size-choices .ico {
+    margin-bottom: 2px;
+    color: var(--faint);
+    font-size: 23px;
+}
+
+.pet-size-choices b {
+    font-size: 12px;
+}
+
+.pet-size-choices small {
+    color: var(--muted);
+    font-size: 8.5px;
+    font-weight: 600;
+}
+
+.pet-size-choices input:checked + span .ico,
+.pet-size-choices input:checked + span small {
+    color: var(--green);
+}
+
+.pet-editor-split {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.pet-unit-control {
+    position: relative;
+    display: block;
+}
+
+.pet-unit-control .control {
+    padding-right: 42px;
+}
+
+.pet-unit-control > span {
+    position: absolute;
+    top: 50%;
+    right: 15px;
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 700;
+    transform: translateY(-50%);
+    pointer-events: none;
+}
+
+.pet-sex-choices .choice span {
+    min-height: 48px;
+}
+
+.pet-toggle {
+    position: relative;
+    margin: 3px 0 22px;
+    padding: 16px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 42px;
+    align-items: center;
+    gap: 15px;
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    cursor: pointer;
+}
+
+.pet-toggle input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.pet-toggle > span {
+    display: grid;
+    gap: 3px;
+}
+
+.pet-toggle strong {
+    color: var(--ink);
+    font-size: 12px;
+}
+
+.pet-toggle small {
+    color: var(--muted);
+    font-size: 9.5px;
+}
+
+.pet-toggle > i {
+    position: relative;
+    width: 42px;
+    height: 24px;
+    border-radius: var(--r-pill);
+    background: #d5d8d6;
+    transition: background 160ms ease;
+}
+
+.pet-toggle > i::after {
+    content: "";
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.16);
+    transition: transform 160ms ease;
+}
+
+.pet-toggle input:checked ~ i {
+    background: var(--green);
+}
+
+.pet-toggle input:checked ~ i::after {
+    transform: translateX(18px);
+}
+
+.pet-toggle input:focus-visible ~ i {
+    box-shadow: 0 0 0 3px rgba(34, 164, 92, 0.2);
+}
+
+.pet-memo {
+    min-height: 130px;
+    line-height: 1.6;
+}
+
+.pet-editor-fields .field-hint {
+    font-size: 10px;
+    line-height: 1.5;
+}
+
+.pet-editor-actions {
+    display: grid;
+    grid-template-columns: 0.75fr 1.25fr;
+    gap: 9px;
+}
+
+.pet-editor-actions .btn {
+    min-height: 52px;
+}
+
+@media (min-width: 700px) {
+    .pet-editor {
+        padding: 36px 32px 64px;
+    }
+
+    .pet-editor-intro {
+        min-height: 280px;
+        padding: 38px;
+        grid-template-columns: 112px minmax(0, 1fr);
+        gap: 30px;
+    }
+
+    .pet-editor-portrait {
+        width: 112px;
+        height: 138px;
+    }
+
+    .pet-editor-intro h2 {
+        font-size: 38px;
+    }
+
+    .pet-editor-intro p {
+        max-width: 390px;
+        font-size: 12.5px;
+    }
+
+    .pet-editor-fields {
+        padding: 34px 32px 28px;
+    }
+}
+
+@media (min-width: 1024px) {
+    .pet-editor {
+        padding-top: 44px;
+        display: grid;
+        grid-template-columns: 300px minmax(0, 1fr);
+        align-items: start;
+        gap: 22px;
+    }
+
+    .pet-editor-intro {
+        position: sticky;
+        top: 112px;
+        min-height: 470px;
+        padding: 40px 30px;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        justify-content: center;
+    }
+
+    .pet-editor-portrait {
+        width: 120px;
+        height: 148px;
+    }
+
+    .pet-editor-intro h2 {
+        margin-top: 15px;
+        font-size: 37px;
+    }
+
+    .pet-editor-fields {
+        margin-top: 0;
+        padding: 38px 36px 30px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .pet-toggle > i,
+    .pet-toggle > i::after {
+        transition: none;
+    }
+}
