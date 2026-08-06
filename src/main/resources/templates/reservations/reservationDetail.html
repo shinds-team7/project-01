@@ -2,12 +2,33 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport"
-          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>reservationDetail</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>예약 상세 조회</title>
+    <style>
+        body { font-family: sans-serif; margin: 20px; }
+        .detail-card { border: 1px solid #ccc; padding: 20px; border-radius: 8px; max-width: 500px; }
+        .pet-item { background-color: #f9f9f9; margin-top: 5px; padding: 10px; border-radius: 4px; }
+    </style>
 </head>
 <body>
 
+<div class="detail-card">
+    <h2>예약 상세 정보</h2>
+    <p><strong>예약 번호:</strong> <span th:text="${reservation.reservationNo}">PN-00000000-0000</span></p>
+    <p><strong>예약 상태:</strong> <span th:text="${reservation.status}">PENDING</span></p>
+    <p><strong>예약자:</strong> <span th:text="${reservation.userName}">홍길동</span></p>
+    <p><strong>숙소/장소:</strong> <span th:text="${reservation.placeName}">장소명</span></p>
+    <p><strong>체크인:</strong> <span th:text="${#temporals.format(reservation.checkIn, 'yyyy-MM-dd HH:mm')}">2026-08-05</span></p>
+    <p><strong>체크아웃:</strong> <span th:text="${#temporals.format(reservation.checkOut, 'yyyy-MM-dd HH:mm')}">2026-08-06</span></p>
+
+    <hr>
+
+    <h3>동반 반려동물 목록</h3>
+    <div th:each="pet : ${reservation.pets}" class="pet-item">
+        <p><strong>이름:</strong> <span th:text="${pet.petName}">초코</span></p>
+        <p><strong>무게:</strong> <span th:text="${pet.weight} + ' kg'">4.5 kg</span></p>
+        <p><strong>크기:</strong> <span th:text="${pet.size}">small</span></p>
+    </div>
+</div>
+
 </body>
-</html>
