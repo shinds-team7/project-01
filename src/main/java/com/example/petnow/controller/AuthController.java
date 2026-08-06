@@ -3,8 +3,7 @@ package com.example.petnow.controller;
 import com.example.petnow.common.constant.SessionConst;
 import com.example.petnow.dto.request.UserLoginRequest;
 import com.example.petnow.dto.request.UserSignupRequest;
-import com.example.petnow.entity.User;
-import com.example.petnow.service.UserService;
+import com.example.petnow.service.AuthService;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -16,16 +15,16 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 @Slf4j
 @Controller
-@RequestMapping("/user")
+@RequestMapping("/auth")
 @RequiredArgsConstructor
-public class UserController {
+public class AuthController {
 
-    private final UserService userService;
+    private final AuthService authService;
 
     // 회원가입 , 메인페이지 생성 되면 return을 메인페이지로 바꿀 예정
     @PostMapping("/signup")
     public String userSignup(@Valid @ModelAttribute UserSignupRequest request) {
-        userService.signup(request);
+        authService.signup(request);
         return "mypage";
     }
 
@@ -33,7 +32,7 @@ public class UserController {
     @PostMapping ("/login")
     public String userLogin(@Valid @ModelAttribute UserLoginRequest request, HttpSession session) {
 
-        Long userId = userService.login(request);
+        Long userId = authService.login(request);
 
         session.setAttribute(SessionConst.LOGIN_USER_ID, userId);
 
