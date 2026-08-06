@@ -54,12 +54,12 @@
         <div class="hero-inner">
             <div class="profile-intro">
                 <div class="profile-avatar" aria-hidden="true">
-                    <span>지</span>
+                    <span th:text="${user != null and !#strings.isEmpty(user.nickname)} ? ${#strings.substring(user.nickname, 0, 1)} : '?'">지</span>
                     <i class="material-symbols-rounded">verified</i>
                 </div>
                 <div>
                     <p class="eyebrow">MY PET NOW</p>
-                    <h1 id="profile-title"><strong>지우님,</strong> 오늘도 아이들과<br>평온한 하루 보내세요.</h1>
+                    <h1 id="profile-title"><strong th:text="${user != null} ? |${user.nickname}님,| : '반가워요,'">지우님,</strong> 오늘도 아이들과<br>평온한 하루 보내세요.</h1>
                     <p class="profile-meta">반려동물과 함께한 지 <b>842일</b> · 돌봄 매너 온도 <b>39.2°</b></p>
                 </div>
             </div>
@@ -111,7 +111,7 @@
             <div class="tab-scroller">
                 <div class="page-tabs" role="tablist" aria-label="마이페이지 메뉴">
                     <button id="tab-overview" type="button" role="tab" aria-selected="true" aria-controls="panel-overview" data-tab="overview">한눈에 보기</button>
-                    <button id="tab-pets" type="button" role="tab" aria-selected="false" aria-controls="panel-pets" data-tab="pets">반려동물 <i>3</i></button>
+                    <button id="tab-pets" type="button" role="tab" aria-selected="false" aria-controls="panel-pets" data-tab="pets">반려동물 <i th:text="${petList != null} ? ${#lists.size(petList)} : 0">3</i></button>
                     <button id="tab-reservations" type="button" role="tab" aria-selected="false" aria-controls="panel-reservations" data-tab="reservations">예약 관리</button>
                     <button id="tab-favorites" type="button" role="tab" aria-selected="false" aria-controls="panel-favorites" data-tab="favorites">찜한 공간 <i>6</i></button>
                     <button id="tab-reviews" type="button" role="tab" aria-selected="false" aria-controls="panel-reviews" data-tab="reviews">내 리뷰 <i>1</i></button>
@@ -130,20 +130,26 @@
                             <div><span class="material-symbols-rounded" aria-hidden="true">sound_detection_dog_barking</span><p><strong>우리 아이들</strong><small>오늘도 프로필이 반짝여요</small></p></div>
                             <button type="button" data-tab-shortcut="pets">관리</button>
                         </div>
-                        <div class="pet-ribbon-list">
-                            <button type="button" data-pending-feature="초코 프로필">
-                                <span class="pet-face pet-face-cocoa">초</span>
-                                <strong>초코</strong><small>토이 푸들 · 3살</small><i>4.2kg</i>
-                            </button>
-                            <button type="button" data-pending-feature="보리 프로필">
-                                <span class="pet-face pet-face-barley">보</span>
-                                <strong>보리</strong><small>비글 · 5살</small><i>11kg</i>
-                            </button>
-                            <button type="button" data-pending-feature="모카 프로필">
-                                <span class="pet-face pet-face-mocha">모</span>
-                                <strong>모카</strong><small>말티즈 · 2살</small><i>4kg</i>
+                        <!--/*
+                          petList 는 MyPageController 가 넘겨주는 List<PetListResponse> 입니다.
+                          PetListResponse 에는 name / size / weight 세 필드만 있어 그 세 가지만 씁니다.
+                          아바타 색은 pet-face-cocoa / barley / mocha 세 가지를 순서대로 돌려 씁니다.
+                        */-->
+                        <div class="pet-ribbon-list" th:unless="${#lists.isEmpty(petList)}">
+                            <button type="button" th:each="pet, stat : ${petList}"
+                                    th:attr="data-pending-feature=|${pet.name} 프로필|"
+                                    data-pending-feature="반려동물 프로필">
+                                <span class="pet-face"
+                                      th:classappend="${'pet-face-' + ({'cocoa','barley','mocha'}[stat.index % 3])}"
+                                      th:text="${#strings.substring(pet.name, 0, 1)}">초</span>
+                                <strong th:text="${pet.name}">초코</strong>
+                                <small th:text="${pet.size != null} ? ${pet.size.label} : ''">소형</small>
+                                <i th:text="${pet.weight != null} ? |${pet.weight}kg| : ''">4.2kg</i>
                             </button>
                         </div>
+                        <p class="pet-ribbon-empty" th:if="${#lists.isEmpty(petList)}">
+                            아직 등록한 아이가 없어요. <a href="/pet/new">지금 등록하기</a>
+                        </p>
                     </article>
 
                     <article class="next-care-card">
@@ -172,10 +178,32 @@
                     <div><p class="eyebrow">MY FAMILY</p><h2>반려동물 프로필</h2></div>
                     <a class="primary-small" href="/pet/new"><span class="material-symbols-rounded" aria-hidden="true">add</span> 아이 등록</a>
                 </div>
-                <div class="pet-detail-grid">
-                    <article><span class="pet-face pet-face-cocoa">초</span><div><p><strong>초코</strong><i>대표 반려동물</i></p><small>토이 푸들 · 여아 · 3살 · 4.2kg</small><span>낯선 강아지와 천천히 인사해요</span></div><button type="button" data-pending-feature="초코 프로필 편집">편집</button></article>
-                    <article><span class="pet-face pet-face-barley">보</span><div><p><strong>보리</strong></p><small>비글 · 남아 · 5살 · 11kg</small><span>산책과 노즈워크를 좋아해요</span></div><button type="button" data-pending-feature="보리 프로필 편집">편집</button></article>
-                    <article><span class="pet-face pet-face-mocha">모</span><div><p><strong>모카</strong></p><small>말티즈 · 여아 · 2살 · 4kg</small><span>작은 소리에 조금 예민해요</span></div><button type="button" data-pending-feature="모카 프로필 편집">편집</button></article>
+                <!--/*
+                  PetListResponse 에 없는 값(품종·성별·나이·특징)은 표시하지 않습니다.
+                  해당 필드가 DTO에 추가되면 아래 small 줄에 이어 붙이면 됩니다.
+                */-->
+                <div class="pet-detail-grid" th:unless="${#lists.isEmpty(petList)}">
+                    <article th:each="pet, stat : ${petList}">
+                        <span class="pet-face"
+                              th:classappend="${'pet-face-' + ({'cocoa','barley','mocha'}[stat.index % 3])}"
+                              th:text="${#strings.substring(pet.name, 0, 1)}">초</span>
+                        <div>
+                            <p>
+                                <strong th:text="${pet.name}">초코</strong>
+                                <i th:if="${stat.first}">대표 반려동물</i>
+                            </p>
+                            <small th:text="${(pet.size != null ? pet.size.label : '') + (pet.weight != null ? ' · ' + pet.weight + 'kg' : '')}">소형 · 4.2kg</small>
+                        </div>
+                        <button type="button" th:attr="data-pending-feature=|${pet.name} 프로필 편집|"
+                                data-pending-feature="반려동물 프로필 편집">편집</button>
+                    </article>
+                </div>
+                <div class="flow-empty" th:if="${#lists.isEmpty(petList)}">
+                    <span class="material-symbols-rounded" aria-hidden="true">pets</span>
+                    <p>아직 등록한 반려동물이 없어요.<br>아이를 등록하면 예약할 때 바로 선택할 수 있어요.</p>
+                    <a class="primary-small" href="/pet/new">
+                        <span class="material-symbols-rounded" aria-hidden="true">add</span> 아이 등록
+                    </a>
                 </div>
             </section>
 

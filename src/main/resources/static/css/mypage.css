@@ -697,11 +697,36 @@
     cursor: pointer;
 }
 
+/*
+ * 마릿수가 petList 에 따라 달라지므로 고정 3열 대신 auto-fit 을 씁니다.
+ * 1~2마리일 때 칸이 비어 보이지 않고, 4마리 이상이면 다음 줄로 넘어갑니다.
+ */
 .pet-ribbon-list {
     margin-top: 16px;
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(88px, 1fr));
     gap: 7px;
+}
+
+/* 등록한 반려동물이 없을 때 리본 자리에 들어가는 안내 */
+.pet-ribbon-empty {
+    margin: 16px 0 0;
+    padding: 18px 14px;
+    border: 1px dashed var(--line);
+    border-radius: var(--radius-md);
+    color: var(--muted);
+    font-size: 12.5px;
+    text-align: center;
+}
+
+.pet-ribbon-empty a {
+    color: var(--pet-green-dark);
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.pet-ribbon-empty a:hover {
+    text-decoration: underline;
 }
 
 .pet-ribbon-list button {
