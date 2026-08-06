@@ -17,9 +17,14 @@
                 정보 수정하기
             </a>
         </td>
+        <td>
+            <a th:href="@{/pet/delete/{petId}(petId=${pet.id})}">
+                반려동물 삭제하기
+            </a>
+        </td>
     </tr>
     <tr th:if="${#lists.isEmpty(petList)}">
-        <td colspan="4">등록된 반려동물이 없습니다.</td>
+        <td colspan="5">등록된 반려동물이 없습니다.</td>
     </tr>
     </tbody>
 </table>
