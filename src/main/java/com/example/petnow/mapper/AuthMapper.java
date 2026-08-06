@@ -4,7 +4,7 @@ import com.example.petnow.entity.User;
 import org.apache.ibatis.annotations.Mapper;
 
 @Mapper
-public interface UserMapper {
+public interface AuthMapper {
     void signup(User user);
 
     User findByEmail(String email);
