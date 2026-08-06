@@ -7,6 +7,7 @@
         <result property="userId" column="guest_user_id"/>
         <result property="placeId" column="place_id"/>
         <result property="reservationType" column="reservation_type"/>
+        <result property="reservationNo" column="reservation_no"/>
         <result property="checkIn" column="check_in_at"/>
         <result property="checkOut" column="check_out_at"/>
         <result property="status" column="status"/>
@@ -19,11 +20,27 @@
         <result property="updatedAt" column="updated_at"/>
     </resultMap>
 
+    <resultMap id="ReservationDetailResponseMap" type="com.example.petnow.dto.response.ReservationDetailResponse">
+        <id property="reservationId" column="reservation_id"/>
+        <result property="status" column="status"/>
+        <result property="reservationNo" column="reservation_no"/>
+        <result property="checkIn" column="check_in_at"/>
+        <result property="checkOut" column="check_out_at"/>
+        <result property="userName" column="user_name"/>
+        <result property="placeName" column="place_name"/>
+
+        <collection property="pets" ofType="com.example.petnow.dto.response.ReservationDetailResponse$PetDetail">
+            <result property="petName" column="pet_name"/>
+            <result property="weight" column="pet_weight"/>
+            <result property="size" column="pet_size"/>
+        </collection>
+    </resultMap>
+
     <insert id="save" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO reservations
-        (guest_user_id, place_id, reservation_type, check_in_at, check_out_at, status, request_message, total_price)
+        (guest_user_id, place_id, reservation_no, reservation_type, check_in_at, check_out_at, status, request_message, total_price)
         VALUES
-        (#{userId}, #{placeId}, #{reservationType}, #{checkIn}, #{checkOut}, #{status}, #{memo}, #{totalPrice})
+        (#{userId}, #{placeId}, #{reservationNo}, #{reservationType}, #{checkIn}, #{checkOut}, #{status}, #{memo}, #{totalPrice})
     </insert>
 
     <insert id="saveReservationPets">
@@ -33,5 +50,30 @@
             (#{reservationId}, #{petId})
         </foreach>
     </insert>
+
+    <select id="detailReservation" resultMap="ReservationDetailResponseMap">
+        SELECT
+            r.id AS reservation_id,
+            r.status AS status,
+            r.reservation_no AS reservation_no,
+            r.check_in_at AS check_in_at,
+            r.check_out_at AS check_out_at,
+            u.nickname AS user_name,
+            pl.name AS place_name,
+            p.name AS pet_name,
+            p.weight AS pet_weight,
+            LOWER(p.size) AS pet_size
+        FROM reservations r
+            INNER JOIN users u ON r.guest_user_id = u.id
+            INNER JOIN places pl ON r.place_id = pl.id
+            LEFT JOIN reservation_pets rp ON r.id = rp.reservation_id
+            LEFT JOIN pets p ON rp.pet_id = p.id
+        WHERE r.id = #{reservationId}
+    </select>
+
+    <select id="findById" resultType="com.example.petnow.entity.Reservation">
+        SELET * FROM reservations WHERE id = #{reservationId}
+    </select>
+
 
 </mapper>
