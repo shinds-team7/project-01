@@ -2,6 +2,7 @@ package com.example.petnow.service;
 
 import com.example.petnow.dto.request.UserLoginRequest;
 import com.example.petnow.dto.request.UserSignupRequest;
+import com.example.petnow.dto.response.UserMyPageResponse;
 import com.example.petnow.entity.User;
 import com.example.petnow.exception.AuthErrorCode;
 import com.example.petnow.exception.BusinessException;
@@ -42,5 +43,13 @@ public class UserServiceImpl implements UserService {
             throw new BusinessException(AuthErrorCode.INVALID_CREDENTIALS);
         }
         return user.getId();
+    }
+
+    @Override
+    public UserMyPageResponse getMyPage(Long userId) {
+
+        User user = userMapper.findById(userId);
+
+        return  UserMyPageResponse.from(user);
     }
 }

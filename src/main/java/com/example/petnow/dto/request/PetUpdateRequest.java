@@ -9,10 +9,11 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 public class PetUpdateRequest {
+    private Long userId;
     private Long petId;
     private String name;
     private Double weight;
     private Pet.Size size;
-    private Boolean neutered;
-    private String note;
+    private Boolean isNeutered;
+    private String memo;
 }

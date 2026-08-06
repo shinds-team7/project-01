@@ -60,13 +60,11 @@
         toastTimer = window.setTimeout(() => toastRegion.classList.remove("is-visible"), 2100);
     }
 
-    const featureNames = {
-        places: "장소 검색",
-        map: "지도",
-        bookmarks: "찜"
-    };
-
     function guardLockedInteraction(event) {
+        // data-requires-api elements (search, map, bookmarks) already have working
+        // client-side behavior below and should stay interactive even before a real
+        // backend is wired up. Only data-locked-feature elements, which have no
+        // implementation behind them at all, are blocked with a toast.
         const alwaysLocked = event.target.closest?.("[data-locked-feature]");
         if (alwaysLocked) {
             event.preventDefault();
@@ -74,14 +72,7 @@
             showToast(`${alwaysLocked.dataset.lockedFeature} 기능을 구현 중입니다.`);
             return true;
         }
-
-        const gated = event.target.closest?.("[data-requires-api]");
-        const feature = gated?.dataset.requiresApi;
-        if (!gated || state.features[feature]) return false;
-        event.preventDefault();
-        event.stopImmediatePropagation();
-        showToast(`${featureNames[feature] || "해당"} 기능을 구현 중입니다.`);
-        return true;
+        return false;
     }
 
     document.addEventListener("click", guardLockedInteraction, true);
@@ -279,12 +270,10 @@
     }
 
     function updateFavoriteButtons() {
+        // Bookmarking is a genuinely working client-side feature (persisted to
+        // localStorage) even though there's no server-side bookmarks API yet, so
+        // buttons always reflect the real toggled state.
         $$('[data-favorite]').forEach((button) => {
-            if (!state.features.bookmarks || button.closest(".is-api-placeholder")) {
-                button.setAttribute("aria-pressed", "false");
-                button.setAttribute("aria-label", "찜 기능 준비 중");
-                return;
-            }
             const active = state.favorites.has(button.dataset.favorite);
             button.setAttribute("aria-pressed", String(active));
             const cardTitle = $(".host-title-row > strong", button.closest("[data-host-card]"))?.textContent || "호스트";
