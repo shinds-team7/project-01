@@ -40,7 +40,7 @@ public class Reservation {
 	public static String createReservationNo() {
 		String prefix = "PN";
 		String dateStr = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-		String randomCode = UUID.randomUUID().toString().substring(0,4).toUpperCase();
+		String randomCode = UUID.randomUUID().toString().substring(0,8).toUpperCase();
 
 		return String.format("%s-%s-%s", prefix, dateStr, randomCode);
 	}
