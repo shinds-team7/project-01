@@ -2,19 +2,88 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>반려동물 상세조회 테스트</title>
+    <title>반려동물 정보 수정</title>
 </head>
 <body>
 
-<h2>반려동물 상세조회</h2>
+<h2>반려동물 정보 수정</h2>
 
-<p>이름 : <span th:text="${pet.name}"></span></p>
-<p>크기 : <span th:text="${pet.size}"></span></p>
-<p>몸무게 : <span th:text="${pet.weight}"></span></p>
-<p>출생연도 : <span th:text="${pet.birthYear}"></span></p>
-<p>성별 : <span th:text="${pet.sex}"></span></p>
-<p>중성화 : <span th:text="${pet.isNeutered}"></span></p>
-<p>메모 : <span th:text="${pet.memo}"></span></p>
+<form th:action="@{/pet/update}" method="post">
+
+    <!-- 수정할 반려동물 ID -->
+    <input type="hidden" name="petId" th:value="${pet.petId}">
+
+    <p>
+        이름<br>
+        <input type="text" name="name" th:value="${pet.name}">
+    </p>
+
+    <p>
+        크기<br>
+        <select name="size">
+            <option value="SMALL" th:selected="${pet.size == 'SMALL'}">소형견</option>
+            <option value="MEDIUM" th:selected="${pet.size == 'MEDIUM'}">중형견</option>
+            <option value="LARGE" th:selected="${pet.size == 'LARGE'}">대형견</option>
+        </select>
+    </p>
+
+    <p>
+        몸무게(kg)<br>
+        <input type="number"
+               step="0.1"
+               name="weight"
+               th:value="${pet.weight}">
+    </p>
+
+    <p>
+        출생연도<br>
+        <select name="birthYear">
+            <option th:each="year : ${#numbers.sequence(2000, 2026)}"
+                    th:value="${year}"
+                    th:text="${year}"
+                    th:selected="${year == pet.birthYear}">
+            </option>
+        </select>
+    </p>
+
+    <p>
+        성별<br>
+
+        <label>
+            <input type="radio"
+                   name="sex"
+                   value="M"
+                   th:checked="${pet.sex == 'M'}">
+            남
+        </label>
+
+        <label>
+            <input type="radio"
+                   name="sex"
+                   value="F"
+                   th:checked="${pet.sex == 'F'}">
+            여
+        </label>
+    </p>
+
+    <p>
+        <label>
+            <input type="checkbox"
+                   name="neutered"
+                   th:checked="${pet.isNeutered}">
+            중성화 완료
+        </label>
+    </p>
+
+    <p>
+        메모<br>
+        <textarea name="note" rows="5" cols="40"
+                  th:text="${pet.memo}"></textarea>
+    </p>
+
+    <button type="submit">수정하기</button>
+
+</form>
 
 </body>
 </html>
