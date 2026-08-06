@@ -73,4 +73,10 @@
         AND deleted_at IS NULL
     </select>
 
+    <delete id="deletePet">
+        DELETE
+        FROM pets
+        WHERE id = #{petId}
+    </delete>
+
 </mapper>
