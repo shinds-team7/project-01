@@ -2,7 +2,6 @@ package com.example.petnow.controller;
 
 import com.example.petnow.common.constant.SessionConst;
 import com.example.petnow.dto.request.ReviewCreateRequest;
-import com.example.petnow.dto.response.ReviewResponse;
 import com.example.petnow.service.ReviewService;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;

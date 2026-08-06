@@ -1,6 +1,5 @@
 package com.example.petnow.mapper;
 
-import com.example.petnow.dto.response.ReviewResponse;
 import com.example.petnow.entity.Review;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
