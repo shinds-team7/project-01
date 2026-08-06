@@ -10,9 +10,13 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class PetListResponse {
-    private Long id;
+public class PetDetailResponse {
+
     private String name;
     private Pet.Size size;
     private Double weight;
+    private Integer birthYear;
+    private String sex;
+    private Boolean isNeutered;
+    private String memo;
 }

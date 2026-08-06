@@ -194,8 +194,8 @@
                             </p>
                             <small th:text="${(pet.size != null ? pet.size.label : '') + (pet.weight != null ? ' · ' + pet.weight + 'kg' : '')}">소형 · 4.2kg</small>
                         </div>
-                        <button type="button" th:attr="data-pending-feature=|${pet.name} 프로필 편집|"
-                                data-pending-feature="반려동물 프로필 편집">편집</button>
+                        <!--/* 상세 조회(#57)로 이어지는 실제 링크입니다. mypage/index.html 이 갖고 있던 동작을 옮겨왔습니다. */-->
+                        <a th:href="@{/pet/detail/{petId}(petId=${pet.id})}" href="/pet/detail/1">편집</a>
                     </article>
                 </div>
                 <div class="flow-empty" th:if="${#lists.isEmpty(petList)}">

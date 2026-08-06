@@ -24,8 +24,8 @@
                 #{birthYear},
                 #{sex},
                 #{weight},
-                #{neutered},
-                #{note},
+                #{isNeutered},
+                #{memo},
                 #{size}
             )
     </insert>
@@ -35,6 +35,7 @@
             resultType="com.example.petnow.dto.response.PetListResponse">
 
         SELECT
+            id,
             name,
             size,
             weight
@@ -47,10 +48,29 @@
     <update id="updatePet">
     UPDATE pets
     SET name = #{name}, size = #{size},
-        weight = #{weight}, neutered = #{neutered},
-        note = #{note}
+        weight = #{weight}, is_neutered = #{isNeutered},
+        memo = #{memo}
 
     WHERE id = #{petId}
+        AND user_id = #{userId}
     </update>
+
+    <select id="getDetail"
+            parameterType="long"
+            resultType="com.example.petnow.dto.response.PetDetailResponse">
+        SELECT
+        name,
+        size,
+        weight,
+        birth_year,
+        sex,
+        is_neutered,
+        memo
+        FROM pets
+        WHERE id = #{petId}
+        AND
+        user_id = #{userId}
+        AND deleted_at IS NULL
+    </select>
 
 </mapper>

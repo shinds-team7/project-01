@@ -1001,6 +1001,7 @@
 }
 
 .pet-detail-grid article > button,
+.pet-detail-grid article > a,
 .reservation-list article > button,
 .reservation-list article > a,
 .reservation-actions a {
@@ -1402,6 +1403,7 @@
     }
 
     .pet-detail-grid article > button,
+    .pet-detail-grid article > a,
     .reservation-list article > button,
     .reservation-list article > a,
     .reservation-list article > .reservation-actions {
