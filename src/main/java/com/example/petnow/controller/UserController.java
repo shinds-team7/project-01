@@ -22,14 +22,15 @@ public class UserController {
 
     private final UserService userService;
 
-    // 회원가입 , 메인페이지 생성 되면 return을 메인페이지로 바꿀 예정
+    // 회원가입. 가입만으로는 세션이 생기지 않으므로 마이페이지가 아니라 홈으로 보냅니다.
+    // 홈(HomeController "/")은 장소 목록으로 리다이렉트합니다.
     @PostMapping("/signup")
     public String userSignup(@Valid @ModelAttribute UserSignupRequest request) {
         userService.signup(request);
-        return "mypage";
+        return "redirect:/";
     }
 
-    // 로그인 , 메인페이지 생성 되면 return을 메인페이지로 바꿀 예정
+    // 로그인
     @PostMapping ("/login")
     public String userLogin(@Valid @ModelAttribute UserLoginRequest request, HttpSession session) {
 
@@ -41,6 +42,8 @@ public class UserController {
         log.info("세션에 저장된 userId: {}",
                 session.getAttribute(SessionConst.LOGIN_USER_ID));
 
-        return "mypage";
+        // 뷰 이름을 그대로 반환하면 모델이 비어 마이페이지가 빈 화면으로 뜨고
+        // 새로고침 시 로그인이 재전송됩니다. PRG 패턴으로 /mypage 에 다시 요청합니다.
+        return "redirect:/mypage";
     }
 }

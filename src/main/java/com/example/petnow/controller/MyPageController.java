@@ -43,6 +43,12 @@ public class MyPageController {
 
         Long userId = (Long) session.getAttribute(SessionConst.LOGIN_USER_ID);
 
+        // 비로그인 상태에서는 조회할 사용자가 없습니다. 가드가 없으면
+        // UserMyPageResponse.from(null) 에서 NPE 가 나 500 이 됩니다.
+        if (userId == null) {
+            return "redirect:/";
+        }
+
         model.addAttribute("petList", petService.getPetList(userId));
 
         UserMyPageResponse user = userService.getMyPage(userId);
