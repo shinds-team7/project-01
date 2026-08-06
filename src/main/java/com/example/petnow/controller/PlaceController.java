@@ -20,7 +20,7 @@ public class PlaceController {
     public String list(Model model) {
         model.addAttribute("places", placeService.getPublishedPlaces());
 
-        return "places";
+        return "places/list";
     }
 
     @GetMapping("/{placeId:\\d+}")

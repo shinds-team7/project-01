@@ -31,7 +31,7 @@ public class HostController {
         model.addAttribute("placeCreateRequest", new PlaceCreateRequest());
         addCreateFormAttributes(model);
 
-        return "places/create";
+        return "host/create";
     }
 
     @PostMapping
@@ -46,7 +46,7 @@ public class HostController {
 
         if (bindingResult.hasErrors()) {
             addCreateFormAttributes(model);
-            return "places/create";
+            return "host/create";
         }
 
         hostService.createPlace(loginUserId, requestDTO);
@@ -56,7 +56,7 @@ public class HostController {
 
     @GetMapping("/success")
     public String createSuccess() {
-        return "places/success";
+        return "host/success";
     }
 
     private void addCreateFormAttributes(Model model) {
@@ -73,6 +73,6 @@ public class HostController {
 
         model.addAttribute("places", hostService.getPlacesByUserId(loginUserId));
 
-        return "places/manage";
+        return "host/manage";
     }
 }
