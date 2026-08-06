@@ -29,6 +29,7 @@ public class ReservationDetailResponse {
 	@Getter
 	@Setter
 	public static class PetDetail {
+		private Long petId;
 		private String petName;
 		private Double weight;
 		private String size;

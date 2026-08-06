@@ -30,6 +30,7 @@
         <result property="placeName" column="place_name"/>
 
         <collection property="pets" ofType="com.example.petnow.dto.response.ReservationDetailResponse$PetDetail">
+            <result property="petId" column="pet_id"/>
             <result property="petName" column="pet_name"/>
             <result property="weight" column="pet_weight"/>
             <result property="size" column="pet_size"/>
@@ -60,6 +61,7 @@
             r.check_out_at AS check_out_at,
             u.nickname AS user_name,
             pl.name AS place_name,
+            p.id AS pet_id,
             p.name AS pet_name,
             p.weight AS pet_weight,
             LOWER(p.size) AS pet_size
@@ -72,7 +74,7 @@
     </select>
 
     <select id="findById" resultType="com.example.petnow.entity.Reservation">
-        SELET * FROM reservations WHERE id = #{reservationId}
+        SELECT * FROM reservations WHERE id = #{reservationId}
     </select>
 
 </mapper>
