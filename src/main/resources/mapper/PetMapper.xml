@@ -41,6 +41,7 @@
             weight
         FROM pets
         WHERE user_id = #{userId}
+          AND deleted_at IS NULL
         ORDER BY created_at DESC
 
     </select>
@@ -56,6 +57,14 @@
             memo = #{memo}
         WHERE id = #{petId}
           AND user_id = #{userId}
+    </update>
+
+    <update id="deletePet">
+        UPDATE pets
+        SET deleted_at = CURRENT_TIMESTAMP
+        WHERE id = #{petId}
+          AND user_id = #{userId}
+          AND deleted_at IS NULL
     </update>
 
     <select id="getDetail"

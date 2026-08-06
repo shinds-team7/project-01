@@ -47,4 +47,20 @@ public class PetController {
         petService.updatePet(userId,updateRequest);
         return "redirect:/mypage";
     }
+
+    @GetMapping("/delete/{petId}")
+    public String deleteForm(@PathVariable Long petId, Model model, HttpSession session) {
+        Long userId = (Long) session.getAttribute(SessionConst.LOGIN_USER_ID);
+        PetDetailResponse pet = petService.getDetail(userId, petId);
+        model.addAttribute("pet", pet);
+        model.addAttribute("petId", petId);
+        return "mypage/petDelete";
+    }
+
+    @PostMapping("/delete")
+    public String deletePet(@RequestParam Long petId, HttpSession session) {
+        Long userId = (Long) session.getAttribute(SessionConst.LOGIN_USER_ID);
+        petService.deletePet(userId, petId);
+        return "redirect:/mypage";
+    }
 }

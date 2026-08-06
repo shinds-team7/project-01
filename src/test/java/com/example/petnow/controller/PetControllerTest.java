@@ -99,4 +99,32 @@ class PetControllerTest {
         verify(petService).createPet(org.mockito.ArgumentMatchers.eq(1L), any(PetCreateRequest.class));
         verify(petService).updatePet(org.mockito.ArgumentMatchers.eq(1L), any(PetUpdateRequest.class));
     }
+
+    @Test
+    @DisplayName("삭제 확인 화면은 대상 정보를 보여주고 삭제 후 마이페이지로 돌아간다")
+    void deletePet() throws Exception {
+        PetDetailResponse pet = PetDetailResponse.builder()
+                .name("초코")
+                .size(Pet.Size.SMALL)
+                .weight(4.2)
+                .build();
+        when(petService.getDetail(1L, 7L)).thenReturn(pet);
+
+        mockMvc.perform(get("/pet/delete/7")
+                        .sessionAttr(SessionConst.LOGIN_USER_ID, 1L))
+                .andExpect(status().isOk())
+                .andExpect(view().name("mypage/petDelete"))
+                .andExpect(content().string(containsString("삭제할까요?")))
+                .andExpect(content().string(containsString("정보 삭제하기")))
+                .andExpect(content().string(not(containsString("class=\"app-nav\""))))
+                .andDo(RenderDump.to("pet-delete"));
+
+        mockMvc.perform(post("/pet/delete")
+                        .sessionAttr(SessionConst.LOGIN_USER_ID, 1L)
+                        .param("petId", "7"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/mypage"));
+
+        verify(petService).deletePet(1L, 7L);
+    }
 }

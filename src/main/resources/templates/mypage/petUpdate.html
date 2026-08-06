@@ -103,6 +103,9 @@
                 <a class="btn btn-ghost" th:href="@{/mypage}">취소</a>
                 <button class="btn btn-primary" type="submit">변경사항 저장하기</button>
             </div>
+            <a class="pet-danger-link" th:href="@{/pet/delete/{petId}(petId=${petId})}">
+                <span class="ico" aria-hidden="true">delete</span> 이 반려동물 정보 삭제하기
+            </a>
         </div>
     </form>
 </main>

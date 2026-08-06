@@ -5,6 +5,7 @@ import com.example.petnow.dto.response.PetDetailResponse;
 import com.example.petnow.dto.response.PetListResponse;
 import com.example.petnow.entity.Pet;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 import java.util.List;
 
 @Mapper
@@ -15,6 +16,8 @@ public interface PetMapper {
     List<PetListResponse> getPetList(Long userId);
 
     void updatePet(PetUpdateRequest pet);
+
+    void deletePet(@Param("userId") Long userId, @Param("petId") Long petId);
 
     PetDetailResponse getDetail(Long userId, Long petId);
 }
