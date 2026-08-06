@@ -33,8 +33,9 @@ public class PetController {
     }
 
     @PostMapping("/update")
-    public String updatePet(@ModelAttribute PetUpdateRequest updateRequest){
-        petService.updatePet(3L,updateRequest);
+    public String updatePet(@ModelAttribute PetUpdateRequest updateRequest, HttpSession session){
+        Long userId = (Long) session.getAttribute(SessionConst.LOGIN_USER_ID);
+        petService.updatePet(userId,updateRequest);
         return "mypage";
     }
 }
