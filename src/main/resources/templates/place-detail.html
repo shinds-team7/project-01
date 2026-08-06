@@ -54,17 +54,17 @@
         <h1 th:text="${place.name}">성수 조용한 단독주택 마당</h1>
         <p class="detail-meta">
             <span class="material-symbols-rounded" aria-hidden="true">star</span>
-            <strong th:text="${place.rating}">4.92</strong>
-            <span>· 리뷰 <span th:text="${place.reviewCount}">128</span>개 ·</span>
-            <span th:text="${place.region} + ' · ' + ${place.walk}">서울 성동구 성수동 · 도보 7분</span>
+            <strong>4.92</strong>
+            <span>· 리뷰 <span>128</span>개 ·</span>
+            <span>서울 성동구 성수동 · 도보 7분</span>
         </p>
     </div>
 
     <div class="host-profile-row">
         <span class="avatar"><span class="material-symbols-rounded" aria-hidden="true">person</span></span>
         <span class="who">
-            <strong th:text="${place.hostName}">김도윤 호스트</strong>
-            <small th:text="${place.hostMeta}">호스팅 3년 · 응답률 100%</small>
+            <strong th:text="${place.nickname} + ' 호스트'">김도윤 호스트</strong>
+            <small>호스팅 3년 · 응답률 100%</small>
         </span>
         <span class="verified-badge"><span class="material-symbols-rounded" aria-hidden="true">check</span>인증됨</span>
     </div>
@@ -74,12 +74,26 @@
     <div class="flow-section">
         <p class="flow-section-title">수용 조건</p>
         <div class="tag-pill-row">
-            <span class="tag-pill" th:each="c : ${place.conditions}" th:text="${c}">아파트</span>
+            <span class="tag-pill" th:if="${place.placeType != null}" th:text="${place.placeType.label}">아파트</span>
+            <span class="tag-pill" th:if="${place.areaSize != null}" th:text="${place.areaSize} + '평'">42평</span>
+            <span class="tag-pill" th:if="${place.capacity != null}" th:text="'최대 ' + ${place.capacity} + '마리'">최대 2마리</span>
+            <span class="tag-pill" th:if="${place.allowsSmallDog}">소형견</span>
+            <span class="tag-pill" th:if="${place.allowsMediumDog}">중형견</span>
+            <span class="tag-pill" th:if="${place.allowsLargeDog}">대형견</span>
+            <span class="tag-pill" th:if="${place.providesHomeCamera}">홈 카메라</span>
+            <span class="tag-pill" th:if="${place.providesRealtimePhoto}">실시간 사진</span>
+            <span class="tag-pill" th:if="${place.providesYard}">마당</span>
+            <span class="tag-pill" th:if="${place.providesWalk}">산책</span>
+        </div>
+        <div class="detail-other-options"
+             th:if="${place.otherOptions != null and !#strings.isEmpty(place.otherOptions)}">
+            <strong>기타 옵션</strong>
+            <p th:text="${place.otherOptions}">기타 옵션에 대한 설명이 들어갑니다.</p>
         </div>
     </div>
 
     <div class="flow-section">
-        <p class="flow-section-title"><span class="material-symbols-rounded" aria-hidden="true" style="font-size:17px;vertical-align:-3px;color:var(--pet-green);">location_on</span><span th:text="${place.region}">서울 성동구 성수동</span></p>
+        <p class="flow-section-title"><span class="material-symbols-rounded" aria-hidden="true" style="font-size:17px;vertical-align:-3px;color:var(--pet-green);">location_on</span><span>서울 성동구 성수동</span></p>
         <div class="map-card">
             <div class="map-preview"><span class="map-pin"><span class="material-symbols-rounded" aria-hidden="true">pets</span></span></div>
             <div class="map-label" data-pending-feature="지도">지도로 위치 확인하기<span class="material-symbols-rounded" aria-hidden="true">expand_more</span></div>
@@ -88,16 +102,16 @@
 
     <div class="flow-section">
         <p class="flow-section-title">
-            <span>리뷰 <span th:text="${place.reviewCount}">128</span></span>
+            <span>리뷰 <span>128</span></span>
             <button type="button" class="link-action" data-pending-feature="전체 리뷰">리뷰 더보기 <span class="material-symbols-rounded" aria-hidden="true" style="font-size:15px;vertical-align:-3px;">chevron_right</span></button>
         </p>
         <div style="display:flex;flex-direction:column;gap:12px;">
-            <article class="review-card" th:each="rv : ${place.reviews}">
+            <article class="review-card">
                 <div class="review-head">
-                    <strong th:text="${rv.name}">이서연</strong>
-                    <span><span class="material-symbols-rounded" aria-hidden="true">star</span><span th:text="${rv.rating}">5.0</span> · <span th:text="${rv.when}">2주 전</span></span>
+                    <strong>이서연</strong>
+                    <span><span class="material-symbols-rounded" aria-hidden="true">star</span><span>5.0</span> · <span>2주 전</span></span>
                 </div>
-                <p th:text="${rv.text}">후기 내용</p>
+                <p>후기 내용</p>
             </article>
         </div>
     </div>
