@@ -6,16 +6,16 @@ import com.example.petnow.dto.response.UserMyPageResponse;
 import com.example.petnow.entity.User;
 import com.example.petnow.exception.AuthErrorCode;
 import com.example.petnow.exception.BusinessException;
-import com.example.petnow.mapper.UserMapper;
+import com.example.petnow.mapper.AuthMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class UserServiceImpl implements UserService {
+public class AuthServiceImpl implements AuthService {
 
-    private final UserMapper userMapper;
+    private final AuthMapper userMapper;
     private final PasswordEncoder passwordEncoder;
 
     @Override
