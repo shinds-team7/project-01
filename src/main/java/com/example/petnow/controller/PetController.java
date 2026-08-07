@@ -29,6 +29,9 @@ public class PetController {
         Long userId = (Long) session.getAttribute(SessionConst.LOGIN_USER_ID);
         PetDetailResponse pet = petService.getDetail(userId, petId);
         model.addAttribute("pet",pet);
+        // PetDetailResponse 에는 식별자가 없다. 수정 폼이 hidden 으로 되돌려 보내야 하므로
+        // 경로 변수로 받은 petId 를 그대로 모델에 넣어 준다.
+        model.addAttribute("petId", petId);
         return "mypage/petUpdate";
     }
 
