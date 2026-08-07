@@ -56,10 +56,12 @@ class ReservationServiceImplTest {
                 LocalDateTime.of(2026, 8, 9, 13, 0),
                 LocalDateTime.of(2026, 8, 9, 18, 0));
 
-        Long reservationId = reservationService.saveReservation(request, 10L);
+        // develop 에서 반환값이 예약 ID(Long) 에서 예약번호(String) 로 바뀌었다.
+        String reservationNo = reservationService.saveReservation(request, 10L);
 
         Reservation saved = captureSavedReservation();
-        assertThat(reservationId).isEqualTo(100L);
+        assertThat(reservationNo).isNotBlank();
+        assertThat(saved.getId()).isEqualTo(100L);
         assertThat(saved.getReservationType()).isEqualTo("당일");
         assertThat(saved.getTotalPrice()).isEqualByComparingTo("60000");
     }

@@ -8,6 +8,12 @@ import org.springframework.http.HttpStatus;
 @RequiredArgsConstructor
 public enum PlaceErrorCode implements ErrorCode {
 
+    PLACE_NOT_FOUND(
+            HttpStatus.NOT_FOUND,
+            "PLACE_NOT_FOUND",
+            "존재하지 않거나 조회할 수 없는 장소입니다."
+    ),
+
     PLACE_CREATE_FAILED(
             HttpStatus.INTERNAL_SERVER_ERROR,
             "PLACE_CREATE_FAILED",

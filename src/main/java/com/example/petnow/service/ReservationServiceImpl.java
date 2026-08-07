@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.petnow.dto.request.ReservationRequest;
+import com.example.petnow.dto.response.ReservationDetailResponse;
 import com.example.petnow.entity.Place;
 import com.example.petnow.entity.Reservation;
 import com.example.petnow.entity.ReservationStatus;
@@ -26,10 +27,11 @@ public class ReservationServiceImpl implements ReservationService {
 
 	@Override
 	@Transactional
-	public Long saveReservation(ReservationRequest request, Long userId) {
+	public String saveReservation(ReservationRequest request, Long userId) {
 		Place place = placeMapper.findById(request.getPlaceId());
 
 		ReservationType reservationType = determineReservationType(request.getCheckIn(), request.getCheckOut());
+		String reservationNo = Reservation.createReservationNo();
 		BigDecimal totalPrice = calculateTotalPrice(place, reservationType, request.getCheckIn(), request.getCheckOut());
 
 		Reservation reservation = Reservation.builder()
@@ -45,7 +47,7 @@ public class ReservationServiceImpl implements ReservationService {
 
 		reservationMapper.save(reservation);
 		reservationMapper.saveReservationPets(reservation.getId(), request.getPetIds());
-		return reservation.getId();
+		return reservationNo;
 	}
 
 	private ReservationType determineReservationType(LocalDateTime checkIn, LocalDateTime checkOut) {
@@ -68,6 +70,16 @@ public class ReservationServiceImpl implements ReservationService {
 				yield place.getNightlyPrice().multiply(BigDecimal.valueOf(totalDays));
 			}
 		};
+	}
+
+	@Override
+	public ReservationDetailResponse detailReservation(Long reservationId) {
+		ReservationDetailResponse reservation = reservationMapper.detailReservation(reservationId);
+		if (reservation == null) {
+			throw new IllegalStateException("해당 예약이 없습니다.");
+		}
+
+		return reservation;
 	}
 
 }

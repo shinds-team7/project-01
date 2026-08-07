@@ -58,4 +58,9 @@ public class PetServiceImpl implements PetService {
     public PetDetailResponse getDetail(Long userId, Long petId){
         return petMapper.getDetail(userId, petId);
     }
+
+    @Override
+    public void deletePet(Long petId){
+        petMapper.deletePet(petId);
+    }
 }
