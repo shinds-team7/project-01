@@ -10,6 +10,7 @@
             keyColumn="id">
         INSERT INTO places (
         host_user_id,
+        nickname,
         name,
         description,
         place_type,
@@ -28,6 +29,7 @@
         status
         ) VALUES (
         #{hostUserId},
+        #{nickname},
         #{name},
         #{description},
         #{placeType},
