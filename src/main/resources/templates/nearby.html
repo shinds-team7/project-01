@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<!--/*
+  ============================================================================
+  내 주변 호스트 (NEARBY)  —  PET NOW 프로토타입 210~285행 이식
+  ============================================================================
+
+  [화면 개요]
+  지도를 배경으로 깔고 그 위에 호스트 목록 시트를 얹는 탐색 화면입니다.
+  목록 중심인 /places 와 달리 "지금 내 위치 기준으로 가까운 곳"을 보여줍니다.
+
+  [라우트 — 아직 구현되지 않았습니다]
+  이 템플릿을 렌더링할 컨트롤러가 없으므로 머지 후에도 접근할 수 없습니다.
+  서버 작업 시 아래 시그니처를 기준으로 잡아주세요.
+
+      @GetMapping("/nearby")
+      public String nearby(@RequestParam(defaultValue = "distance") String sort,
+                           @RequestParam(required = false) String region,
+                           @RequestParam(required = false) LocalDate date,
+                           HttpSession session,
+                           Model model) { ... return "nearby"; }
+
+  [Model 속성 계약]
+  이 템플릿이 참조하는 이름과 타입입니다. 이대로 채워주시면 화면이 그대로 뜹니다.
+
+    regionLabel : String   상단 "지역" 칩에 표시. 미선택이면 null → "지역" 으로 표시
+    dateLabel   : String   상단 "날짜" 칩에 표시. 미선택이면 null → "날짜" 로 표시
+    sort        : String   "distance"(거리순) 또는 "latest"(최신순). 정렬 칩 활성 표시에 사용
+    totalCount  : int      목록 헤더의 "총 N곳"
+    places      : List<?>  호스트 카드 목록. 아래 필드를 가진 DTO를 권장합니다.
+
+  [places 원소가 가져야 할 필드]
+    id              Long        카드 클릭 시 /places/{id} 로 이동
+    name            String      장소명
+    placeTypeLabel  String      숙소 형태. PlaceType.getLabel() 사용 (아파트/주택/오피스텔)
+    capacityLabel   String      수용 규모 문구. 예) "소형견 2마리"
+    providesYard    boolean     true 면 "마당 있음", false 면 "마당 없음" 태그
+    regionLabel     String      행정구 등 지역 표기. 예) "마포구 연남동"
+    distanceLabel   String      거리 표기. 예) "1.2km". 없으면 빈 문자열
+    averageRating   Double      평균 별점. 리뷰가 없으면 null 허용 (화면에서 "신규" 처리)
+    reviewCount     int         리뷰 개수
+    hourlyPrice     BigDecimal  시간당 요금. Place.hourlyPrice 그대로
+    liked           boolean     로그인 유저의 찜 여부
+
+  [주의]
+  - Place 엔티티에는 아직 주소/좌표 컬럼이 없습니다(V2__create_place_tables.sql 참고).
+    regionLabel 과 distanceLabel 은 주소 컬럼이 추가된 뒤 채워질 값이라,
+    그 전까지는 빈 문자열을 넣어주시면 화면이 해당 줄을 자동으로 숨깁니다.
+  - 지도 핀은 실제 좌표가 없어 nearby.js 가 미리 정해둔 위치에 흩뿌립니다.
+    지도 API 연동 시 nearby.js 의 PIN_SPOTS 를 좌표 변환 로직으로 교체하세요.
+
+  [아직 서버와 연결되지 않은 동작]
+  찜하기 / 상세 필터 / 지역·날짜 선택은 data-pending-feature 로 묶여 있어
+  클릭 시 "준비 중" 토스트만 띄웁니다. API가 생기면 해당 속성을 제거하고
+  실제 폼 전송이나 fetch 로 교체하면 됩니다.
+*/-->
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#22a45c">
+    <title>내 주변 호스트 | Pet NOW</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link rel="alternate icon" href="/favicon.ico">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
+    <link rel="stylesheet" href="../static/css/pet-now.css" th:href="@{/css/pet-now.css}">
+    <link rel="stylesheet" href="../static/css/app-flow.css" th:href="@{/css/app-flow.css}">
+    <link rel="stylesheet" href="../static/css/nearby.css" th:href="@{/css/nearby.css}">
+    <script defer src="../static/js/app-flow.js" th:src="@{/js/app-flow.js}"></script>
+    <script defer src="../static/js/nearby.js" th:src="@{/js/nearby.js}"></script>
+</head>
+<body class="nearby-page">
+<a class="skip-link" href="#nearby-list">호스트 목록으로 바로가기</a>
+
+<header class="site-header is-scrolled" data-header>
+    <div class="header-inner">
+        <a class="brand" href="/places" aria-label="Pet NOW 홈">
+            <span class="brand-mark material-symbols-rounded" aria-hidden="true">pets</span>
+            <span>Pet <b>NOW</b></span>
+        </a>
+        <nav class="desktop-nav" aria-label="주요 메뉴">
+            <a href="/places#places">펫시터 찾기</a>
+            <a class="is-current" href="/nearby" aria-current="page">내 주변</a>
+            <a href="/places#how-it-works">이용 방법</a>
+        </nav>
+        <div class="header-actions">
+            <a class="profile-button" href="/mypage" aria-label="마이페이지">
+                <span class="profile-avatar">지</span>
+                <span class="profile-copy"><small>반가워요</small><strong>지우 보호자님</strong></span>
+            </a>
+        </div>
+    </div>
+</header>
+
+<main class="nearby-shell">
+
+    <!--/* 검색바 + 필터 칩. 지역/날짜는 /places 의 시트와 동일한 값을 쓰도록 쿼리 파라미터로 넘깁니다. */-->
+    <div class="nearby-toolbar">
+        <form class="nearby-search" th:action="@{/nearby}" method="get" role="search">
+            <input type="hidden" name="sort" th:value="${sort ?: 'distance'}">
+            <span class="material-symbols-rounded" aria-hidden="true">search</span>
+            <label class="sr-only" for="nearby-keyword">호스트 검색</label>
+            <input id="nearby-keyword" name="keyword" type="search"
+                   placeholder="지역, 호스트 이름으로 검색해보세요" autocomplete="off">
+        </form>
+
+        <div class="nearby-chips" role="group" aria-label="검색 조건">
+            <button type="button" class="nearby-chip" data-pending-feature="지역 선택">
+                <span class="material-symbols-rounded" aria-hidden="true">location_on</span>
+                <span th:text="${regionLabel} ?: '지역'">지역</span>
+                <span class="material-symbols-rounded" aria-hidden="true">expand_more</span>
+            </button>
+            <button type="button" class="nearby-chip" data-pending-feature="날짜 선택">
+                <span class="material-symbols-rounded" aria-hidden="true">calendar_today</span>
+                <span th:text="${dateLabel} ?: '날짜'">날짜</span>
+            </button>
+            <button type="button" class="nearby-chip" data-pending-feature="상세 필터">
+                <span class="material-symbols-rounded" aria-hidden="true">tune</span>
+                <span>상세 필터</span>
+            </button>
+            <a class="nearby-chip" th:href="@{/nearby}" href="/nearby">
+                <span class="material-symbols-rounded" aria-hidden="true">refresh</span>
+                <span>초기화</span>
+            </a>
+        </div>
+    </div>
+
+    <div class="nearby-split">
+
+        <!--/* 지도 영역. 실제 지도 API가 붙기 전까지는 장식용 배경 + JS가 흩뿌리는 가격 핀입니다. */-->
+        <section class="nearby-map" aria-label="호스트 위치 지도" data-nearby-map>
+            <div class="map-canvas" aria-hidden="true">
+                <span class="map-city">서울특별시</span>
+                <span class="map-road road-a"></span>
+                <span class="map-road road-b"></span>
+                <span class="map-river"></span>
+                <span class="map-me" title="현재 위치"></span>
+                <span class="map-here">
+                    <span class="material-symbols-rounded" aria-hidden="true">pets</span>
+                </span>
+            </div>
+            <p class="map-legend">
+                <span class="material-symbols-rounded" aria-hidden="true">my_location</span>
+                현재 위치 기준 · 지도 API 연동 예정
+            </p>
+        </section>
+
+        <!--/* 호스트 목록 시트. 모바일에서는 지도 위로 올라오는 드래그 시트가 됩니다. */-->
+        <section class="nearby-sheet" id="nearby-list" aria-labelledby="nearby-list-title" data-nearby-sheet>
+            <div class="sheet-grip" data-sheet-grip role="separator" aria-label="목록 크기 조절" tabindex="0">
+                <span class="grip-bar" aria-hidden="true"></span>
+            </div>
+
+            <div class="sheet-head">
+                <div class="sheet-title">
+                    <h1 id="nearby-list-title">내 주변 호스트</h1>
+                    <span th:text="|총 ${totalCount ?: 0}곳|">총 32곳</span>
+                </div>
+                <div class="sort-row" role="group" aria-label="정렬">
+                    <a class="sort-chip" th:classappend="${sort == null or sort == 'distance'} ? 'is-active'"
+                       th:href="@{/nearby(sort='distance')}" href="/nearby?sort=distance">거리순</a>
+                    <a class="sort-chip" th:classappend="${sort == 'latest'} ? 'is-active'"
+                       th:href="@{/nearby(sort='latest')}" href="/nearby?sort=latest">최신순</a>
+                </div>
+            </div>
+
+            <div class="sheet-body">
+
+                <!--/* 데이터가 없을 때. 컨트롤러 연결 전에도 이 상태로 렌더링됩니다. */-->
+                <div class="flow-empty" th:if="${#lists.isEmpty(places)}">
+                    <span class="material-symbols-rounded" aria-hidden="true">travel_explore</span>
+                    <p>아직 주변에 등록된 호스트가 없어요.<br>조건을 바꾸거나 잠시 후 다시 확인해주세요.</p>
+                </div>
+
+                <ul class="host-list" th:unless="${#lists.isEmpty(places)}">
+                    <li class="nearby-card" th:each="place : ${places}"
+                        th:attr="data-place-id=${place.id}, data-price=${place.hourlyPrice}">
+                        <a class="card-media" th:href="@{/places/{id}(id=${place.id})}" href="/places/1"
+                           th:attr="aria-label=|${place.name} 상세 보기|" aria-label="장소 상세 보기">
+                            <span class="material-symbols-rounded" aria-hidden="true">weekend</span>
+                        </a>
+                        <button class="card-like" type="button"
+                                th:classappend="${place.liked} ? 'is-active'"
+                                th:attr="data-pending-feature=|${place.name} 찜하기|"
+                                data-pending-feature="찜하기" aria-label="찜하기">
+                            <span class="material-symbols-rounded" aria-hidden="true">favorite</span>
+                        </button>
+
+                        <div class="card-body">
+                            <a class="card-name" th:href="@{/places/{id}(id=${place.id})}" href="/places/1"
+                               th:text="${place.name}">햇살 좋은 연남 단독주택</a>
+
+                            <div class="card-tags">
+                                <span class="tag is-type" th:text="${place.placeTypeLabel}">주택</span>
+                                <span class="tag is-size" th:text="${place.capacityLabel}">소형견 2마리</span>
+                                <span class="tag" th:classappend="${place.providesYard} ? 'is-yard' : 'is-muted'"
+                                      th:text="${place.providesYard} ? '마당 있음' : '마당 없음'">마당 있음</span>
+                            </div>
+
+                            <p class="card-region" th:if="${!#strings.isEmpty(place.regionLabel)}">
+                                <span class="material-symbols-rounded" aria-hidden="true">location_on</span>
+                                <span th:text="${place.regionLabel}">마포구 연남동</span>
+                                <span class="card-distance" th:if="${!#strings.isEmpty(place.distanceLabel)}"
+                                      th:text="|· ${place.distanceLabel}|">· 1.2km</span>
+                            </p>
+
+                            <p class="card-rating">
+                                <span th:if="${place.averageRating != null}">
+                                    <span class="material-symbols-rounded is-star" aria-hidden="true">star</span>
+                                    <b th:text="${#numbers.formatDecimal(place.averageRating, 1, 2)}">4.98</b>
+                                    <small th:text="|(${place.reviewCount})|">(128)</small>
+                                </span>
+                                <span class="is-new" th:if="${place.averageRating == null}">아직 리뷰가 없어요</span>
+                            </p>
+
+                            <p class="card-price">
+                                <b th:text="${#numbers.formatInteger(place.hourlyPrice, 1, 'COMMA')}">12,000</b>원
+                                <small>/ 시간당</small>
+                            </p>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </section>
+    </div>
+</main>
+
+<nav class="mobile-nav" aria-label="모바일 메뉴">
+    <a href="/places#home"><span class="material-symbols-rounded" aria-hidden="true">home</span><small>홈</small></a>
+    <a class="is-current" href="/nearby" aria-current="page"><span class="material-symbols-rounded" aria-hidden="true">near_me</span><small>내 주변</small></a>
+    <a href="/mypage#reservations"><span class="material-symbols-rounded" aria-hidden="true">calendar_month</span><small>예약</small></a>
+    <a href="/mypage"><span class="material-symbols-rounded" aria-hidden="true">person</span><small>마이</small></a>
+</nav>
+
+<div class="toast" data-toast role="status" aria-live="polite" aria-atomic="true"></div>
+</body>
+</html>
