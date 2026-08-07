@@ -30,6 +30,6 @@ public class MyProfileController {
         model.addAttribute("profile", profile);
 
         // 페이지가 아직 없어, 페이지 생성 후 return값 변경할 예정입니다
-        return "mypage/index";
+        return "mypage/myprofile-test";
     }
 }
