@@ -17,11 +17,19 @@ import org.springframework.web.bind.annotation.*;
 public class PetController {
     private final PetService petService;
 
+    @GetMapping("/new")
+    public String createForm(HttpSession session) {
+        if (session.getAttribute(SessionConst.LOGIN_USER_ID) == null) {
+            return "redirect:/auth/login";
+        }
+        return "pet-form";
+    }
+
     @PostMapping("/create")
     public String addPet(@ModelAttribute PetCreateRequest createRequest, HttpSession session){
         Long userId = (Long) session.getAttribute(SessionConst.LOGIN_USER_ID);
         petService.createPet(userId, createRequest);
-        return "mypage";
+        return "redirect:/mypage";
     }
 
     @GetMapping("/detail/{petId}")
@@ -36,12 +44,12 @@ public class PetController {
     public String updatePet(@ModelAttribute PetUpdateRequest updateRequest, HttpSession session){
         Long userId = (Long) session.getAttribute(SessionConst.LOGIN_USER_ID);
         petService.updatePet(userId,updateRequest);
-        return "mypage";
+        return "redirect:/mypage";
     }
 
     @PostMapping("/delete/{petId}")
     public String DeletePet(@PathVariable Long petId){
         petService.deletePet(petId);
-        return "mypage";
+        return "redirect:/mypage";
     }
 }
