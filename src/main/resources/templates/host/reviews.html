@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<!--/*
+  ============================================================================
+  호스트 장소별 리뷰 관리 (HOST REVIEWS)  —  PET NOW 프로토타입 958~1005행 이식
+  ============================================================================
+
+  [화면 개요]
+  호스트가 자기 장소 하나에 달린 리뷰를 전부 보고, 답글을 달거나 읽음 처리하는 화면입니다.
+
+  [host/dashboard.html 의 "리뷰 관리" 탭과 다릅니다]
+  대시보드 탭은 호스트 전체의 미확인 리뷰 몇 건을 알려주는 성격이고,
+  이 화면은 장소 하나의 전체 리뷰를 평점 요약·필터·페이지네이션과 함께 다룹니다.
+  대시보드에서 "이 장소 리뷰 전체 보기"로 들어오는 하위 화면으로 보시면 됩니다.
+
+  [라우트 — 아직 구현되지 않았습니다]
+
+      @GetMapping("/host/places/{placeId}/reviews")
+      public String placeReviews(@PathVariable Long placeId,
+                                 @RequestParam(defaultValue = "all") String filter,
+                                 @RequestParam(defaultValue = "1") int page,
+                                 HttpSession session,
+                                 Model model) { ... return "host/reviews"; }
+
+  로그인한 호스트가 placeId 의 주인이 맞는지 반드시 확인해주세요.
+  (PlaceController 가 세션 소유자 검증을 하고 있으니 같은 방식을 쓰시면 됩니다.)
+
+  [Model 속성 계약]
+
+    place         : ?       조회 대상 장소. id 와 name 두 필드를 씁니다.
+    averageRating : Double  평균 별점. 리뷰가 없으면 null 허용
+    reviewCount   : int     전체 리뷰 수
+    filter        : String  "all" | "unread" | "noreply" | "low". 필터 칩 활성 표시에 사용
+    reviews       : List<?> 현재 페이지의 리뷰 목록
+    page          : int     현재 페이지 번호 (1부터)
+    hasMore       : boolean 다음 페이지가 있으면 true → "더 보기" 노출
+
+  [reviews 원소가 가져야 할 필드]
+    id            Long           리뷰 ID. reviews.id
+    guestName     String         작성자 표시명. users.nickname
+    rating        Integer        별점 1~5. reviews.rating
+    content       String         리뷰 본문. reviews.content (NULL 허용)
+    createdAt     LocalDateTime  작성 일시. reviews.created_at
+    readByHost    boolean        호스트 확인 여부. reviews.is_read_by_host
+                                 false 면 카드에 "미확인" 배지가 붙습니다.
+    replyContent  String         호스트 답글 본문. review_replies.content
+                                 없으면 null → 답글 작성 폼이 대신 나옵니다.
+    repliedAt     LocalDateTime  답글 작성 일시. review_replies.created_at (replyContent 가 있을 때만)
+
+  [이 화면이 서버로 보내는 요청]
+    필터 전환   : GET  /host/places/{placeId}/reviews?filter=...
+    더 보기     : GET  /host/places/{placeId}/reviews?filter=...&page=N
+    답글 등록   : POST /host/reviews/{id}/replies        (content)
+    답글 수정   : POST /host/reviews/{id}/replies/edit   (content)
+    답글 삭제   : POST /host/reviews/{id}/replies/delete
+    읽음 처리   : POST /host/reviews/{id}/read
+
+  [설계 판단 두 가지 — 리뷰 때 확인 부탁드립니다]
+
+  1) 프로토타입에는 호스트가 리뷰를 "삭제"하는 버튼이 있습니다. 호스트가 손님 리뷰를
+     지우는 건 정책상 어색해 보여, 여기서는 호스트 본인 답글의 수정·삭제로 옮겼습니다.
+     원래 의도가 리뷰 삭제(신고 후 처리 등)라면 알려주세요.
+
+  2) 프로토타입은 스크롤하면 계속 불러오는 무한 스크롤입니다. 여기서는 스크립트 없이
+     동작하도록 page 파라미터를 쓰는 "더 보기" 링크로 바꿨습니다. 무한 스크롤이 필요하면
+     별도 이슈로 잡는 편이 좋겠습니다.
+
+  [주의]
+  review_replies 테이블은 review_id 에 UNIQUE 제약이 있어 리뷰당 답글은 1건입니다.
+  그래서 답글 목록이 아니라 단일 replyContent 로 계약을 잡았습니다.
+*/-->
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#22a45c">
+    <title>리뷰 관리 | Pet NOW</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link rel="alternate icon" href="/favicon.ico">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
+    <link rel="stylesheet" href="../../static/css/pet-now.css" th:href="@{/css/pet-now.css}">
+    <!--/* .control(입력 필드) 스타일이 host-place.css 에 있어 답글 폼 때문에 함께 불러옵니다. */-->
+    <link rel="stylesheet" href="../../static/css/host-place.css" th:href="@{/css/host-place.css}">
+    <link rel="stylesheet" href="../../static/css/app-flow.css" th:href="@{/css/app-flow.css}">
+    <link rel="stylesheet" href="../../static/css/host-reviews.css" th:href="@{/css/host-reviews.css}">
+    <script defer src="../../static/js/app-flow.js" th:src="@{/js/app-flow.js}"></script>
+</head>
+<body class="flow-page">
+<a class="skip-link" href="#host-review-list">리뷰 목록으로 바로가기</a>
+
+<header class="site-header is-scrolled" data-header>
+    <div class="header-inner">
+        <a class="brand" href="/places" aria-label="Pet NOW 홈">
+            <span class="brand-mark material-symbols-rounded" aria-hidden="true">pets</span>
+            <span>Pet <b>NOW</b></span>
+        </a>
+        <div class="header-actions">
+            <a class="profile-button" href="/mypage" aria-label="마이페이지">
+                <span class="profile-avatar">지</span>
+                <span class="profile-copy"><small>호스트 센터</small><strong>지우 호스트님</strong></span>
+            </a>
+        </div>
+    </div>
+</header>
+
+<main class="flow-shell">
+    <div class="flow-topbar">
+        <a class="flow-back" th:href="@{/host(tab='reviews')}" href="/host?tab=reviews" aria-label="뒤로 가기">
+            <span class="material-symbols-rounded" aria-hidden="true">arrow_back_ios_new</span>
+        </a>
+        <div>
+            <h1 th:text="${place != null ? place.name : '리뷰 관리'}">성수 단독주택 마당</h1>
+            <small>손님들이 남긴 후기를 확인하고 답글을 달아보세요</small>
+        </div>
+    </div>
+
+    <!--/* 평점 요약. 리뷰가 하나도 없으면 별점 대신 안내 문구가 나옵니다. */-->
+    <section class="rating-summary" aria-label="평점 요약">
+        <div class="rating-score" th:if="${averageRating != null}">
+            <strong th:text="${#numbers.formatDecimal(averageRating, 1, 2)}">4.92</strong>
+        </div>
+        <div class="rating-score is-empty" th:if="${averageRating == null}">
+            <strong>–</strong>
+        </div>
+        <div class="rating-meta">
+            <!--/*
+              별 5개를 그리고, 평균 점수만큼 앞에서부터 채웁니다.
+              #numbers.sequence(1,5) 로 반복해 index 가 평균 이하면 채운 별로 표시합니다.
+            */-->
+            <div class="rating-stars" aria-hidden="true">
+                <span class="material-symbols-rounded" th:each="i : ${#numbers.sequence(1, 5)}"
+                      th:classappend="${averageRating != null and averageRating >= i} ? 'is-filled'">star</span>
+            </div>
+            <p th:text="|리뷰 ${reviewCount ?: 0}개|">리뷰 128개</p>
+        </div>
+    </section>
+
+    <!--/* 필터 칩. 현재 filter 값에 따라 활성 표시가 바뀝니다. */-->
+    <nav class="review-filters" aria-label="리뷰 필터">
+        <a class="filter-chip" th:classappend="${filter == null or filter == 'all'} ? 'is-active'"
+           th:href="@{/host/places/{id}/reviews(id=${place?.id}, filter='all')}" href="#">전체</a>
+        <a class="filter-chip" th:classappend="${filter == 'unread'} ? 'is-active'"
+           th:href="@{/host/places/{id}/reviews(id=${place?.id}, filter='unread')}" href="#">미확인</a>
+        <a class="filter-chip" th:classappend="${filter == 'noreply'} ? 'is-active'"
+           th:href="@{/host/places/{id}/reviews(id=${place?.id}, filter='noreply')}" href="#">답글 없음</a>
+        <a class="filter-chip" th:classappend="${filter == 'low'} ? 'is-active'"
+           th:href="@{/host/places/{id}/reviews(id=${place?.id}, filter='low')}" href="#">낮은 평점</a>
+    </nav>
+
+    <!--/*
+      리뷰가 없을 때. 컨트롤러 연결 전에도 이 상태로 렌더링됩니다.
+      reviews 는 "현재 필터의 현재 페이지" 목록이라 비어 있는 이유가 두 가지입니다.
+      전체 리뷰가 0건이면 첫 리뷰 안내를, 필터 결과만 비었으면 필터 안내를 보여줍니다.
+      reviewCount 는 컨트롤러 연결 전 null 이므로 ?: 0 으로 받아야 첫 리뷰 안내로 떨어집니다.
+    */-->
+    <div class="flow-empty" th:if="${#lists.isEmpty(reviews)}">
+        <span class="material-symbols-rounded" aria-hidden="true">reviews</span>
+        <p th:if="${(reviewCount ?: 0) == 0}">아직 리뷰가 없어요.<br>돌봄이 끝나면 손님이 후기를 남길 수 있어요.</p>
+        <p th:unless="${(reviewCount ?: 0) == 0}">선택한 조건에 맞는 리뷰가 없어요.<br>다른 필터를 눌러보세요.</p>
+    </div>
+
+    <div class="host-review-list" id="host-review-list" th:unless="${#lists.isEmpty(reviews)}">
+        <article class="host-review-card" th:each="review : ${reviews}">
+
+            <div class="host-review-head">
+                <span class="reviewer">
+                    <span class="avatar" aria-hidden="true">
+                        <span class="material-symbols-rounded">person</span>
+                    </span>
+                    <b th:text="${review.guestName}">김하늘</b>
+                    <span class="unread-badge" th:unless="${review.readByHost}">미확인</span>
+                </span>
+                <span class="host-review-meta">
+                    <span class="material-symbols-rounded is-star" aria-hidden="true">star</span>
+                    <span th:text="${review.rating}">5</span>
+                    ·
+                    <span th:text="${#temporals.format(review.createdAt, 'yyyy.MM.dd')}">2026.08.01</span>
+                </span>
+            </div>
+
+            <p class="host-review-body" th:text="${review.content}">
+                마당이 넓어서 우리 강아지가 정말 좋아했어요. 사진도 자주 보내주셔서 안심됐습니다.
+            </p>
+
+            <!--/* 이미 답글이 있으면 답글을 보여주고, 수정·삭제를 제공합니다. */-->
+            <div class="host-reply" th:if="${review.replyContent != null}">
+                <p class="host-reply-label">
+                    <span class="material-symbols-rounded" aria-hidden="true">subdirectory_arrow_right</span>
+                    사장님 답글
+                    <span class="host-reply-date" th:if="${review.repliedAt != null}"
+                          th:text="${#temporals.format(review.repliedAt, 'yyyy.MM.dd')}">2026.08.02</span>
+                </p>
+                <p class="host-reply-body" th:text="${review.replyContent}">
+                    좋게 봐주셔서 감사해요! 다음에도 편하게 맡겨주세요.
+                </p>
+
+                <div class="host-reply-actions">
+                    <details class="reply-editor">
+                        <summary class="reply-action">답글 수정</summary>
+                        <form class="reply-form" th:action="@{/host/reviews/{id}/replies/edit(id=${review.id})}" method="post">
+                            <label class="sr-only" th:for="'reply-edit-' + ${review.id}">답글 수정</label>
+                            <textarea class="control" th:id="'reply-edit-' + ${review.id}" name="content"
+                                      rows="3" maxlength="300" required
+                                      th:text="${review.replyContent}"></textarea>
+                            <button class="flow-cta is-green" type="submit">답글 저장</button>
+                        </form>
+                    </details>
+
+                    <details class="reply-editor">
+                        <summary class="reply-action is-danger">답글 삭제</summary>
+                        <div class="reply-confirm">
+                            <p>답글을 삭제할까요? 삭제한 답글은 되돌릴 수 없어요.</p>
+                            <form th:action="@{/host/reviews/{id}/replies/delete(id=${review.id})}" method="post">
+                                <button class="confirm-yes" type="submit">삭제</button>
+                            </form>
+                        </div>
+                    </details>
+                </div>
+            </div>
+
+            <!--/* 답글이 없으면 바로 작성할 수 있는 폼을 펼칩니다. */-->
+            <div class="host-reply-empty" th:if="${review.replyContent == null}">
+                <details class="reply-editor">
+                    <summary class="reply-action is-primary">답글 달기</summary>
+                    <form class="reply-form" th:action="@{/host/reviews/{id}/replies(id=${review.id})}" method="post">
+                        <label class="sr-only" th:for="'reply-new-' + ${review.id}">답글 작성</label>
+                        <textarea class="control" th:id="'reply-new-' + ${review.id}" name="content"
+                                  rows="3" maxlength="300" required
+                                  placeholder="후기를 남겨주셔서 감사하다는 인사를 전해보세요."></textarea>
+                        <button class="flow-cta is-green" type="submit">답글 등록</button>
+                    </form>
+                </details>
+            </div>
+
+            <!--/* 아직 확인하지 않은 리뷰만 읽음 처리 버튼을 노출합니다. */-->
+            <form class="read-form" th:unless="${review.readByHost}"
+                  th:action="@{/host/reviews/{id}/read(id=${review.id})}" method="post">
+                <button class="reply-action is-quiet" type="submit">읽음 처리</button>
+            </form>
+        </article>
+
+        <!--/*
+          더 보기. 무한 스크롤 대신 page 파라미터를 하나 올린 링크입니다.
+          hasMore 가 false 면 아예 나오지 않습니다.
+        */-->
+        <div class="review-more" th:if="${hasMore}">
+            <a class="flow-cta"
+               th:href="@{/host/places/{id}/reviews(id=${place?.id}, filter=${filter ?: 'all'}, page=${(page ?: 1) + 1})}"
+               href="#">리뷰 더 보기</a>
+        </div>
+    </div>
+</main>
+
+<div class="toast" data-toast role="status" aria-live="polite" aria-atomic="true"></div>
+</body>
+</html>

@@ -1,0 +1,340 @@
+@charset "UTF-8";
+
+/*
+ * 호스트 장소별 리뷰 관리(/host/places/{id}/reviews) 전용 스타일.
+ * PET NOW 프로토타입 958~1005행을 옮긴 것입니다.
+ *
+ * 페이지 골격(.flow-page / .flow-shell / .flow-topbar / .flow-empty / .flow-cta)은
+ * app-flow.css, 입력 필드(.control)는 host-place.css, 색상 토큰은 pet-now.css 를 씁니다.
+ * 여기에는 이 화면에만 필요한 것 — 평점 요약, 리뷰 카드, 답글 영역 — 만 담겨 있습니다.
+ */
+
+/* ── 평점 요약 ────────────────────────────────────────────────────── */
+
+.rating-summary {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 18px;
+    border-radius: var(--radius-md);
+    background: var(--soft);
+}
+
+.rating-score strong {
+    color: var(--ink-deep);
+    font-size: 34px;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.03em;
+}
+
+.rating-score.is-empty strong {
+    color: var(--muted);
+}
+
+.rating-stars {
+    display: flex;
+    gap: 1px;
+    color: #e0e0e2;
+}
+
+.rating-stars .material-symbols-rounded {
+    font-size: 17px;
+}
+
+.rating-stars .is-filled {
+    color: #f5a623;
+    font-variation-settings: 'FILL' 1;
+}
+
+.rating-meta p {
+    margin: 5px 0 0;
+    color: var(--muted);
+    font-size: 12.5px;
+}
+
+/* ── 필터 칩 ─────────────────────────────────────────────────────── */
+
+.review-filters {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    margin: 18px 0;
+    padding-bottom: 2px;
+    scrollbar-width: none;
+}
+
+.review-filters::-webkit-scrollbar {
+    display: none;
+}
+
+.review-filters .filter-chip {
+    flex: none;
+    text-decoration: none;
+}
+
+/* ── 리뷰 카드 ────────────────────────────────────────────────────── */
+
+.host-review-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.host-review-card {
+    padding: 16px;
+    border-radius: var(--radius-sm);
+    background: var(--soft);
+}
+
+.host-review-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.reviewer {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    min-width: 0;
+}
+
+.reviewer .avatar {
+    flex: none;
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: #eceae5;
+    color: #b9b1a2;
+}
+
+.reviewer .avatar .material-symbols-rounded {
+    font-size: 19px;
+    font-variation-settings: 'FILL' 1;
+}
+
+.reviewer b {
+    color: var(--ink-deep);
+    font-size: 14px;
+    font-weight: 700;
+    /* 공백 없는 긴 닉네임이 flex item 최소 폭을 밀어 카드를 넘기지 않도록 */
+    overflow-wrap: anywhere;
+}
+
+.unread-badge {
+    padding: 3px 8px;
+    border-radius: var(--radius-pill);
+    background: var(--pet-green-soft);
+    color: var(--pet-green-dark);
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.host-review-meta {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.host-review-meta .is-star {
+    font-size: 14px;
+    color: #f5a623;
+    font-variation-settings: 'FILL' 1;
+}
+
+.host-review-body {
+    margin: 10px 0 0;
+    color: #4b5563;
+    font-size: 13px;
+    line-height: 1.65;
+    text-wrap: pretty;
+    /* 리뷰 본문에 긴 URL·토큰이 들어와도 카드 안에서 줄바꿈되도록 */
+    overflow-wrap: anywhere;
+}
+
+/* ── 호스트 답글 ──────────────────────────────────────────────────── */
+
+.host-reply {
+    margin-top: 12px;
+    padding: 12px 14px;
+    border-radius: var(--radius-sm);
+    background: var(--white);
+    border: 1px solid var(--line);
+}
+
+.host-reply-label {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin: 0;
+    color: var(--pet-green-dark);
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.host-reply-label .material-symbols-rounded {
+    font-size: 16px;
+}
+
+.host-reply-date {
+    margin-left: auto;
+    color: var(--muted);
+    font-weight: 600;
+}
+
+.host-reply-body {
+    margin: 7px 0 0;
+    color: #4b5563;
+    font-size: 13px;
+    line-height: 1.6;
+    text-wrap: pretty;
+    /* 답글 본문도 같은 이유로 */
+    overflow-wrap: anywhere;
+}
+
+.host-reply-actions,
+.host-reply-empty {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+/* details 로 여닫는 답글 편집기. 열리면 한 줄을 통째로 씁니다. */
+.reply-editor {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.reply-editor[open] {
+    flex-basis: 100%;
+}
+
+.reply-editor > summary {
+    list-style: none;
+}
+
+.reply-editor > summary::-webkit-details-marker {
+    display: none;
+}
+
+.reply-action {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--white);
+    color: var(--muted);
+    font-family: inherit;
+    font-size: 12.5px;
+    font-weight: 700;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.18s ease, color 0.18s ease, background 0.18s ease;
+}
+
+.reply-action:hover {
+    border-color: rgba(34, 164, 92, 0.35);
+    color: var(--pet-green-dark);
+}
+
+.reply-action.is-primary {
+    color: var(--pet-green-dark);
+}
+
+.reply-action.is-danger:hover {
+    border-color: rgba(229, 72, 77, 0.4);
+    background: #fdeced;
+    color: var(--danger);
+}
+
+.reply-action.is-quiet {
+    background: transparent;
+    border-style: dashed;
+}
+
+.reply-form {
+    margin-top: 10px;
+}
+
+.reply-form .control {
+    width: 100%;
+}
+
+.reply-form .flow-cta {
+    width: 100%;
+    margin-top: 10px;
+}
+
+.reply-confirm {
+    margin-top: 10px;
+    padding: 14px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    background: var(--white);
+    text-align: center;
+}
+
+.reply-confirm p {
+    margin: 0 0 12px;
+    color: var(--ink);
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.confirm-yes {
+    padding: 10px 26px;
+    border: 1px solid var(--danger);
+    border-radius: var(--radius-pill);
+    background: var(--danger);
+    color: var(--white);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 0.18s ease;
+}
+
+.confirm-yes:hover {
+    opacity: 0.88;
+}
+
+/* 읽음 처리 버튼은 답글 영역과 붙지 않게 살짝 띄웁니다. */
+.read-form {
+    margin-top: 10px;
+}
+
+/* ── 더 보기 ─────────────────────────────────────────────────────── */
+
+.review-more {
+    display: flex;
+    justify-content: center;
+    padding: 8px 0 4px;
+}
+
+.review-more .flow-cta {
+    text-decoration: none;
+}
+
+@media (max-width: 640px) {
+    .rating-summary {
+        padding: 16px;
+    }
+
+    .rating-score strong {
+        font-size: 30px;
+    }
+
+    .host-review-head {
+        align-items: flex-start;
+    }
+}
