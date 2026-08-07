@@ -123,6 +123,8 @@
     color: var(--ink-deep);
     font-size: 14px;
     font-weight: 700;
+    /* 공백 없는 긴 닉네임이 flex item 최소 폭을 밀어 카드를 넘기지 않도록 */
+    overflow-wrap: anywhere;
 }
 
 .unread-badge {
@@ -154,6 +156,8 @@
     font-size: 13px;
     line-height: 1.65;
     text-wrap: pretty;
+    /* 리뷰 본문에 긴 URL·토큰이 들어와도 카드 안에서 줄바꿈되도록 */
+    overflow-wrap: anywhere;
 }
 
 /* ── 호스트 답글 ──────────────────────────────────────────────────── */
@@ -192,6 +196,8 @@
     font-size: 13px;
     line-height: 1.6;
     text-wrap: pretty;
+    /* 답글 본문도 같은 이유로 */
+    overflow-wrap: anywhere;
 }
 
 .host-reply-actions,

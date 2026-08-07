@@ -150,10 +150,16 @@
            th:href="@{/host/places/{id}/reviews(id=${place?.id}, filter='low')}" href="#">낮은 평점</a>
     </nav>
 
-    <!--/* 리뷰가 없을 때. 컨트롤러 연결 전에도 이 상태로 렌더링됩니다. */-->
+    <!--/*
+      리뷰가 없을 때. 컨트롤러 연결 전에도 이 상태로 렌더링됩니다.
+      reviews 는 "현재 필터의 현재 페이지" 목록이라 비어 있는 이유가 두 가지입니다.
+      전체 리뷰가 0건이면 첫 리뷰 안내를, 필터 결과만 비었으면 필터 안내를 보여줍니다.
+      reviewCount 는 컨트롤러 연결 전 null 이므로 ?: 0 으로 받아야 첫 리뷰 안내로 떨어집니다.
+    */-->
     <div class="flow-empty" th:if="${#lists.isEmpty(reviews)}">
         <span class="material-symbols-rounded" aria-hidden="true">reviews</span>
-        <p>조건에 맞는 리뷰가 아직 없어요.<br>돌봄이 끝나면 손님이 후기를 남길 수 있어요.</p>
+        <p th:if="${(reviewCount ?: 0) == 0}">아직 리뷰가 없어요.<br>돌봄이 끝나면 손님이 후기를 남길 수 있어요.</p>
+        <p th:unless="${(reviewCount ?: 0) == 0}">선택한 조건에 맞는 리뷰가 없어요.<br>다른 필터를 눌러보세요.</p>
     </div>
 
     <div class="host-review-list" id="host-review-list" th:unless="${#lists.isEmpty(reviews)}">
