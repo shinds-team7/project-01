@@ -22,6 +22,16 @@ public class ReviewController {
     private final ReviewService reviewService;
 
     /**
+     * 세션에서 로그인 유저 id를 꺼내오는 헬퍼.
+     * 다른 컨트롤러에서도
+     * (Long) session.getAttribute(SessionConst.LOGIN_USER_ID) 를 반복 사용하므로
+     * 공통 클래스로 빼면 좋을 듯
+     */
+    private Long getLoginUserId(HttpSession session) {
+        return (Long) session.getAttribute(SessionConst.LOGIN_USER_ID);
+    }
+
+    /**
      * 리뷰 작성 폼 화면
      * GET /reviews/new?reservationId=1
      * -> templates/reviews/form.html
@@ -63,18 +73,37 @@ public class ReviewController {
 
         reviewService.createReview(loginUserId, request);
 
-        return "redirect:/reviews/list";      // 테스트용. 내 리뷰 목록으로 바꿔야함
+        return "redirect:/reviews/my";      // 테스트용. 내 리뷰 목록으로 바꿔야함
     }
-
 
     /**
-     * 세션에서 로그인 유저 id를 꺼내오는 헬퍼.
-     * 다른 컨트롤러에서도
-     * (Long) session.getAttribute(SessionConst.LOGIN_USER_ID) 를 반복 사용하므로
-     * 공통 클래스로 빼면 좋을 듯
+     * 내가 작성한 리뷰 목록 조회
+     * GET /reviews/my
+     * -> templates/review/my-list.html
      */
-    private Long getLoginUserId(HttpSession session) {
-        return (Long) session.getAttribute(SessionConst.LOGIN_USER_ID);
+    @GetMapping("/my")
+    public String myReviews(Model model, HttpSession session) {
+        Long loginUserId = getLoginUserId(session);
+        if (loginUserId == null) {
+            return "redirect:/";
+        }
+
+        List<ReviewResponse> reviews = reviewService.getMyReviews(loginUserId);
+        model.addAttribute("reviews", reviews);
+
+        return "reviews/list";       // 테스트용. 내 리뷰 목록으로 바꿔야함
     }
 
+    /**
+     * 특정 장소의 리뷰 목록 조회
+     * GET /reviews/place/{placeId}
+     * -> templates/review/place-list.html
+     */
+    @GetMapping("/place/{placeId}")
+    public String reviewsByPlace(@PathVariable Long placeId, Model model) {
+        List<ReviewResponse> reviews = reviewService.getReviewsByPlace(placeId);
+        model.addAttribute("placeId", placeId);
+        model.addAttribute("reviews", reviews);
+        return "reviews/list";     // 테스트용. 장소별 리뷰 목록으로 바꿔야함
+    }
 }
