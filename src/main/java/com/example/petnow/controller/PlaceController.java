@@ -1,5 +1,6 @@
 package com.example.petnow.controller;
 
+import com.example.petnow.common.constant.SessionConst;
 import com.example.petnow.service.PlaceService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
@@ -25,7 +26,7 @@ public class PlaceController {
 
     @GetMapping("/{placeId}")
     public String detail(@PathVariable Long placeId, Model model, HttpSession session) {
-        Long loginUserId = (Long) session.getAttribute("loginUserId");
+        Long loginUserId = (Long) session.getAttribute(SessionConst.LOGIN_USER_ID);
 
         model.addAttribute("place", placeService.getPlaceDetail(placeId, loginUserId));
 
