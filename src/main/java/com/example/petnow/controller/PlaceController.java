@@ -23,7 +23,7 @@ public class PlaceController {
         return "places/list";
     }
 
-    @GetMapping("/{placeId:\\d+}")
+    @GetMapping("/{placeId}")
     public String detail(@PathVariable Long placeId, Model model, HttpSession session) {
         Long loginUserId = (Long) session.getAttribute("loginUserId");
 
