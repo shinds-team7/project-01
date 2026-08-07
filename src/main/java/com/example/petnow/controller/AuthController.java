@@ -25,7 +25,7 @@ public class AuthController {
     @PostMapping("/signup")
     public String userSignup(@Valid @ModelAttribute UserSignupRequest request) {
         authService.signup(request);
-        return "mypage";
+        return "redirect:/auth/login";
     }
 
     // 로그인 , 메인페이지 생성 되면 return을 메인페이지로 바꿀 예정
@@ -40,6 +40,6 @@ public class AuthController {
         log.info("세션에 저장된 userId: {}",
                 session.getAttribute(SessionConst.LOGIN_USER_ID));
 
-        return "mypage";
+        return "redirect:/mypage";
     }
 }
