@@ -26,13 +26,13 @@ public class MyPageController {
 
         if (userId == null) {
             return "redirect:/auth/login";
-       }
+        }
 
         model.addAttribute("petList", petService.getPetList(userId));
 
         UserMyPageResponse user = authService.getMyPage(userId);
         model.addAttribute("user", user);
 
-        return "mypage/index";
+        return "mypage";
     }
 }
