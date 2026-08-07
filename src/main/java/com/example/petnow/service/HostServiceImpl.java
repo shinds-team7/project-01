@@ -7,8 +7,8 @@ import com.example.petnow.entity.User;
 import com.example.petnow.exception.BusinessException;
 import com.example.petnow.exception.PlaceErrorCode;
 import com.example.petnow.exception.UserErrorCode;
+import com.example.petnow.mapper.AuthMapper;
 import com.example.petnow.mapper.HostMapper;
-import com.example.petnow.mapper.UserMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,12 +20,12 @@ import java.util.List;
 public class HostServiceImpl implements HostService{
 
     private final HostMapper hostMapper;
-    private final UserMapper userMapper;
+    private final AuthMapper authMapper;
 
     @Override
     @Transactional
     public void createPlace(Long userId, PlaceCreateRequest request) {
-        User user = userMapper.findById(userId);
+        User user = authMapper.findById(userId);
         if (user == null) {
             throw new BusinessException(UserErrorCode.USER_NOT_FOUND);
         }

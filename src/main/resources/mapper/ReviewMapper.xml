@@ -21,4 +21,36 @@
         AND guest_user_id = #{memberId}
     </select>
 
+    <!-- 내가 작성한 리뷰 목록 (reservations와 조인) -->
+    <select id="findReviewsByMemberId" parameterType="long" resultType="com.example.petnow.dto.response.ReviewResponse">
+        SELECT
+            r.id             AS id,
+            r.reservation_id AS reservationId,
+            res.guest_user_id    AS memberId,
+            res.place_id     AS placeId,
+            r.content        AS content,
+            r.rating         AS rating,
+            r.created_at     AS createdAt
+        FROM reviews r
+        JOIN reservations res ON r.reservation_id = res.id
+        WHERE res.guest_user_id = #{memberId}
+        ORDER BY r.created_at DESC
+    </select>
+
+    <!-- 특정 장소의 리뷰 목록 (reservations와 조인) -->
+    <select id="findReviewsByPlaceId" parameterType="long" resultType="com.example.petnow.dto.response.ReviewResponse">
+        SELECT
+            r.id             AS id,
+            r.reservation_id AS reservationId,
+            res.guest_user_id    AS memberId,
+            res.place_id     AS placeId,
+            r.content        AS content,
+            r.rating         AS rating,
+            r.created_at     AS createdAt
+        FROM reviews r
+        JOIN reservations res ON r.reservation_id = res.id
+        WHERE res.place_id = #{placeId}
+        ORDER BY r.created_at DESC
+    </select>
+
 </mapper>
