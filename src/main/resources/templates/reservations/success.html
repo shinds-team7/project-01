@@ -1,13 +1,98 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport"
-          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Document</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#22a45c">
+    <meta name="description" content="Pet NOW 예약이 정상적으로 접수되었습니다.">
+    <title>예약 완료 | Pet NOW</title>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
+    <link rel="stylesheet" href="../../static/css/pet-now.css" th:href="@{/css/pet-now.css}">
 </head>
 <body>
+<a class="skip-link" href="#main-content">본문으로 바로가기</a>
 
+<header class="site-header is-scrolled">
+    <div class="header-inner">
+        <a class="brand" href="/home" th:href="@{/home}" aria-label="Pet NOW 홈">
+            <span class="brand-mark material-symbols-rounded" aria-hidden="true">pets</span>
+            <span>Pet <b>NOW</b></span>
+        </a>
+        <div class="header-actions">
+            <a class="profile-button" href="/mypage" th:href="@{/mypage}" aria-label="마이페이지">
+                <span class="profile-avatar">MY</span>
+                <span class="profile-copy">
+                    <small>예약 확인하기</small>
+                    <strong>마이페이지</strong>
+                </span>
+            </a>
+        </div>
+    </div>
+</header>
+
+<main id="main-content">
+    <section class="hero" aria-labelledby="success-title">
+        <div class="hero-orbit hero-orbit-one" aria-hidden="true"></div>
+        <div class="hero-orbit hero-orbit-two" aria-hidden="true"></div>
+        <div class="hero-inner">
+            <div class="hero-copy">
+                <p class="eyebrow">RESERVATION COMPLETE</p>
+                <h1 id="success-title">예약 요청이<br><em>정상적으로 접수</em>되었어요.</h1>
+                <p class="hero-description">호스트가 요청을 확인하는 동안 마이페이지에서 예약 현황을 계속 확인할 수 있어요.</p>
+                <ul class="trust-list" aria-label="예약 완료 안내">
+                    <li><span class="material-symbols-rounded" aria-hidden="true">check_circle</span> 예약 생성 완료</li>
+                    <li><span class="material-symbols-rounded" aria-hidden="true">notifications_active</span> 진행 상황 확인 가능</li>
+                    <li><span class="material-symbols-rounded" aria-hidden="true">person</span> 마이페이지에서 관리</li>
+                </ul>
+                <div class="header-actions" style="margin-top:28px;">
+                    <a class="auth-link auth-link-primary" href="/mypage" th:href="@{/mypage}">마이페이지로 이동</a>
+                </div>
+            </div>
+            <div class="hero-visual" aria-hidden="true">
+                <div class="photo-card photo-card-main">
+                    <div class="media-placeholder" style="width:100%;height:100%;">
+                        <span class="material-symbols-rounded">task_alt</span>
+                    </div>
+                </div>
+                <div class="care-bubble care-bubble-top">
+                    <span class="care-bubble-icon material-symbols-rounded" aria-hidden="true">schedule</span>
+                    <span><small>다음 단계</small><strong>호스트 응답 대기</strong></span>
+                </div>
+                <div class="care-bubble care-bubble-bottom">
+                    <span class="avatar-stack" aria-hidden="true"><i>예</i><i>약</i><i>완</i></span>
+                    <span><strong>내역 확인 가능</strong><small>/mypage 에서 관리</small></span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="recent-section section-shell" aria-labelledby="next-title">
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">NEXT STEP</p>
+                <h2 id="next-title">이제 이렇게 진행돼요</h2>
+            </div>
+        </div>
+        <div class="results-layout">
+            <article class="review-card">
+                <div class="review-head">
+                    <strong>1. 예약 요청 접수</strong>
+                    <span><span class="material-symbols-rounded" aria-hidden="true">check</span> 완료</span>
+                </div>
+                <p>요청이 저장되었어요. 호스트가 확인하면 상태가 업데이트됩니다.</p>
+            </article>
+            <article class="review-card">
+                <div class="review-head">
+                    <strong>2. 마이페이지에서 확인</strong>
+                    <span><span class="material-symbols-rounded" aria-hidden="true">chevron_right</span> 이동 가능</span>
+                </div>
+                <p>예약 상태와 이후 진행 내역은 마이페이지에서 확인할 수 있어요.</p>
+            </article>
+        </div>
+    </section>
+</main>
 </body>
 </html>

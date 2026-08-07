@@ -1,10 +1,144 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#22a45c">
+    <meta name="description" content="Pet NOW에서 공개 중인 돌봄 공간을 확인해보세요.">
+    <title>공간 목록 | Pet NOW</title>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
+    <link rel="stylesheet" href="../../static/css/pet-now.css" th:href="@{/css/pet-now.css}">
 </head>
 <body>
+<a class="skip-link" href="#main-content">본문으로 바로가기</a>
 
+<header class="site-header is-scrolled">
+    <div class="header-inner">
+        <a class="brand" href="/home" th:href="@{/home}" aria-label="Pet NOW 홈">
+            <span class="brand-mark material-symbols-rounded" aria-hidden="true">pets</span>
+            <span>Pet <b>NOW</b></span>
+        </a>
+        <nav class="desktop-nav" aria-label="주요 메뉴">
+            <a href="/places" th:href="@{/places}">펫시터 찾기</a>
+            <a href="/home#care">안심 돌봄</a>
+            <a href="/home#how-it-works">이용 방법</a>
+        </nav>
+        <div class="header-actions">
+            <a class="profile-button" href="/mypage" th:href="@{/mypage}" aria-label="마이페이지">
+                <span class="profile-avatar">MY</span>
+                <span class="profile-copy">
+                    <small>돌봄 기록 보기</small>
+                    <strong>마이페이지</strong>
+                </span>
+            </a>
+        </div>
+    </div>
+</header>
+
+<main id="main-content">
+    <section class="hero" aria-labelledby="places-hero-title">
+        <div class="hero-orbit hero-orbit-one" aria-hidden="true"></div>
+        <div class="hero-orbit hero-orbit-two" aria-hidden="true"></div>
+        <div class="hero-inner">
+            <div class="hero-copy">
+                <p class="eyebrow">PUBLISHED PLACES</p>
+                <h1 id="places-hero-title">지금 예약을 기다리는<br><em>돌봄 공간</em>을 모았어요.</h1>
+                <p class="hero-description">공개 중인 호스트 공간만 보여드려요. 마음에 드는 공간을 눌러 상세 정보를 확인해보세요.</p>
+                <ul class="trust-list" aria-label="공간 목록 안내">
+                    <li><span class="material-symbols-rounded" aria-hidden="true">home_work</span> 공개된 공간만 노출</li>
+                    <li><span class="material-symbols-rounded" aria-hidden="true">touch_app</span> 카드에서 바로 상세 이동</li>
+                    <li><span class="material-symbols-rounded" aria-hidden="true">pets</span> 수용 조건 한눈에 확인</li>
+                </ul>
+            </div>
+            <div class="hero-visual" aria-hidden="true">
+                <div class="photo-card photo-card-main">
+                    <div class="media-placeholder" style="width:100%;height:100%;">
+                        <span class="material-symbols-rounded">travel_explore</span>
+                    </div>
+                </div>
+                <div class="care-bubble care-bubble-top">
+                    <span class="care-bubble-icon material-symbols-rounded" aria-hidden="true">weekend</span>
+                    <span><small>공개 중인 공간</small><strong th:text="${#lists.size(places)} + '곳'">0곳</strong></span>
+                </div>
+                <div class="care-bubble care-bubble-bottom">
+                    <span class="avatar-stack" aria-hidden="true"><i>펫</i><i>나</i><i>우</i></span>
+                    <span><strong>상세 페이지 연결</strong><small>각 카드 클릭</small></span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="places section-shell" aria-labelledby="places-title">
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">HOST LIST</p>
+                <h2 id="places-title">공간 목록</h2>
+                <p th:text="'총 ' + ${#lists.size(places)} + '개의 공간이 준비되어 있어요.'">총 0개의 공간이 준비되어 있어요.</p>
+            </div>
+        </div>
+
+        <div class="host-grid" th:if="${!#lists.isEmpty(places)}">
+            <article class="host-card" th:each="place : ${places}">
+                <a class="host-card-main" th:href="@{/places/{id}(id=${place.id})}" href="/places/1">
+                    <span class="host-photo">
+                        <span class="media-placeholder" style="width:100%;height:100%;">
+                            <span class="material-symbols-rounded" aria-hidden="true">pets</span>
+                        </span>
+                        <span class="availability"><i></i> 상세 보기 가능</span>
+                    </span>
+                    <span class="host-body">
+                        <span class="host-kicker" th:text="${place.nickname}">호스트 닉네임</span>
+                        <span class="host-title-row">
+                            <strong th:text="${place.name}">공간 이름</strong>
+                            <span th:if="${place.placeType != null}" th:text="${place.placeType.label}">아파트</span>
+                        </span>
+                        <span class="host-description" th:text="${place.description}">공간 소개</span>
+                        <span class="host-tags">
+                            <i th:if="${place.placeType != null}" th:text="${place.placeType.label}">아파트</i>
+                            <i th:if="${place.allowsSmallDog}">소형견 가능</i>
+                            <i th:if="${place.allowsMediumDog}">중형견 가능</i>
+                            <i th:if="${place.allowsLargeDog}">대형견 가능</i>
+                            <i th:if="${place.providesHomeCamera}">홈 카메라</i>
+                            <i th:if="${place.providesRealtimePhoto}">실시간 사진</i>
+                            <i th:if="${place.providesYard}">마당 있음</i>
+                            <i th:if="${place.providesWalk}">산책 가능</i>
+                        </span>
+                        <span class="host-price">
+                            <strong th:text="${#numbers.formatInteger(place.hourlyPrice, 0, 'COMMA')} + '원'">0원</strong>
+                            <small> / 시간</small>
+                        </span>
+                    </span>
+                </a>
+            </article>
+        </div>
+
+        <div class="empty-results" th:if="${#lists.isEmpty(places)}" th:remove="attr(hidden)">
+            <span class="material-symbols-rounded" aria-hidden="true">travel_explore</span>
+            <strong>지금은 공개된 공간이 없어요.</strong>
+            <p>새로 등록된 공간이 공개되면 여기에서 바로 확인할 수 있어요.</p>
+            <a class="filter-chip is-active" href="/home" th:href="@{/home}">홈으로 돌아가기</a>
+        </div>
+    </section>
+</main>
+
+<footer class="site-footer">
+    <div class="footer-inner">
+        <div>
+            <a class="brand brand-footer" href="/home" th:href="@{/home}">
+                <span class="brand-mark material-symbols-rounded" aria-hidden="true">pets</span>
+                <span>Pet <b>NOW</b></span>
+            </a>
+            <p>우리 동네에서 시작하는 안심 반려생활.</p>
+        </div>
+        <div class="footer-links">
+            <a href="/places" th:href="@{/places}">공간 목록</a>
+            <a href="/mypage" th:href="@{/mypage}">마이페이지</a>
+        </div>
+        <small>© 2026 Pet NOW. All rights reserved.</small>
+    </div>
+</footer>
 </body>
 </html>
