@@ -17,6 +17,7 @@ import java.time.LocalDateTime;
 public class Place {
     private Long id;
     private Long hostUserId;
+    private String nickname;
     private String name;
     private String description;
     private PlaceType placeType;
