@@ -4,8 +4,8 @@ import com.example.petnow.common.constant.SessionConst;
 import com.example.petnow.service.PetService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -21,7 +21,7 @@ class PetRoutingPrgTest {
     @Autowired
     MockMvc mockMvc;
 
-    @MockBean
+    @MockitoBean
     PetService petService;
 
     @Test
