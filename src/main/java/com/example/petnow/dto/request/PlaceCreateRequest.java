@@ -69,9 +69,10 @@ public class PlaceCreateRequest {
     )
     private BigDecimal nightlyPrice;
 
-    public Place toEntity(Long userId) {
+    public Place toEntity(Long userId, String userNickname) {
         return Place.builder()
                 .hostUserId(userId)
+                .hostUserNickname(userNickname)
                 .name(name)
                 .description(description)
                 .placeType(placeType)
