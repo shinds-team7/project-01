@@ -39,4 +39,14 @@ public class ReviewService {
 
         return review.getId();
     }
+
+    // 내가 작성한 리뷰 목록 조회
+    public List<ReviewResponse> getMyReviews(Long memberId) {
+        return reviewMapper.findReviewsByMemberId(memberId);
+    }
+
+    // 특정 장소의 리뷰 목록 조회
+    public List<ReviewResponse> getReviewsByPlace(Long placeId) {
+        return reviewMapper.findReviewsByPlaceId(placeId);
+    }
 }

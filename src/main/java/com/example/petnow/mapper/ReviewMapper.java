@@ -17,4 +17,10 @@ public interface ReviewMapper {
     int countReservationOwnedByMember(@Param("reservationId") Long reservationId,
                                       @Param("memberId") Long memberId);
 
+    // 내가 작성한 리뷰 목록 조회 (reservation과 조인)
+    List<ReviewResponse> findReviewsByMemberId(@Param("memberId") Long memberId);
+
+    // 특정 장소의 리뷰 목록 조회 (reservation과 조인)
+    List<ReviewResponse> findReviewsByPlaceId(@Param("placeId") Long placeId);
+
 }
