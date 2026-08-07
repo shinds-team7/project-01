@@ -1002,6 +1002,8 @@
 
 .pet-detail-grid article > button,
 .pet-detail-grid article > a,
+.pet-card-actions > a,
+.pet-card-actions button,
 .reservation-list article > button,
 .reservation-list article > a,
 .reservation-actions a {
@@ -1017,6 +1019,22 @@
     font-size: 9px;
     font-weight: 900;
     cursor: pointer;
+}
+
+.pet-card-actions {
+    display: grid;
+    gap: 6px;
+}
+
+.pet-card-actions form {
+    margin: 0;
+    display: contents;
+}
+
+.pet-card-actions button {
+    width: 100%;
+    border-color: rgba(220, 38, 38, 0.28);
+    color: #b91c1c;
 }
 
 .reservation-actions {

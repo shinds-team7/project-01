@@ -195,7 +195,15 @@
                             <small th:text="${(pet.size != null ? pet.size.label : '') + (pet.weight != null ? ' · ' + pet.weight + 'kg' : '')}">소형 · 4.2kg</small>
                         </div>
                         <!--/* 상세 조회(#57)로 이어지는 실제 링크입니다. mypage/index.html 이 갖고 있던 동작을 옮겨왔습니다. */-->
-                        <a th:href="@{/pet/detail/{petId}(petId=${pet.id})}" href="/pet/detail/1">편집</a>
+                        <div class="pet-card-actions">
+                            <a th:href="@{/pet/detail/{petId}(petId=${pet.id})}" href="/pet/detail/1">편집</a>
+                            <!--/* 삭제(#82)도 mypage/index.html 이 갖고 있던 동작입니다.
+                                   POST 여야 하므로 링크가 아니라 form 입니다. */-->
+                            <form th:action="@{/pet/delete/{petId}(petId=${pet.id})}" method="post"
+                                  th:attr="data-confirm=|${pet.name}(을)를 삭제할까요?|">
+                                <button type="submit">삭제</button>
+                            </form>
+                        </div>
                     </article>
                 </div>
                 <div class="flow-empty" th:if="${#lists.isEmpty(petList)}">

@@ -53,4 +53,12 @@ public class PetController {
         petService.updatePet(userId,updateRequest);
         return "redirect:/mypage";
     }
+
+    @PostMapping("/delete/{petId}")
+    public String DeletePet(@PathVariable Long petId){
+        petService.deletePet(petId);
+        // 등록·수정과 동일하게 PRG 로 맞춥니다. 뷰 이름을 그대로 반환하면
+        // 모델이 빈 채로 마이페이지가 그려지고 새로고침 시 삭제가 재전송됩니다.
+        return "redirect:/mypage";
+    }
 }
