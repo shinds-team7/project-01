@@ -10,7 +10,7 @@ public class MyProfileResponse {
     private String nickname;
     private String email;
     private String phone;
-    private String profileImageUrl;
+    //private String profileImageUrl; 추후 재선언 예정
 
     public static MyProfileResponse from(User user) {
         return MyProfileResponse.builder()
