@@ -1,6 +1,10 @@
 package com.example.petnow.service;
 
+import java.util.List;
+
 import com.example.petnow.dto.request.ReservationRequest;
+import com.example.petnow.dto.response.ReservationListResponse;
+import com.example.petnow.entity.ReservationUseStatus;
 import com.example.petnow.dto.response.ReservationDetailResponse;
 
 public interface ReservationService {
@@ -8,4 +12,5 @@ public interface ReservationService {
 
 	ReservationDetailResponse detailReservation(Long reservationId);
 
+	List<ReservationListResponse> getReservationList(Long userId, String useStatus);
 }
