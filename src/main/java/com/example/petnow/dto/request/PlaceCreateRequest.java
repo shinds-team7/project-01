@@ -72,7 +72,7 @@ public class PlaceCreateRequest {
     public Place toEntity(Long userId, String userNickname) {
         return Place.builder()
                 .hostUserId(userId)
-                .nickname(userNickname)
+                .hostUserNickname(userNickname)
                 .name(name)
                 .description(description)
                 .placeType(placeType)
