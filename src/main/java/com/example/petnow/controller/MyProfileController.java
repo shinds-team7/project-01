@@ -22,7 +22,7 @@ public class MyProfileController {
         Long userId = (Long) session.getAttribute(SessionConst.LOGIN_USER_ID);
 
         if(userId == null) {
-            return "redirct:/auth/login";
+            return "redirect:/auth/login";
         }
 
         MyProfileResponse profile = myProfileServiceImpl.getProfile(userId);
