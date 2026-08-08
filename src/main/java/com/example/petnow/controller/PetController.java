@@ -40,8 +40,12 @@ public class PetController {
     }
 
     @PostMapping("/delete/{petId}")
-    public String DeletePet(@PathVariable Long petId){
-        petService.deletePet(petId);
-        return "mypage";
+    public String deletePet(@PathVariable Long petId, HttpSession session){
+        Long userId = (Long) session.getAttribute(SessionConst.LOGIN_USER_ID);
+        if (userId == null) {
+            return "redirect:/";
+        }
+        petService.deletePet(userId, petId);
+        return "redirect:/mypage";
     }
 }

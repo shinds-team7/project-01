@@ -60,7 +60,7 @@ public class PetServiceImpl implements PetService {
     }
 
     @Override
-    public void deletePet(Long petId){
-        petMapper.deletePet(petId);
+    public void deletePet(Long userId, Long petId){
+        petMapper.deletePet(userId, petId);
     }
 }
