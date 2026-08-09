@@ -41,6 +41,7 @@ public class ReservationController {
 	@PostMapping("/create")
 	public String saveReservation(@Valid @ModelAttribute ReservationRequest request,
 		BindingResult bindingResult, HttpSession session, Model model, RedirectAttributes redirectAttributes) {
+
 		Long userId = (Long) session.getAttribute(SessionConst.LOGIN_USER_ID);
 		if (userId == null) {
 			return "redirect:/";
