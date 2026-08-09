@@ -107,8 +107,8 @@
                             <i th:if="${place.providesWalk}">산책 가능</i>
                         </span>
                         <span class="host-price">
-                            <strong th:text="${#numbers.formatInteger(place.hourlyPrice, 0, 'COMMA')} + '원'">0원</strong>
-                            <small> / 시간</small>
+                            <strong th:text="${place.hourlyPrice != null ? #numbers.formatInteger(place.hourlyPrice, 0, 'COMMA') + '원' : '가격 문의'}">0원</strong>
+                            <small th:if="${place.hourlyPrice != null}"> / 시간</small>
                         </span>
                     </span>
                 </a>
