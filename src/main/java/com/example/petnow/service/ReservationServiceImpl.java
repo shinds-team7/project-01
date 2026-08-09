@@ -65,13 +65,13 @@ public class ReservationServiceImpl implements ReservationService {
 	}
 
 	@Override
-	public ReservationDetailResponse detailReservation(Long reservationId) {
-		ReservationDetailResponse reservation = reservationMapper.detailReservation(reservationId);
-		if (reservation == null) {
-			throw new IllegalStateException("해당 예약이 없습니다.");
+	public ReservationDetailResponse detailReservation(Long reservationId, Long userId) {
+		Reservation reservation = reservationMapper.findById(reservationId);
+		if (reservation == null || !reservation.getUserId().equals(userId)) {
+			throw new IllegalStateException("사용자가 일치하지 않습니다.");
 		}
 
-		return reservation;
+		return reservationMapper.detailReservation(reservationId);
 	}
 
 	@Override

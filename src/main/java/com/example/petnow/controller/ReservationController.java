@@ -32,23 +32,32 @@ public class ReservationController {
 	}
 
 	@PostMapping("/create")
-	public String saveReservation(@RequestBody ReservationRequest request, @RequestParam Long userId) {
+	public String saveReservation(@RequestBody ReservationRequest request, HttpSession session) {
+		Long userId = (Long) session.getAttribute(SessionConst.LOGIN_USER_ID);
+		if (userId == null) {
+			return "redirect:/";
+		}
 		reservationService.saveReservation(request, userId);
-		return "reservations/success";
+		return "redirect:/reservation/list?userId=" + userId;
 	}
 
 	@GetMapping("/detail")
-	public String detailReservation(@ModelAttribute ReservationDetailResponse response,
-		@RequestParam Long reservationId, @RequestParam Long userId,
-		Model model) {
-		ReservationDetailResponse reservation = reservationService.detailReservation(response.getReservationId());
+	public String detailReservation(@RequestParam Long reservationId, HttpSession session, Model model) {
+		Long userId = (Long) session.getAttribute(SessionConst.LOGIN_USER_ID);
+		if (userId == null) {
+			return "redirect:/";
+		}
+		ReservationDetailResponse reservation = reservationService.detailReservation(reservationId, userId);
 		model.addAttribute("reservation", reservation);
 		return "reservations/reservationDetail";
 	}
 
 	@GetMapping("/list")
-	public String getReservationList(@RequestParam Long userId, @RequestParam(required = false) String useStatus,
-		Model model) {
+	public String getReservationList(@RequestParam(required = false) String useStatus, HttpSession session, Model model) {
+		Long userId = (Long) session.getAttribute(SessionConst.LOGIN_USER_ID);
+		if (userId == null) {
+			return "redirect:/";
+		}
 		List<ReservationListResponse> responseList = reservationService.getReservationList(userId, useStatus);
 		model.addAttribute("reservations", responseList);
 		return "reservations/reservationList";
