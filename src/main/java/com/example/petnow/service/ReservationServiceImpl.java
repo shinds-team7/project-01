@@ -18,6 +18,7 @@ import com.example.petnow.dto.response.ReservationListResponse;
 import com.example.petnow.entity.Place;
 import com.example.petnow.entity.Reservation;
 import com.example.petnow.entity.ReservationStatus;
+import com.example.petnow.entity.ReservationType;
 import com.example.petnow.entity.ReservationUseStatus;
 import com.example.petnow.exception.BusinessException;
 import com.example.petnow.exception.PlaceErrorCode;
@@ -63,7 +64,7 @@ public class ReservationServiceImpl implements ReservationService {
 		}
 
 
-		String reservationType = determineReservationType(request.getCheckIn(), request.getCheckOut());
+		ReservationType reservationType = determineReservationType(request.getCheckIn(), request.getCheckOut());
 		String reservationNo = Reservation.createReservationNo();
 		BigDecimal totalPrice = calculateTotalPrice(place, reservationType, request.getCheckIn(), request.getCheckOut());
 
@@ -133,17 +134,17 @@ public class ReservationServiceImpl implements ReservationService {
 		}
 	}
 
-	private String determineReservationType(LocalDateTime checkIn, LocalDateTime checkOut) {
+	private ReservationType determineReservationType(LocalDateTime checkIn, LocalDateTime checkOut) {
 		if (checkIn.toLocalDate().equals(checkOut.toLocalDate())) {
-			return "당일";
+			return ReservationType.SAME_DAY;
 		} else {
-			return "숙박";
+			return ReservationType.OVERNIGHT;
 		}
 	}
 
-	private BigDecimal calculateTotalPrice(Place place, String reservationType, LocalDateTime checkIn, LocalDateTime checkOut) {
+	private BigDecimal calculateTotalPrice(Place place, ReservationType reservationType, LocalDateTime checkIn, LocalDateTime checkOut) {
 		BigDecimal totalPrice;
-		if ("당일".equals(reservationType)) {
+		if (reservationType == ReservationType.SAME_DAY) {
 			BigDecimal hourlyPrice = place.getHourlyPrice();
 			if (hourlyPrice == null) {
 				throw new BusinessException(ReservationErrorCode.HOURLY_PRICE_NOT_SET);
@@ -160,5 +161,4 @@ public class ReservationServiceImpl implements ReservationService {
 		}
 		return totalPrice;
 	}
-
 }
