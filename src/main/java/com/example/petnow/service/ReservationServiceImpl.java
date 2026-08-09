@@ -5,17 +5,24 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.petnow.dto.request.ReservationRequest;
+import com.example.petnow.dto.response.PetListResponse;
 import com.example.petnow.dto.response.ReservationDetailResponse;
 import com.example.petnow.dto.response.ReservationListResponse;
 import com.example.petnow.entity.Place;
 import com.example.petnow.entity.Reservation;
 import com.example.petnow.entity.ReservationStatus;
 import com.example.petnow.entity.ReservationUseStatus;
+import com.example.petnow.exception.BusinessException;
+import com.example.petnow.exception.PlaceErrorCode;
+import com.example.petnow.exception.ReservationErrorCode;
+import com.example.petnow.mapper.PetMapper;
 import com.example.petnow.mapper.PlaceMapper;
 import com.example.petnow.mapper.ReservationMapper;
 
@@ -26,11 +33,29 @@ import lombok.RequiredArgsConstructor;
 public class ReservationServiceImpl implements ReservationService {
 	private final ReservationMapper reservationMapper;
 	private final PlaceMapper placeMapper;
+	private final PetMapper petMapper;
 
 	@Override
 	@Transactional
 	public String saveReservation(ReservationRequest request, Long userId) {
 		Place place = placeMapper.findById(request.getPlaceId());
+		if (place == null ) {
+			throw new BusinessException(PlaceErrorCode.PLACE_NOT_FOUND);
+		}
+
+		if (request.getCheckOut().isBefore(request.getCheckIn())
+			|| request.getCheckOut().isEqual(request.getCheckIn())) {
+			throw new BusinessException(ReservationErrorCode.INVALID_RESERVATION_PERIOD);
+		}
+
+		List<PetListResponse> myPets = petMapper.getPetList(userId);
+		Set<Long> myPetIds = myPets.stream()
+			.map(PetListResponse::getId)
+			.collect(Collectors.toSet());
+		if (!myPetIds.containsAll(request.getPetIds())) {
+			throw new BusinessException(ReservationErrorCode.PET_NOT_FOUND);
+		}
+
 
 		String reservationType = determineReservationType(request.getCheckIn(), request.getCheckOut());
 		String reservationNo = Reservation.createReservationNo();
