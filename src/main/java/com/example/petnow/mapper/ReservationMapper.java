@@ -25,4 +25,6 @@ public interface ReservationMapper {
 	ReservationDetailResponse detailReservation(Long reservationId);
 
 	Reservation findById(Long reservationId);
+
+	void cancelReservation(Long reservationId);
 }
