@@ -31,16 +31,22 @@
             <a href="#how-it-works">이용 방법</a>
         </nav>
 
-        <div class="header-actions" th:if="${loginUserId != null}">
+        <!--
+          Thymeleaf 의 ${loginUser} 는 모델과 request 속성만 찾고 세션은 보지 않는다.
+          세션 값을 읽으려면 반드시 ${session.loginUser} 여야 한다.
+        -->
+        <div class="header-actions" th:if="${session.loginUser != null}">
             <button class="icon-button" type="button" data-locked-feature="알림" aria-label="알림">
                 <span class="material-symbols-rounded" aria-hidden="true">notifications</span>
             </button>
-            <a class="profile-button" href="/mypage">
-                <span class="profile-avatar">초</span>
-                <span class="profile-copy"><small>반가워요</small><strong>초코 보호자님</strong></span>
+            <a class="profile-button" href="/mypage" th:href="@{/mypage}">
+                <span class="profile-avatar" th:text="${session.loginUser.initial}">초</span>
+                <span class="profile-copy"><small>반가워요</small><strong
+                        th:text="|${session.loginUser.nickname} 보호자님|">초코 보호자님</strong></span>
             </a>
+            <a class="auth-link" href="/auth/logout" th:href="@{/auth/logout}">로그아웃</a>
         </div>
-        <div class="header-actions" th:if="${loginUserId == null}">
+        <div class="header-actions" th:if="${session.loginUser == null}">
             <a class="auth-link" href="/auth/login" th:href="@{/auth/login}">로그인</a>
             <a class="auth-link auth-link-primary" href="/auth/signup" th:href="@{/auth/signup}">회원가입</a>
         </div>

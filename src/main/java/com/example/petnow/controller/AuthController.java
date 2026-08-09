@@ -1,17 +1,21 @@
 package com.example.petnow.controller;
 
-import com.example.petnow.common.constant.SessionConst;
+import com.example.petnow.common.session.LoginSession;
 import com.example.petnow.dto.request.UserLoginRequest;
 import com.example.petnow.dto.request.UserSignupRequest;
+import com.example.petnow.exception.BusinessException;
 import com.example.petnow.service.AuthService;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Slf4j
 @Controller
@@ -21,25 +25,63 @@ public class AuthController {
 
     private final AuthService authService;
 
-    // 회원가입 , 메인페이지 생성 되면 return을 메인페이지로 바꿀 예정
+    // ────────────────────────── 화면 ──────────────────────────
+
+    /**
+     * 파라미터명을 그대로 두면 모델에 {@code userLoginRequest} 로 담겨
+     * login.html 의 {@code th:object="${userLoginRequest}"} 가 바인딩된다.
+     */
+    @GetMapping("/login")
+    public String loginForm(@ModelAttribute UserLoginRequest userLoginRequest) {
+        return "auth/login";
+    }
+
+    @GetMapping("/signup")
+    public String signupForm(@ModelAttribute UserSignupRequest userSignupRequest) {
+        return "auth/signup";
+    }
+
+    // ────────────────────────── 처리 ──────────────────────────
+
     @PostMapping("/signup")
-    public String userSignup(@Valid @ModelAttribute UserSignupRequest request) {
-        authService.signup(request);
+    public String userSignup(@Valid @ModelAttribute UserSignupRequest userSignupRequest,
+                             BindingResult bindingResult,
+                             RedirectAttributes redirectAttributes) {
+        // BindingResult 가 없으면 검증 실패가 예외로 튀어 error 페이지로 간다.
+        // 입력값과 필드 에러를 유지한 채 폼을 다시 그린다.
+        if (bindingResult.hasErrors()) {
+            return "auth/signup";
+        }
+
+        authService.signup(userSignupRequest);
+
+        redirectAttributes.addFlashAttribute("registered", true);   // login.html 의 성공 배너
         return "redirect:/auth/login";
     }
 
-    // 로그인 , 메인페이지 생성 되면 return을 메인페이지로 바꿀 예정
-    @PostMapping ("/login")
-    public String userLogin(@Valid @ModelAttribute UserLoginRequest request, HttpSession session) {
+    @PostMapping("/login")
+    public String userLogin(@Valid @ModelAttribute UserLoginRequest userLoginRequest,
+                            BindingResult bindingResult,
+                            HttpSession session) {
+        if (bindingResult.hasErrors()) {
+            return "auth/login";
+        }
 
-        Long userId = authService.login(request);
+        try {
+            LoginSession.set(session, authService.login(userLoginRequest));
+        } catch (BusinessException e) {
+            // 그대로 던지면 MvcExceptionHandler 가 잡아 error 페이지로 간다.
+            // 폼 안의 배너에 그리려면 global 에러로 넘겨야 한다.
+            bindingResult.reject("loginFail", e.getMessage());
+            return "auth/login";
+        }
 
-        session.setAttribute(SessionConst.LOGIN_USER_ID, userId);
+        return "redirect:/home";
+    }
 
-        // 세션 저장 test
-        log.info("세션에 저장된 userId: {}",
-                session.getAttribute(SessionConst.LOGIN_USER_ID));
-
-        return "redirect:/mypage";
+    @GetMapping("/logout")
+    public String logout(HttpSession session) {
+        LoginSession.clear(session);
+        return "redirect:/home";
     }
 }
