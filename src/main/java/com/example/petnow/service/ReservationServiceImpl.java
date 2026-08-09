@@ -64,6 +64,30 @@ public class ReservationServiceImpl implements ReservationService {
 		return reservationMapper.viewReservationList(userId, beforeUse, inUse, afterUse);
 	}
 
+	@Override
+	public ReservationDetailResponse detailReservation(Long reservationId) {
+		ReservationDetailResponse reservation = reservationMapper.detailReservation(reservationId);
+		if (reservation == null) {
+			throw new IllegalStateException("해당 예약이 없습니다.");
+		}
+
+		return reservation;
+	}
+
+	@Override
+	public void cancelReservation(Long reservationId, Long userId) {
+		Reservation reservation = reservationMapper.findById(reservationId);
+		if (!reservation.getUserId().equals(userId)) {
+			throw new IllegalStateException("사용자가 일치하지 않습니다.");
+		}
+
+		if (reservation.getStatus() == ReservationStatus.CANCELED) {
+			throw new IllegalStateException("이미 취소된 예약입니다.");
+		}
+
+		reservationMapper.cancelReservation(reservationId);
+	}
+
 	private ReservationUseStatus parseUseStatus(String useStatus) {
 		if (useStatus == null || useStatus.trim().isEmpty()) {
 			return null;
@@ -93,16 +117,6 @@ public class ReservationServiceImpl implements ReservationService {
 			totalPrice = place.getNightlyPrice().multiply(BigDecimal.valueOf(totalDays));
 		}
 		return totalPrice;
-	}
-
-	@Override
-	public ReservationDetailResponse detailReservation(Long reservationId) {
-		ReservationDetailResponse reservation = reservationMapper.detailReservation(reservationId);
-		if (reservation == null) {
-			throw new IllegalStateException("해당 예약이 없습니다.");
-		}
-
-		return reservation;
 	}
 
 }
