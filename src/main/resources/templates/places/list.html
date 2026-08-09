@@ -115,7 +115,7 @@
             </article>
         </div>
 
-        <div class="empty-results" th:if="${#lists.isEmpty(places)}" th:remove="attr(hidden)">
+        <div class="empty-results" th:if="${#lists.isEmpty(places)}">
             <span class="material-symbols-rounded" aria-hidden="true">travel_explore</span>
             <strong>지금은 공개된 공간이 없어요.</strong>
             <p>새로 등록된 공간이 공개되면 여기에서 바로 확인할 수 있어요.</p>
