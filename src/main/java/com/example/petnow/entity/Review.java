@@ -1,6 +1,5 @@
 package com.example.petnow.entity;
 
-import com.example.petnow.common.domain.BaseEntity;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -9,7 +8,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Review extends BaseEntity {
+public class Review {
     private Long id;
     private Long reservationId;     // FK
     private Integer rating;
