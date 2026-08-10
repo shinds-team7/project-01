@@ -21,6 +21,7 @@ import com.example.petnow.entity.Reservation;
 import com.example.petnow.entity.ReservationStatus;
 import com.example.petnow.entity.ReservationType;
 import com.example.petnow.entity.ReservationUseStatus;
+import com.example.petnow.exception.AuthErrorCode;
 import com.example.petnow.exception.BusinessException;
 import com.example.petnow.exception.PlaceErrorCode;
 import com.example.petnow.exception.ReservationErrorCode;
@@ -102,7 +103,7 @@ public class ReservationServiceImpl implements ReservationService {
 	public ReservationDetailResponse detailReservation(Long reservationId, Long userId) {
 		Reservation reservation = reservationMapper.findById(reservationId);
 		if (reservation == null || !reservation.getUserId().equals(userId)) {
-			throw new IllegalStateException("사용자가 일치하지 않습니다.");
+			throw new BusinessException(AuthErrorCode.FORBIDDEN);
 		}
 
 		return reservationMapper.detailReservation(reservationId);
@@ -117,12 +118,12 @@ public class ReservationServiceImpl implements ReservationService {
 		}
 
 		if (!reservation.getUserId().equals(userId)) {
-			throw new IllegalStateException("사용자가 일치하지 않습니다.");
+			throw new BusinessException(AuthErrorCode.FORBIDDEN);
 		}
 
 		int updatedRows = reservationMapper.cancelReservation(reservationId);
 		if (updatedRows == 0) {
-			throw new IllegalStateException("이미 취소된 예약입니다.");
+			throw new BusinessException(ReservationErrorCode.RESERVATION_UPDATE_FAILED);
 		}
 	}
 
