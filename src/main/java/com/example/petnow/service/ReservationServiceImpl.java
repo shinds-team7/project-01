@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.example.petnow.dto.request.ReservationRequest;
 import com.example.petnow.dto.response.PetListResponse;
+import com.example.petnow.dto.response.PlaceDetailResponse;
 import com.example.petnow.dto.response.ReservationDetailResponse;
 import com.example.petnow.dto.response.ReservationListResponse;
 import com.example.petnow.entity.Place;
@@ -108,6 +109,7 @@ public class ReservationServiceImpl implements ReservationService {
 	}
 
 	@Override
+	@Transactional
 	public void cancelReservation(Long reservationId, Long userId) {
 		Reservation reservation = reservationMapper.findById(reservationId);
 		if (reservation == null) {
@@ -122,6 +124,57 @@ public class ReservationServiceImpl implements ReservationService {
 		if (updatedRows == 0) {
 			throw new IllegalStateException("이미 취소된 예약입니다.");
 		}
+	}
+
+	@Override
+	@Transactional
+	public void approveReservation(Long reservationId, Long hostUserId) {
+		Reservation reservation = reservationMapper.findById(reservationId);
+		if (reservation == null) {
+			throw new BusinessException(ReservationErrorCode.RESERVATION_NOT_FOUND);
+		}
+
+		PlaceDetailResponse place = placeMapper.findDetailById(reservation.getPlaceId());
+		if (place == null || !place.getHostUserId().equals(hostUserId)) {
+			throw new BusinessException(ReservationErrorCode.RESERVATION_ACCESS_DENIED);
+		}
+
+		if (reservation.getStatus() != ReservationStatus.PENDING) {
+			throw new BusinessException(ReservationErrorCode.INVALID_RESERVATION_STATUS);
+		}
+
+		int result = reservationMapper.approveReservation(reservationId);
+		if (result != 1) {
+			throw new BusinessException(ReservationErrorCode.RESERVATION_UPDATE_FAILED);
+		}
+	}
+
+	@Override
+	@Transactional
+	public void rejectReservation(Long reservationId, Long hostUserId) {
+		Reservation reservation = reservationMapper.findById(reservationId);
+		if (reservation == null) {
+			throw new BusinessException(ReservationErrorCode.RESERVATION_NOT_FOUND);
+		}
+
+		PlaceDetailResponse place = placeMapper.findDetailById(reservation.getPlaceId());
+		if (place == null || !place.getHostUserId().equals(hostUserId)) {
+			throw new BusinessException(ReservationErrorCode.RESERVATION_ACCESS_DENIED);
+		}
+
+		if (reservation.getStatus() != ReservationStatus.PENDING) {
+			throw new BusinessException(ReservationErrorCode.INVALID_RESERVATION_STATUS);
+		}
+
+		int result = reservationMapper.rejectReservation(reservationId);
+		if (result != 1) {
+			throw new BusinessException(ReservationErrorCode.RESERVATION_UPDATE_FAILED);
+		}
+	}
+
+	@Override
+	public List<ReservationListResponse> getReservationByHost(Long hostUserId, ReservationStatus status) {
+		return reservationMapper.viewReservationListByHost(hostUserId, status);
 	}
 
 	private ReservationUseStatus parseUseStatus(String useStatus) {
