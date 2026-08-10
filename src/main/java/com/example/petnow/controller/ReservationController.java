@@ -50,7 +50,7 @@ public class ReservationController {
 			return "redirect:/";
 		}
 		reservationService.saveReservation(request, userId);
-		return "redirect:/reservation/list?userId=" + userId;
+		return "redirect:/reservation/list";
 	}
 
 	@GetMapping("/booking-request")
@@ -86,12 +86,16 @@ public class ReservationController {
 	}
 
 	@PostMapping("/cancel")
-	public String cancel(@ModelAttribute ReservationCancelRequest request, HttpSession session) {
+	public String cancel(@Valid @ModelAttribute ReservationCancelRequest request, HttpSession session, BindingResult bindingResult) {
+		if (bindingResult.hasErrors()) {
+			return "reservations/reservationList";
+		}
+
 		Long userId = (Long)session.getAttribute(SessionConst.LOGIN_USER_ID);
 		if (userId == null) {
 			return "redirect:/";
 		}
 		reservationService.cancelReservation(request.getReservationId(), userId);
-		return "redirect:/reservation/list?userId=" + userId;
+		return "redirect:/reservation/list";
 	}
 }
