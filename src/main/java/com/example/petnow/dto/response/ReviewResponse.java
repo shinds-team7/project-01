@@ -14,7 +14,7 @@ public class ReviewResponse {
 
     private Long id;
     private Long reservationId;
-    private Long memberId;          // reservation.member_id
+    private Long memberId;          // reservation.guest_user_id
     private Long placeId;           // reservation.place_id
     private String placeName;       // places.name
     private String stayInfo = "";   // 우선 빈문자열 반환
