@@ -18,11 +18,18 @@ petNow 를 로컬에서 처음 실행할 때 한 번만 하면 되는 작업입�
 
 ### 방법 A. Docker (권장)
 
+`docker-compose.yml` 이 DB 계정을 `.env` 에서 읽으므로 **`.env` 를 먼저 만들어야 합니다.**
+`.env` 없이 `docker compose up` 을 하면 계정이 빈 값으로 만들어져 나중에 `Access denied` 가 납니다.
+
 프로젝트 루트에서:
 
 ```bash
+cp .env.example .env
 docker compose up -d
 ```
+
+`.env.example` 의 기본값(`petnow` / `petnow1234`)은 로컬 전용이라 그대로 써도 됩니다.
+값을 바꿨다면 2번 단계의 `application-local.yaml` 도 **같은 값으로** 맞춰야 합니다.
 
 컨테이너는 빈 `petnow` 데이터베이스만 준비합니다. 애플리케이션을 처음 실행하면
 Flyway가 마이그레이션을 순서대로 적용해 테이블을 생성합니다.
@@ -83,7 +90,12 @@ cp src/main/resources/application-local.yaml.example \
    src/main/resources/application-local.yaml
 ```
 
-DB 포트나 계정을 다르게 쓴다면 본인 환경에 맞게 고치면 됩니다. 나머지 설정(MyBatis, 커넥션 풀, 서버 포트 등)은 공통 `application.yaml` 에 있으니 여기서 다시 쓸 필요 없습니다.
+예제 파일의 계정(`petnow` / `petnow1234`)은 `.env.example` 의 기본값과 일치하므로,
+둘 다 기본값을 쓴다면 고칠 것이 없습니다.
+
+DB 포트나 계정을 다르게 쓴다면 본인 환경에 맞게 고치면 됩니다.
+이때 **`.env` 의 `DB_USERNAME` / `DB_PASSWORD` 와 반드시 같은 값**이어야 합니다.
+나머지 설정(MyBatis, 커넥션 풀, 서버 포트 등)은 공통 `application.yaml` 에 있으니 여기서 다시 쓸 필요 없습니다.
 
 ---
 
@@ -131,7 +143,22 @@ src/main/resources/
 애플리케이션 로그와 `flyway_schema_history` 테이블을 확인하세요.
 
 **`Port 3306 is already allocated`**
-로컬에 이미 MySQL/MariaDB 가 떠 있습니다. 그걸 그대로 쓰거나(방법 B), `docker-compose.yml` 의 포트를 `"3307:3306"` 으로 바꾸고 `application-local.yaml` 의 URL 도 `3307` 로 맞추세요.
+로컬에 이미 MySQL/MariaDB 가 떠 있습니다. 그걸 그대로 쓰거나(방법 B), 아래처럼
+`docker-compose.override.yml` 을 만들어 포트만 바꿉니다. (이 파일은 `.gitignore` 되어 있어
+공용 `docker-compose.yml` 을 건드리지 않아도 됩니다.)
+
+```yaml
+# docker-compose.override.yml
+services:
+  mariadb:
+    ports: !override
+      - "3307:3306"
+```
+
+그리고 `application-local.yaml` 의 URL 도 `3307` 로 맞춥니다.
+
+> `!override` 를 빼면 포트 설정이 교체되지 않고 **덧붙여져서** 3306 을 그대로 물기 때문에
+> 똑같은 에러가 다시 납니다.
 
 **`Failed to configure a DataSource: 'url' attribute is not specified`**
 `application-local.yaml` 을 안 만들었습니다. 2번 단계를 진행하세요.
