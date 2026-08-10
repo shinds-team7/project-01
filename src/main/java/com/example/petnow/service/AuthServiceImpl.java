@@ -7,6 +7,7 @@ import com.example.petnow.dto.response.UserMyPageResponse;
 import com.example.petnow.entity.User;
 import com.example.petnow.exception.AuthErrorCode;
 import com.example.petnow.exception.BusinessException;
+import com.example.petnow.exception.UserErrorCode;
 import com.example.petnow.mapper.AuthMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -50,6 +51,10 @@ public class AuthServiceImpl implements AuthService {
     public UserMyPageResponse getMyPage(Long userId) {
 
         User user = authMapper.findById(userId);
+
+        if (user == null) {
+            throw new BusinessException(UserErrorCode.USER_NOT_FOUND);
+        }
 
         return  UserMyPageResponse.from(user);
     }
