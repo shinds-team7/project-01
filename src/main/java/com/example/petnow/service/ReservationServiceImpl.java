@@ -102,15 +102,18 @@ public class ReservationServiceImpl implements ReservationService {
 	@Override
 	public void cancelReservation(Long reservationId, Long userId) {
 		Reservation reservation = reservationMapper.findById(reservationId);
+		if (reservation == null) {
+			throw new BusinessException(ReservationErrorCode.RESERVATION_NOT_FOUND);
+		}
+
 		if (!reservation.getUserId().equals(userId)) {
 			throw new IllegalStateException("사용자가 일치하지 않습니다.");
 		}
 
-		if (reservation.getStatus() == ReservationStatus.CANCELED) {
+		int updatedRows = reservationMapper.cancelReservation(reservationId);
+		if (updatedRows == 0) {
 			throw new IllegalStateException("이미 취소된 예약입니다.");
 		}
-
-		reservationMapper.cancelReservation(reservationId);
 	}
 
 	private ReservationUseStatus parseUseStatus(String useStatus) {
