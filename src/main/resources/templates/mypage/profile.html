@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/base :: page('내 정보', 'my', ~{::main})}">
+<body>
+<main id="main-content" class="app-main">
+    <div class="topbar has-line">
+        <a class="topbar-back" th:href="@{/mypage}" aria-label="마이페이지로 돌아가기">
+            <span class="ico" aria-hidden="true">arrow_back_ios_new</span>
+        </a>
+        <h1>내 정보</h1>
+    </div>
+
+    <div class="screen">
+        <section class="card card-raised my-account-profile" aria-labelledby="profile-title">
+            <span class="my-account-avatar" aria-hidden="true"
+                  th:text="${#strings.isEmpty(profile.nickname) ? '?' : #strings.substring(profile.nickname, 0, 1)}">보</span>
+            <div>
+                <h2 id="profile-title" th:text="${profile.nickname}">보호자</h2>
+                <p th:text="${profile.email}">guardian@petnow.kr</p>
+            </div>
+        </section>
+
+        <div class="list">
+            <div class="list-row">
+                <span class="list-row-label">닉네임</span>
+                <strong th:text="${profile.nickname}">보호자</strong>
+            </div>
+            <div class="list-row">
+                <span class="list-row-label">이메일</span>
+                <strong th:text="${profile.email}">guardian@petnow.kr</strong>
+            </div>
+            <div class="list-row">
+                <span class="list-row-label">전화번호</span>
+                <strong th:text="${profile.phone} ?: '미등록'">010-0000-0000</strong>
+            </div>
+        </div>
+
+        <div class="notice notice-green">
+            <span class="ico" aria-hidden="true">verified_user</span>
+            <p>연락처를 최신으로 유지하면 호스트가 예약 관련 안내를 더 빠르게 전달할 수 있어요.</p>
+        </div>
+    </div>
+</main>
+</body>
+</html>
