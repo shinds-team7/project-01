@@ -120,6 +120,7 @@
     <update id="cancelReservation">
         UPDATE reservations
         SET status='CANCELED', updated_at=CURRENT_TIMESTAMP
-        WHERE id = #{reservationId}
+        WHERE id = #{reservationId} AND
+        status != 'CANCELED'
     </update>
 </mapper>
