@@ -47,7 +47,16 @@ public class ReservationController {
 		}
 
 		if (bindingResult.hasErrors()) {
-			Place place = placeMapper.findById(request.getPlaceId());
+			Long placeId = request.getPlaceId();
+			if (placeId == null) {
+				throw new BusinessException(PlaceErrorCode.PLACE_NOT_FOUND);
+			}
+
+			Place place = placeMapper.findById(placeId);
+			if (place == null) {
+				throw new BusinessException(PlaceErrorCode.PLACE_NOT_FOUND);
+			}
+
 			model.addAttribute("place", place);
 			return "booking-request";
 		}
