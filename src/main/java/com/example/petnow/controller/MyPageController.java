@@ -23,16 +23,15 @@ public class MyPageController {
     public String myPage(Model model, HttpSession session) {
 
         Long userId = (Long) session.getAttribute(SessionConst.LOGIN_USER_ID);
-
         if (userId == null) {
             return "redirect:/auth/login";
-       }
+        }
 
         model.addAttribute("petList", petService.getPetList(userId));
 
         UserMyPageResponse user = authService.getMyPage(userId);
         model.addAttribute("user", user);
 
-        return "mypage/index";
+        return "mypage";
     }
 }
