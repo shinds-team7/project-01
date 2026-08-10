@@ -37,6 +37,15 @@
         </collection>
     </resultMap>
 
+    <resultMap id="ReservationListResponseMap" type="com.example.petnow.dto.response.ReservationListResponse">
+        <id property="reservationId" column="id"/>
+        <result property="totalPrice" column="total_price"/>
+        <result property="placeName" column="place_name"/>
+        <result property="reservationStatus" column="status"/>
+        <result property="checkIn" column="check_in_at"/>
+        <result property="checkOut" column="check_out_at"/>
+    </resultMap>
+
     <insert id="save" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO reservations
         (guest_user_id, place_id, reservation_no, reservation_type, check_in_at, check_out_at, status, request_message, total_price)
@@ -77,4 +86,34 @@
         SELECT * FROM reservations WHERE id = #{reservationId}
     </select>
 
+    <select id="viewReservationList" resultType="com.example.petnow.dto.response.ReservationListResponse">
+        SELECT
+        r.id AS reservationId,
+        pl.name AS placeName,
+        r.total_price AS totalPrice,
+        r.status AS reservationStatus,
+        r.check_in_at AS checkIn,
+        r.check_out_at AS checkOut
+        FROM reservations r
+        LEFT JOIN places pl ON r.place_id = pl.id
+        <where>
+            r.guest_user_id = #{userId}
+
+            <if test="beforeUse != null and beforeUse">
+                AND r.status = 'CONFIRMED'
+                AND r.check_in_at &gt; NOW()
+            </if>
+
+            <if test="inUse != null and inUse">
+                AND r.status = 'CONFIRMED'
+                AND NOW() BETWEEN r.check_in_at AND r.check_out_at
+            </if>
+
+            <if test="afterUse != null and afterUse">
+                AND r.status = 'CONFIRMED'
+                AND r.check_out_at &lt; NOW()
+            </if>
+        </where>
+        ORDER BY r.check_in_at DESC
+    </select>
 </mapper>

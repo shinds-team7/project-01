@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>예약 목록 조회</title>
+</head>
+<body>
+
+<h2>예약 목록</h2>
+
+<div th:if="${#lists.isEmpty(reservations)}" class="no-data">
+    <p>조회된 예약 내역이 없습니다.</p>
+</div>
+
+<div th:unless="${#lists.isEmpty(reservations)}" class="reservation-list">
+    <div th:each="reservation : ${reservations}" class="reservation-card" style="border: 1px solid #eee; border-radius: 12px; padding: 16px; margin-bottom: 12px; display: flex; justify-content: space-between;">
+
+        <div class="card-left">
+            <h3 style="margin: 0 0 8px 0; font-size: 16px;" th:text="${reservation.placeName}"></h3>
+
+            <p style="margin: 0 0 8px 0; color: #666; font-size: 14px;">
+                <span th:text="${reservation.checkIn != null ? #temporals.format(reservation.checkIn, 'M월 d일 HH:mm') : ''}">8월 5일 12:00</span>
+                -
+                <span th:if="${reservation.checkIn != null and reservation.checkOut != null}"
+                      th:text="${#temporals.format(reservation.checkIn, 'yyyy-MM-dd') == #temporals.format(reservation.checkOut, 'yyyy-MM-dd') ?
+                        #temporals.format(reservation.checkOut, 'HH:mm') :
+                        #temporals.format(reservation.checkOut, 'M월 d일 HH:mm')}">
+        </span>
+            </p>
+        </div>
+
+        <div class="card-right" style="text-align: right;">
+            <span style="font-weight: bold; color: #ff9f43;"
+                  th:text="${reservation.reservationStatus}"></span>
+        </div>
+
+    </div>
+</div>
+
+</body>
+</html>

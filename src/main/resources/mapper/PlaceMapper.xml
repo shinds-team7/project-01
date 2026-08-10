@@ -17,7 +17,7 @@
             resultType="com.example.petnow.dto.response.PlaceListResponse">
         SELECT
         id,
-        nickname,
+        host_user_nickname AS nickname,
         name,
         description,
         place_type AS placeType,
@@ -40,7 +40,7 @@
         SELECT
         id,
         host_user_id AS hostUserId,
-        nickname,
+        host_user_nickname AS nickname,
         name,
         description,
         place_type AS placeType,

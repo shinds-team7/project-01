@@ -1,5 +1,6 @@
 package com.example.petnow.controller;
 
+import com.example.petnow.common.constant.SessionConst;
 import com.example.petnow.dto.request.PlaceCreateRequest;
 import com.example.petnow.entity.PlaceType;
 import com.example.petnow.service.HostService;
@@ -23,7 +24,7 @@ public class HostController {
 
     @GetMapping("/create")
     public String createForm(Model model, HttpSession session) {
-        Long loginUserId = (Long) session.getAttribute("loginUserId");
+        Long loginUserId = (Long) session.getAttribute(SessionConst.LOGIN_USER_ID);
         if (loginUserId == null) {
             return "redirect:/";
         }
@@ -39,7 +40,7 @@ public class HostController {
                          BindingResult bindingResult,
                          Model model,
                          HttpSession session) {
-        Long loginUserId = (Long) session.getAttribute("loginUserId");
+        Long loginUserId = (Long) session.getAttribute(SessionConst.LOGIN_USER_ID);
         if (loginUserId == null) {
             return "redirect:/";
         }
@@ -65,7 +66,7 @@ public class HostController {
 
     @GetMapping
     public String list(Model model, HttpSession session) {
-        Long loginUserId = (Long) session.getAttribute("loginUserId");
+        Long loginUserId = (Long) session.getAttribute(SessionConst.LOGIN_USER_ID);
         if (loginUserId == null) {
             return "redirect:/";
         }

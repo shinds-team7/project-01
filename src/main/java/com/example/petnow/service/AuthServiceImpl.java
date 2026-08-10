@@ -2,6 +2,7 @@ package com.example.petnow.service;
 
 import com.example.petnow.dto.request.UserLoginRequest;
 import com.example.petnow.dto.request.UserSignupRequest;
+import com.example.petnow.dto.response.LoginUser;
 import com.example.petnow.dto.response.UserMyPageResponse;
 import com.example.petnow.entity.User;
 import com.example.petnow.exception.AuthErrorCode;
@@ -31,7 +32,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public Long login(UserLoginRequest request) {
+    public LoginUser login(UserLoginRequest request) {
 
         User user = userMapper.findByEmail(request.getEmail());
 
@@ -42,7 +43,7 @@ public class AuthServiceImpl implements AuthService {
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new BusinessException(AuthErrorCode.INVALID_CREDENTIALS);
         }
-        return user.getId();
+        return LoginUser.from(user);
     }
 
     @Override

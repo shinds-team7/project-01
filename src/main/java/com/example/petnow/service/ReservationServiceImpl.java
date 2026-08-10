@@ -4,15 +4,18 @@ import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.petnow.dto.request.ReservationRequest;
 import com.example.petnow.dto.response.ReservationDetailResponse;
+import com.example.petnow.dto.response.ReservationListResponse;
 import com.example.petnow.entity.Place;
 import com.example.petnow.entity.Reservation;
 import com.example.petnow.entity.ReservationStatus;
+import com.example.petnow.entity.ReservationUseStatus;
 import com.example.petnow.mapper.PlaceMapper;
 import com.example.petnow.mapper.ReservationMapper;
 
@@ -42,11 +45,34 @@ public class ReservationServiceImpl implements ReservationService {
 			.checkIn(request.getCheckIn())
 			.checkOut(request.getCheckOut())
 			.status(ReservationStatus.PENDING)
+			.reservationNo(reservationNo)
 			.build();
 
 		reservationMapper.save(reservation);
 		reservationMapper.saveReservationPets(reservation.getId(), request.getPetIds());
 		return reservationNo;
+	}
+
+	@Override
+	public List<ReservationListResponse> getReservationList(Long userId, String useStatus) {
+		ReservationUseStatus status = parseUseStatus(useStatus);
+
+		boolean beforeUse = (status == ReservationUseStatus.BEFORE_USE);
+		boolean inUse = (status == ReservationUseStatus.IN_USE);
+		boolean afterUse = (status == ReservationUseStatus.AFTER_USE);
+
+		return reservationMapper.viewReservationList(userId, beforeUse, inUse, afterUse);
+	}
+
+	private ReservationUseStatus parseUseStatus(String useStatus) {
+		if (useStatus == null || useStatus.trim().isEmpty()) {
+			return null;
+		}
+		try {
+			return ReservationUseStatus.valueOf(useStatus.toUpperCase());
+		} catch (IllegalArgumentException e) {
+			return null;
+		}
 	}
 
 	private String determineReservationType(LocalDateTime checkIn, LocalDateTime checkOut) {

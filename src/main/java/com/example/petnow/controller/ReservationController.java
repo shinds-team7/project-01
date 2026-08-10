@@ -1,5 +1,7 @@
 package com.example.petnow.controller;
 
+import java.util.List;
+
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,6 +14,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import com.example.petnow.dto.request.ReservationRequest;
 
 import com.example.petnow.dto.response.ReservationDetailResponse;
+import com.example.petnow.dto.response.ReservationListResponse;
+import com.example.petnow.mapper.ReservationMapper;
 import com.example.petnow.service.ReservationService;
 
 @Controller
@@ -35,5 +39,13 @@ public class ReservationController {
 		ReservationDetailResponse reservation = reservationService.detailReservation(response.getReservationId());
 		model.addAttribute("reservation", reservation);
 		return "reservations/reservationDetail";
+	}
+
+	@GetMapping("/list")
+	public String getReservationList(@RequestParam Long userId, @RequestParam(required = false) String useStatus,
+		Model model) {
+		List<ReservationListResponse> responseList = reservationService.getReservationList(userId, useStatus);
+		model.addAttribute("reservations", responseList);
+		return "reservations/reservationList";
 	}
 }

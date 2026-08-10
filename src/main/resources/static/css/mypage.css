@@ -700,8 +700,24 @@
 .pet-ribbon-list {
     margin-top: 16px;
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(88px, 1fr));
     gap: 7px;
+}
+
+.pet-ribbon-empty {
+    margin: 16px 0 0;
+    padding: 18px 14px;
+    border: 1px dashed var(--line);
+    border-radius: var(--radius-md);
+    color: var(--muted);
+    font-size: 12.5px;
+    text-align: center;
+}
+
+.pet-ribbon-empty a {
+    color: var(--pet-green-dark);
+    font-weight: 700;
+    text-decoration: none;
 }
 
 .pet-ribbon-list button {
@@ -976,6 +992,9 @@
 }
 
 .pet-detail-grid article > button,
+.pet-detail-grid article > a,
+.pet-card-actions > a,
+.pet-card-actions button,
 .reservation-list article > button,
 .reservation-list article > a,
 .reservation-actions a {
@@ -991,6 +1010,22 @@
     font-size: 9px;
     font-weight: 900;
     cursor: pointer;
+}
+
+.pet-card-actions {
+    display: grid;
+    gap: 6px;
+}
+
+.pet-card-actions form {
+    margin: 0;
+    display: contents;
+}
+
+.pet-card-actions button {
+    width: 100%;
+    border-color: rgba(220, 38, 38, 0.28);
+    color: #b91c1c;
 }
 
 .reservation-actions {
@@ -1377,6 +1412,7 @@
     }
 
     .pet-detail-grid article > button,
+    .pet-detail-grid article > a,
     .reservation-list article > button,
     .reservation-list article > a,
     .reservation-list article > .reservation-actions {
