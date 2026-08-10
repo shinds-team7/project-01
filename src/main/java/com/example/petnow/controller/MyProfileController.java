@@ -45,6 +45,10 @@ public class MyProfileController {
 
         Long userId = (Long) session.getAttribute(SessionConst.LOGIN_USER_ID);
 
+        if (userId == null) {
+            return "redirect:/auth/login";
+        }
+
         myProfileService.withdraw(userId);
 
         LoginSession.clear(session);
