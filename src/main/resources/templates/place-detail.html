@@ -122,7 +122,10 @@
         <strong><span th:text="${#numbers.formatInteger(place.hourlyPrice, 0, 'COMMA')}">12,000</span>원 <small style="font-weight:600;">/ 시간</small></strong>
         <small>오늘도 예약 가능</small>
     </div>
-    <a class="flow-cta" th:href="@{/places/{id}/booking(id=${place.id})}">예약 요청하기</a>
+    <a class="flow-cta"
+       th:href="@{/reservation/booking-request(placeId=${place.id})}">
+        예약 요청하기
+    </a>
 </div>
 
 <div class="toast" data-toast role="status" aria-live="polite" aria-atomic="true"></div>

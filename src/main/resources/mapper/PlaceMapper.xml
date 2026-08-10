@@ -7,6 +7,10 @@
             resultType="com.example.petnow.entity.Place">
         SELECT
         id,
+        name,
+        host_user_nickname AS hostUserNickname,
+        place_type AS placeType,
+        area_size AS areaSize,
         hourly_price AS hourlyPrice,
         nightly_price AS nightlyPrice
         FROM places
