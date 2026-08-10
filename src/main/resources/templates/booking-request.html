@@ -46,9 +46,9 @@
     <div class="summary-card">
         <div class="media-placeholder"><span class="material-symbols-rounded" aria-hidden="true">weekend</span></div>
         <div class="summary-body">
-            <span class="summary-tag" th:text="${place.conditions[0]} + ' · ' + ${place.conditions[1]}">마당이 딸린 단독주택</span>
+            <span class="summary-tag" th:text="${place.placeType.label + ' · ' + place.areaSize + '평'}">단독주택 · 42평</span>
             <strong th:text="${place.name}">성수 조용한 단독주택 마당</strong>
-            <small th:text="${place.hostName}">김도윤 안심 가디언</small>
+            <small th:text="${place.hostUserNickname}">김도윤 안심 가디언</small>
         </div>
     </div>
 
