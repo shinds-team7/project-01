@@ -108,6 +108,22 @@ class UnstyledScreenShellTest {
     }
 
     @Test
+    @DisplayName("장소가 없으면 등록 버튼이 빈 상태 안내에만 한 번 나온다")
+    void hostManageShowsSingleCreateButtonWhenEmpty() throws Exception {
+        given(hostService.getPlacesByUserId(1L)).willReturn(List.of());
+
+        String html = mockMvc.perform(get("/host").session(loggedIn()))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("등록된 장소가 없어요")))
+                .andReturn().getResponse().getContentAsString();
+
+        // 빈 상태 카드의 버튼과 하단 버튼이 함께 나오면 등록 링크가 두 번 보인다
+        org.assertj.core.api.Assertions.assertThat(html.split("/host/create", -1).length - 1)
+                .as("빈 상태에서 /host/create 링크 개수")
+                .isEqualTo(1);
+    }
+
+    @Test
     @DisplayName("내 정보가 앱 셸로 그려진다 - 이전에는 뷰 이름 오타로 화면 자체가 열리지 않았다")
     void myProfileRendersWithAppShell() throws Exception {
         given(myProfileService.getProfile(1L)).willReturn(MyProfileResponse.builder()

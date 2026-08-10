@@ -1,6 +1,8 @@
 package com.example.petnow.controller;
 
 import com.example.petnow.common.controller.HomeController;
+import com.example.petnow.dto.response.PlaceListResponse;
+import com.example.petnow.entity.PlaceType;
 import com.example.petnow.service.PlaceService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -9,9 +11,16 @@ import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.stream.IntStream;
+
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.not;
+import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
@@ -46,6 +55,51 @@ class HomeShellRenderingTest {
         mockMvc.perform(get("/home"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("아직 둘러볼 수 있는 호스트가 없어요")));
+    }
+
+    /**
+     * 프로토타입 카드는 PlaceListResponse 에 없는 address·priceLabel 을 참조했다.
+     * 지금 쓰는 placeType·hourlyPrice 로 실제로 그려지는지 항목이 있을 때만 확인할 수 있다.
+     */
+    @Test
+    @DisplayName("장소가 있으면 카드에 이름·유형·시간당 가격이 그려진다")
+    void homeRendersRecentPlaceCard() throws Exception {
+        given(placeService.getPublishedPlaces()).willReturn(List.of(place(3L, "햇살 가득한 마당", 5000)));
+
+        mockMvc.perform(get("/home"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("햇살 가득한 마당")))
+                .andExpect(content().string(containsString("아파트")))
+                // #numbers.formatInteger 로 천 단위 구분이 들어가야 한다
+                .andExpect(content().string(containsString("5,000원~")))
+                .andExpect(content().string(containsString("/places/3")))
+                // 항목이 있으면 빈 상태 안내는 나오지 않는다
+                .andExpect(content().string(not(containsString("아직 둘러볼 수 있는 호스트가 없어요"))));
+    }
+
+    @Test
+    @DisplayName("공개 장소가 많아도 홈에는 정해진 개수만 넘긴다")
+    void homeLimitsRecentPlaces() throws Exception {
+        given(placeService.getPublishedPlaces()).willReturn(
+                IntStream.rangeClosed(1, 20)
+                        .mapToObj(i -> place(i, "장소 " + i, 5000))
+                        .toList());
+
+        mockMvc.perform(get("/home"))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("recentPlaces", org.hamcrest.Matchers.hasSize(8)))
+                .andExpect(content().string(containsString("장소 8")))
+                .andExpect(content().string(not(containsString("장소 9"))));
+    }
+
+    private PlaceListResponse place(long id, String name, int hourlyPrice) {
+        return PlaceListResponse.builder()
+                .id(id)
+                .name(name)
+                .nickname("윤슬")
+                .placeType(PlaceType.APARTMENT)
+                .hourlyPrice(BigDecimal.valueOf(hourlyPrice))
+                .build();
     }
 
     @Test

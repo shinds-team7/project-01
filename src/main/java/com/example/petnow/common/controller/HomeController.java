@@ -10,6 +10,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 @RequiredArgsConstructor
 public class HomeController {
 
+    /** 홈의 가로 스크롤 한 줄에 들어갈 만큼만 보낸다. 장소가 늘어도 홈 응답이 커지지 않게 한다. */
+    private static final int RECENT_PLACES_LIMIT = 8;
+
     private final PlaceService placeService;
 
     /** 루트 접속 시 앱 홈으로 보낸다. */
@@ -22,7 +25,9 @@ public class HomeController {
     @GetMapping("/home")
     public String home(Model model) {
         // 조회 이력 API 가 없어 공개된 장소를 대신 보여준다. 이력 API 가 붙으면 교체한다.
-        model.addAttribute("recentPlaces", placeService.getPublishedPlaces());
+        model.addAttribute("recentPlaces", placeService.getPublishedPlaces().stream()
+                .limit(RECENT_PLACES_LIMIT)
+                .toList());
         return "home";
     }
 

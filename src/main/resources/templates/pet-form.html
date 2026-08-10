@@ -52,9 +52,7 @@
                 <div class="field">
                     <label for="create-birth-year">태어난 해</label>
                     <select class="control" id="create-birth-year" name="birthYear">
-                        <option value="">선택해 주세요</option>
-                        <option th:each="year : ${#numbers.sequence(#dates.year(#dates.createNow()), 2000, -1)}"
-                                th:value="${year}" th:text="${year} + '년'">2024년</option>
+                        <th:block th:replace="~{fragments/components :: birthYearOptions(null)}"></th:block>
                     </select>
                 </div>
                 <div class="field">

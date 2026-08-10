@@ -14,6 +14,10 @@
   nav 인자는 하단 탭(데스크톱에선 좌측 사이드 네비)에서 활성화할 항목의 키다.
   'home' | 'search' | 'nearby' | 'like' | 'my' 중 하나를 쓰고,
   네비를 감출 화면(상세·예약 플로우 등)에서는 'none' 을 넘긴다.
+
+  주의 — 넘긴 <main> 이 아래 <main id="main-content"> 를 통째로 교체하므로,
+  화면 쪽 <main> 에 id="main-content" 를 직접 달아야 한다. 빠지면 첫 요소인
+  "본문으로 바로가기" 스킵 링크가 목적지를 잃는다.
 -->
 <html lang="ko" xmlns:th="http://www.thymeleaf.org" th:fragment="page(title, nav, content)">
 <head>

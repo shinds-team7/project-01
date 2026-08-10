@@ -36,7 +36,9 @@
             </a>
         </div>
 
-        <a class="btn btn-ghost btn-block" th:href="@{/host/create}">
+        <!--/* 빈 상태 카드에 이미 등록 버튼이 있으므로 목록이 있을 때만 하단 버튼을 둔다 */-->
+        <a class="btn btn-ghost btn-block" th:unless="${#lists.isEmpty(places)}"
+           th:href="@{/host/create}">
             <span class="ico" aria-hidden="true">add</span> 새 장소 등록하기
         </a>
     </div>

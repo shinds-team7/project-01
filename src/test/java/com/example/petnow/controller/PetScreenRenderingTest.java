@@ -16,8 +16,10 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -54,6 +56,23 @@ class PetScreenRenderingTest {
                 .andExpect(content().string(containsString("새 가족을")));
     }
 
+    /**
+     * 하한이 2000 으로 박혀 있으면 해가 갈수록 고를 수 있는 나이가 줄어든다.
+     * 공통 프래그먼트가 현재 연도 기준 상대 범위를 내려주는지 확인한다.
+     */
+    @Test
+    @DisplayName("출생 연도 선택지가 특정 연도에 박히지 않고 현재 연도 기준 30년 범위로 나온다")
+    void birthYearRangeIsRelativeToThisYear() throws Exception {
+        int thisYear = java.time.Year.now().getValue();
+
+        mockMvc.perform(get("/pet/new").session(loggedIn()))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("value=\"" + thisYear + "\"")))
+                .andExpect(content().string(containsString("value=\"" + (thisYear - 30) + "\"")))
+                .andExpect(content().string(org.hamcrest.Matchers.not(
+                        containsString("value=\"" + (thisYear - 31) + "\""))));
+    }
+
     @Test
     @DisplayName("비로그인 상태로 등록 폼에 가면 로그인 화면으로 보낸다")
     void createFormRequiresLogin() throws Exception {
@@ -82,6 +101,8 @@ class PetScreenRenderingTest {
                 .andExpect(view().name("mypage/petUpdate"))
                 .andExpect(content().string(containsString("/css/app.css")))
                 .andExpect(content().string(containsString("name=\"petId\" value=\"7\"")))
+                // 공통 프래그먼트로 뺀 연도 선택지가 기존 값을 선택된 상태로 되돌려야 한다
+                .andExpect(content().string(containsString("value=\"2021\" selected")))
                 // 삭제는 확인 화면을 거친다
                 .andExpect(content().string(containsString("/pet/delete/7")));
     }
@@ -129,6 +150,34 @@ class PetScreenRenderingTest {
     }
 
     // ───────────────────── 삭제 확인 화면 ─────────────────────
+
+    /**
+     * 실제 삭제(POST)의 인증·소유자 검증은 PetDeleteAuthorizationTest 가 맡는다.
+     * 여기서는 이번에 새로 생긴 GET 화면들이 세션 없이 열리지 않는지만 본다.
+     */
+    @Test
+    @DisplayName("비로그인 상태로는 수정·삭제 화면이 열리지 않고 서비스도 건드리지 않는다")
+    void petScreensRequireLogin() throws Exception {
+        for (String path : new String[]{"/pet/detail/7", "/pet/delete/7"}) {
+            mockMvc.perform(get(path))
+                    .andExpect(status().is3xxRedirection())
+                    .andExpect(redirectedUrl("/auth/login"));
+        }
+
+        verify(petService, never()).getDetail(any(), any());
+    }
+
+    @Test
+    @DisplayName("비로그인 상태의 등록·수정 전송은 서비스를 건드리지 않는다")
+    void petMutationsRequireLogin() throws Exception {
+        mockMvc.perform(post("/pet/create").param("name", "초코"))
+                .andExpect(redirectedUrl("/auth/login"));
+        mockMvc.perform(post("/pet/update").param("petId", "7"))
+                .andExpect(redirectedUrl("/auth/login"));
+
+        verify(petService, never()).createPet(any(), any());
+        verify(petService, never()).updatePet(any(), any());
+    }
 
     @Test
     @DisplayName("GET /pet/delete/{petId} 가 삭제 확인 화면을 그린다")

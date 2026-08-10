@@ -9,10 +9,11 @@
 
 <!-- 하단 탭 네비 (데스크톱에서는 좌측 사이드 네비로 전환된다) -->
 <nav class="app-nav" th:fragment="nav(active)" aria-label="주요 메뉴">
-    <a class="nav-brand" th:href="@{/}" tabindex="-1" aria-hidden="true">
+    <!--/* @{/} 는 /home 으로 리다이렉트되므로 곧바로 /home 을 가리킨다 */-->
+    <a class="nav-brand" th:href="@{/home}" tabindex="-1" aria-hidden="true">
         <span class="ico">pets</span><span>Pet NOW</span>
     </a>
-    <a th:href="@{/}" th:classappend="${active == 'home'} ? 'is-active'"
+    <a th:href="@{/home}" th:classappend="${active == 'home'} ? 'is-active'"
        th:attr="aria-current=${active == 'home'} ? 'page' : null">
         <span class="ico" aria-hidden="true">home</span><small>홈</small>
     </a>
@@ -33,6 +34,22 @@
         <span class="ico" aria-hidden="true">person</span><small>마이</small>
     </a>
 </nav>
+
+<!--
+  반려동물 출생 연도 선택지. 등록 폼과 수정 폼이 같은 범위를 쓰도록 여기서만 정의한다.
+
+  하한을 특정 연도로 박아 두면 시간이 갈수록 선택 가능한 나이가 줄어든다.
+  현재 연도에서 30년을 뺀 값까지 내려가게 해 두면 관리 없이 유지된다.
+
+    <select th:replace="~{fragments/components :: birthYearOptions(${pet.birthYear})}"></select>
+-->
+<th:block th:fragment="birthYearOptions(selected)"
+          th:with="thisYear=${#dates.year(#dates.createNow())}">
+    <option value="">선택해 주세요</option>
+    <option th:each="year : ${#numbers.sequence(thisYear, thisYear - 30, -1)}"
+            th:value="${year}" th:text="${year} + '년'"
+            th:selected="${selected != null and selected == year}">2024년</option>
+</th:block>
 
 <!-- 뒤로가기 + 제목 상단바 -->
 <div class="topbar" th:fragment="topbar(title, backUrl)">
