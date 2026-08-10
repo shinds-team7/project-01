@@ -44,7 +44,8 @@
         <h1>반려견 등록</h1>
     </div>
 
-    <form id="pet-form" data-pet-form>
+    <form id="pet-form" th:action="@{/pet/create}"
+          method="post">
         <div style="text-align:center;">
             <div class="avatar-upload">
                 <span class="material-symbols-rounded" aria-hidden="true">pets</span>
@@ -58,10 +59,7 @@
         </div>
 
         <div class="split-fields">
-            <div class="field">
-                <div class="field-label"><label for="pet-breed">견종</label></div>
-                <input class="control" id="pet-breed" name="breed" type="text" placeholder="예) 푸들" maxlength="50">
-            </div>
+
             <div class="field">
                 <div class="field-label"><label for="pet-weight">몸무게</label></div>
                 <div class="unit-control">
@@ -81,11 +79,11 @@
 
         <div class="field">
             <div class="field-label"><span>크기</span></div>
-            <input type="hidden" name="size" value="small" data-choice-input="size">
+            <input type="hidden" name="size" value="SMALL" data-choice-input="size">
             <div class="choice-row" data-choice-group="size">
-                <button type="button" class="is-active" aria-pressed="true" data-value="small">소형견</button>
-                <button type="button" aria-pressed="false" data-value="medium">중형견</button>
-                <button type="button" aria-pressed="false" data-value="large">대형견</button>
+                <button type="button" class="is-active" aria-pressed="true" data-value="SMALL">소형견</button>
+                <button type="button" aria-pressed="false" data-value="MEDIUM">중형견</button>
+                <button type="button" aria-pressed="false" data-value="LARGE">대형견</button>
             </div>
         </div>
 
@@ -99,12 +97,12 @@
         </div>
 
         <label class="check-row">
-            <input type="checkbox" name="neutered" checked>중성화 완료
+            <input type="checkbox" name="isNeutered" checked>중성화 완료
         </label>
 
         <div class="field" style="margin-top:24px;">
             <div class="field-label"><label for="pet-note">메모 <span>선택</span></label></div>
-            <textarea class="control" id="pet-note" name="note" rows="4"
+            <textarea class="control" id="pet-note" name="memo" rows="4"
                       placeholder="예) 낯선 사람을 조금 무서워해요. 닭고기 알레르기가 있고, 산책은 하루 2번 필요합니다."></textarea>
         </div>
 
