@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<!-- 화면들이 공유하는 조각 모음. fragments/base 와 각 화면 템플릿에서 참조한다. -->
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>components</title>
+</head>
+<body>
+
+<!-- 하단 탭 네비 (데스크톱에서는 좌측 사이드 네비로 전환된다) -->
+<nav class="app-nav" th:fragment="nav(active)" aria-label="주요 메뉴">
+    <a class="nav-brand" th:href="@{/}" tabindex="-1" aria-hidden="true">
+        <span class="ico">pets</span><span>Pet NOW</span>
+    </a>
+    <a th:href="@{/}" th:classappend="${active == 'home'} ? 'is-active'"
+       th:attr="aria-current=${active == 'home'} ? 'page' : null">
+        <span class="ico" aria-hidden="true">home</span><small>홈</small>
+    </a>
+    <a th:href="@{/search}" th:classappend="${active == 'search'} ? 'is-active'"
+       th:attr="aria-current=${active == 'search'} ? 'page' : null">
+        <span class="ico" aria-hidden="true">search</span><small>검색</small>
+    </a>
+    <a th:href="@{/nearby}" th:classappend="${active == 'nearby'} ? 'is-active'"
+       th:attr="aria-current=${active == 'nearby'} ? 'page' : null">
+        <span class="ico" aria-hidden="true">near_me</span><small>내 주변</small>
+    </a>
+    <a th:href="@{/bookmarks}" th:classappend="${active == 'like'} ? 'is-active'"
+       th:attr="aria-current=${active == 'like'} ? 'page' : null">
+        <span class="ico" aria-hidden="true">favorite</span><small>찜</small>
+    </a>
+    <a th:href="@{/mypage}" th:classappend="${active == 'my'} ? 'is-active'"
+       th:attr="aria-current=${active == 'my'} ? 'page' : null">
+        <span class="ico" aria-hidden="true">person</span><small>마이</small>
+    </a>
+</nav>
+
+<!-- 뒤로가기 + 제목 상단바 -->
+<div class="topbar" th:fragment="topbar(title, backUrl)">
+    <a class="topbar-back" th:href="${backUrl}" aria-label="뒤로 가기">
+        <span class="ico" aria-hidden="true">arrow_back_ios_new</span>
+    </a>
+    <h1 th:text="${title}">제목</h1>
+</div>
+
+</body>
+</html>

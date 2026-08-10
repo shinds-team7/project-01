@@ -47,13 +47,16 @@
     </select>
 
     <update id="updatePet">
-    UPDATE pets
-    SET name = #{name}, size = #{size},
-        weight = #{weight}, is_neutered = #{isNeutered},
-        memo = #{memo}
-
-    WHERE id = #{petId}
-        AND user_id = #{userId}
+        UPDATE pets
+        SET name = #{name},
+            birth_year = #{birthYear},
+            sex = #{sex},
+            size = #{size},
+            weight = #{weight},
+            is_neutered = #{isNeutered},
+            memo = #{memo}
+        WHERE id = #{petId}
+          AND user_id = #{userId}
     </update>
 
     <select id="getDetail"

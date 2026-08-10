@@ -1,0 +1,2446 @@
+/*
+ * Pet NOW 앱 디자인 시스템
+ * 프로토타입(PetNow.dc.html)의 인라인 스타일을 옮긴 단일 스타일시트입니다.
+ * 모바일은 프로토타입 화면 그대로, 데스크톱에서는 사이드 네비 + 넓은 컬럼으로 확장됩니다.
+ */
+
+/* ─────────────────────────── 토큰 ─────────────────────────── */
+:root {
+    --green: #22a45c;
+    --green-dark: #1b8a4b;
+    --green-soft: #e8f6ee;
+
+    --ink: #1f2937;
+    --ink-strong: #111111;
+    --ink-soft: #374151;
+    --ink-dim: #4b5563;
+
+    --muted: #8a8f96;
+    --muted-2: #9aa0a6;
+    --faint: #c2c2c6;
+
+    --line: #e3e3e5;
+    --line-soft: #f2f2f3;
+    --line-faint: #eeeeee;
+
+    --warm: #f3eee6;
+    --warm-2: #f6f2eb;
+    --sand: #eceae5;
+    --shell: #ded9d2;
+
+    --danger: #e5484d;
+    --warn: #f5a623;
+    --orange: #f97316;
+
+    --r-lg: 22px;
+    --r-md: 16px;
+    --r-sm: 12px;
+    --r-pill: 999px;
+
+    --shadow-card: 0 12px 34px rgba(0, 0, 0, 0.12);
+    --shadow-sheet: 0 -10px 40px rgba(0, 0, 0, 0.18);
+
+    --nav-h: 76px;
+    --app-w: 1180px;
+    --side-w: 232px;
+}
+
+/* ─────────────────────────── 리셋 ─────────────────────────── */
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background: #fff;
+    color: var(--ink);
+    font-family: Pretendard, -apple-system, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+}
+
+a {
+    color: var(--green);
+    text-decoration: none;
+}
+
+a:hover {
+    color: var(--green-dark);
+}
+
+button {
+    font-family: inherit;
+}
+
+input,
+textarea,
+select {
+    font-family: inherit;
+}
+
+img {
+    max-width: 100%;
+}
+
+.ico {
+    font-family: 'Material Symbols Rounded';
+    font-weight: normal;
+    font-style: normal;
+    line-height: 1;
+    white-space: nowrap;
+    -webkit-font-smoothing: antialiased;
+    user-select: none;
+}
+
+.ico.is-filled {
+    font-variation-settings: 'FILL' 1;
+}
+
+/* 가로 스크롤 영역에서 스크롤바를 숨긴다 (프로토타입 .phscroll) */
+.hscroll {
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.hscroll::-webkit-scrollbar {
+    display: none;
+}
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+.skip-link {
+    position: absolute;
+    left: -9999px;
+    top: 0;
+    z-index: 200;
+    background: var(--green);
+    color: #fff;
+    padding: 10px 16px;
+    border-radius: 0 0 var(--r-sm) 0;
+    font-weight: 700;
+}
+
+.skip-link:focus {
+    left: 0;
+    color: #fff;
+}
+
+/* ─────────────────────── 앱 셸 (반응형) ─────────────────────── */
+.app {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    min-height: 100dvh;
+    background: #fff;
+}
+
+.app-main {
+    flex: 1;
+    padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom, 0px));
+}
+
+/* 하단 CTA 바를 쓰는 화면은 여백을 더 확보한다 */
+.app-main.has-cta {
+    padding-bottom: calc(var(--nav-h) + 96px + env(safe-area-inset-bottom, 0px));
+}
+
+.app-main.no-nav {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.app-main.no-nav.has-cta {
+    padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px));
+}
+
+/* 하단 탭 네비 */
+.app-nav {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 40;
+    display: flex;
+    background: #fff;
+    border-top: 1px solid #f0f0f1;
+    padding: 9px 6px calc(26px + env(safe-area-inset-bottom, 0px));
+}
+
+.app-nav a {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 0;
+    color: var(--muted-2);
+    border-radius: 12px;
+}
+
+.app-nav a:hover {
+    color: var(--muted-2);
+    background: var(--line-soft);
+}
+
+.app-nav .ico {
+    font-size: 25px;
+}
+
+.app-nav small {
+    font-size: 10.5px;
+    font-weight: 700;
+}
+
+.app-nav a.is-active {
+    color: var(--green);
+}
+
+.app-nav a.is-active .ico {
+    font-variation-settings: 'FILL' 1;
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+    body {
+        background: var(--shell);
+    }
+
+    .app {
+        width: 480px;
+        margin: 0 auto;
+        box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.06);
+    }
+
+    .app-nav {
+        left: 50%;
+        right: auto;
+        width: 480px;
+        transform: translateX(-50%);
+    }
+}
+
+@media (min-width: 1024px) {
+    body {
+        background: var(--shell);
+    }
+
+    .app {
+        flex-direction: row;
+        align-items: stretch;
+        width: min(var(--app-w), 100%);
+        margin: 0 auto;
+        box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.06);
+    }
+
+    /* 하단 탭이 좌측 사이드 네비로 전환된다 */
+    .app-nav {
+        position: sticky;
+        top: 0;
+        left: auto;
+        right: auto;
+        bottom: auto;
+        flex: none;
+        width: var(--side-w);
+        height: 100vh;
+        height: 100dvh;
+        flex-direction: column;
+        gap: 4px;
+        padding: 24px 14px;
+        border-top: none;
+        border-right: 1px solid var(--line-soft);
+    }
+
+    .app-nav a {
+        flex: none;
+        flex-direction: row;
+        justify-content: flex-start;
+        gap: 14px;
+        padding: 13px 16px;
+    }
+
+    .app-nav small {
+        font-size: 14px;
+    }
+
+    .app-nav a.is-active {
+        background: var(--green-soft);
+    }
+
+    .app-main {
+        flex: 1;
+        min-width: 0;
+        padding-bottom: 60px;
+    }
+
+    .app-main.has-cta {
+        padding-bottom: 120px;
+    }
+
+    /* 데스크톱에서만 2단으로 펼쳐지는 화면 (목록 + 상세/지도) */
+    .split {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: 28px;
+        align-items: start;
+    }
+
+    .split > .split-aside {
+        position: sticky;
+        top: 24px;
+    }
+}
+
+/* 사이드 네비 브랜드 (데스크톱에서만 보인다) */
+.app-nav .nav-brand {
+    display: none;
+}
+
+@media (min-width: 1024px) {
+    .app-nav .nav-brand {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 16px 22px;
+        color: var(--ink);
+    }
+
+    .nav-brand:hover {
+        color: var(--ink);
+    }
+
+    .nav-brand .ico {
+        font-size: 26px;
+        color: var(--green);
+        font-variation-settings: 'FILL' 1;
+    }
+
+    .nav-brand span {
+        font-weight: 800;
+        font-size: 20px;
+        letter-spacing: -0.3px;
+    }
+}
+
+/* ─────────────────────── 화면 공통 요소 ─────────────────────── */
+/* 좌우 20px 여백 — 프로토타입의 기본 화면 패딩 */
+.screen {
+    padding: 0 20px 24px;
+}
+
+@media (min-width: 1024px) {
+    .screen {
+        padding: 0 32px 40px;
+    }
+}
+
+/* 뒤로가기 + 제목 상단바 */
+.topbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 12px;
+    background: #fff;
+    position: sticky;
+    top: 0;
+    z-index: 30;
+}
+
+.topbar.has-line {
+    border-bottom: 1px solid var(--line-soft);
+}
+
+.topbar-back {
+    flex: none;
+    width: 38px;
+    height: 38px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: none;
+    color: var(--ink);
+    cursor: pointer;
+    border-radius: 50%;
+}
+
+.topbar-back:hover {
+    background: var(--line-soft);
+    color: var(--ink);
+}
+
+.topbar-back .ico {
+    font-size: 20px;
+}
+
+.topbar h1 {
+    flex: 1;
+    margin: 0;
+    font-weight: 800;
+    font-size: 17px;
+    color: var(--ink);
+    letter-spacing: -0.3px;
+}
+
+.topbar-action {
+    flex: none;
+    border: none;
+    background: none;
+    cursor: pointer;
+    color: var(--ink-soft);
+    font-size: 13px;
+    font-weight: 700;
+    padding: 8px;
+}
+
+/* 가운데 정렬 제목 (뒤로가기 없는 화면) */
+.screen-title {
+    text-align: center;
+    font-weight: 800;
+    font-size: 18px;
+    color: var(--ink);
+    padding: 18px 0 20px;
+}
+
+.section-title {
+    font-weight: 800;
+    font-size: 19px;
+    color: var(--ink);
+    letter-spacing: -0.3px;
+    margin: 26px 2px 14px;
+}
+
+.section-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 26px 2px 14px;
+}
+
+.section-head .section-title {
+    margin: 0;
+}
+
+.section-more {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    color: var(--muted-2);
+    font-size: 13px;
+}
+
+.section-more:hover {
+    color: var(--muted-2);
+}
+
+.section-more .ico {
+    font-size: 16px;
+}
+
+/* ───────────────────────── 버튼 ───────────────────────── */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border: none;
+    border-radius: var(--r-md);
+    padding: 17px 20px;
+    font-weight: 800;
+    font-size: 16px;
+    cursor: pointer;
+    background: var(--line-soft);
+    color: var(--ink);
+}
+
+.btn .ico {
+    font-size: 21px;
+}
+
+.btn-primary {
+    background: var(--green);
+    color: #fff;
+}
+
+.btn-primary:hover {
+    background: var(--green-dark);
+    color: #fff;
+}
+
+.btn-dark {
+    background: var(--ink-strong);
+    color: #fff;
+}
+
+.btn-dark:hover {
+    color: #fff;
+}
+
+.btn-ghost {
+    background: #fff;
+    border: 1px solid var(--line);
+    color: var(--ink-soft);
+    font-size: 13px;
+    font-weight: 700;
+    padding: 13px;
+    border-radius: var(--r-sm);
+}
+
+.btn-ghost:hover {
+    color: var(--ink-soft);
+    background: var(--line-soft);
+}
+
+.btn-danger {
+    background: var(--danger);
+    color: #fff;
+}
+
+.btn-block {
+    display: flex;
+    width: 100%;
+}
+
+.btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+/* 화면 하단에 고정되는 CTA 바 */
+.cta-bar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: calc(var(--nav-h) + env(safe-area-inset-bottom, 0px));
+    z-index: 35;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: #fff;
+    border-top: 1px solid var(--line-soft);
+    padding: 12px 20px calc(14px + env(safe-area-inset-bottom, 0px));
+}
+
+.cta-bar.no-nav {
+    bottom: 0;
+}
+
+.cta-bar .cta-copy {
+    flex: 1;
+    min-width: 0;
+}
+
+.cta-bar .cta-price {
+    font-weight: 800;
+    font-size: 18px;
+    color: var(--ink);
+}
+
+.cta-bar .cta-note {
+    display: block;
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 3px;
+}
+
+.cta-bar .btn {
+    flex: none;
+    padding: 15px 26px;
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+    .cta-bar {
+        left: 50%;
+        right: auto;
+        width: 480px;
+        transform: translateX(-50%);
+    }
+}
+
+@media (min-width: 1024px) {
+    .cta-bar {
+        left: auto;
+        right: auto;
+        bottom: 0;
+        width: min(calc(var(--app-w) - var(--side-w)), calc(100% - var(--side-w)));
+        padding: 16px 32px;
+    }
+
+    .cta-bar .btn {
+        min-width: 200px;
+    }
+}
+
+/* ───────────────────────── 카드/미디어 ───────────────────────── */
+.card {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    padding: 16px;
+}
+
+.card-raised {
+    background: #fff;
+    border-radius: var(--r-lg);
+    box-shadow: var(--shadow-card);
+    padding: 16px;
+    border: none;
+}
+
+/* 사진 자리를 대신하는 줄무늬 플레이스홀더 */
+.media {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--r-md);
+    overflow: hidden;
+    background: repeating-linear-gradient(45deg, #e5e7ea, #e5e7ea 12px, #dcdfe3 12px, #dcdfe3 24px);
+    color: #aeb4bb;
+}
+
+.media .ico {
+    font-size: 46px;
+    font-variation-settings: 'FILL' 1;
+}
+
+/* 따뜻한 톤 변형 — 홈 카드에서 사용 */
+.media-warm {
+    background: repeating-linear-gradient(45deg, #ede7de, #ede7de 10px, #e5ddd0 10px, #e5ddd0 20px);
+    color: #bcb19e;
+}
+
+.media-warm .ico {
+    font-size: 34px;
+}
+
+.media-sm {
+    width: 56px;
+    height: 56px;
+    border-radius: var(--r-sm);
+    flex: none;
+}
+
+.media-sm .ico {
+    font-size: 24px;
+}
+
+/* 미디어 위에 얹는 찜 버튼 */
+.like-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 30px;
+    height: 30px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.92);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted);
+    padding: 0;
+}
+
+.like-btn .ico {
+    font-size: 18px;
+}
+
+.like-btn.is-on {
+    color: var(--danger);
+}
+
+.like-btn.is-on .ico {
+    font-variation-settings: 'FILL' 1;
+}
+
+.like-btn-lg {
+    width: 34px;
+    height: 34px;
+    top: 12px;
+    right: 12px;
+}
+
+.like-btn-lg .ico {
+    font-size: 20px;
+}
+
+/* ───────────────────────── 리스트 ───────────────────────── */
+.list {
+    background: #fff;
+    border-radius: var(--r-md);
+    overflow: hidden;
+    border: 1px solid var(--line);
+}
+
+.list-row {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 18px;
+    border: none;
+    background: #fff;
+    cursor: pointer;
+    text-align: left;
+    border-bottom: 1px solid var(--line-soft);
+}
+
+.list-row:last-child {
+    border-bottom: none;
+}
+
+.list-row:hover {
+    background: #fafafa;
+    color: inherit;
+}
+
+.list-row-label {
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--ink);
+}
+
+.list-row .ico {
+    font-size: 20px;
+    color: var(--faint);
+    flex: none;
+}
+
+/* ───────────────────────── 칩/뱃지 ───────────────────────── */
+.chip {
+    flex: none;
+    border: 1px solid var(--line);
+    background: #fff;
+    border-radius: var(--r-pill);
+    padding: 9px 15px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ink-soft);
+    cursor: pointer;
+}
+
+.chip:hover {
+    color: var(--ink-soft);
+    border-color: var(--muted-2);
+}
+
+.chip.is-active {
+    background: var(--ink-strong);
+    border-color: var(--ink-strong);
+    color: #fff;
+}
+
+.chip-row {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.chip-row::-webkit-scrollbar {
+    display: none;
+}
+
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12.5px;
+    font-weight: 700;
+    padding: 6px 12px;
+    border-radius: 8px;
+    background: var(--line-soft);
+    color: var(--muted);
+}
+
+.badge-green {
+    background: var(--green-soft);
+    color: var(--green-dark);
+}
+
+.badge-warn {
+    background: #fff1e7;
+    color: #ad5919;
+}
+
+.badge-danger {
+    background: #fdeced;
+    color: var(--danger);
+}
+
+/* 별점 표시 */
+.rating {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-weight: 700;
+    font-size: 13px;
+    color: var(--ink);
+}
+
+.rating .ico {
+    font-size: 15px;
+    color: var(--warn);
+    font-variation-settings: 'FILL' 1;
+}
+
+.rating small {
+    color: var(--muted);
+    font-weight: 600;
+}
+
+/* ───────────────────────── 폼 ───────────────────────── */
+.field {
+    margin-bottom: 18px;
+}
+
+.field > label,
+.field-label {
+    display: block;
+    font-weight: 700;
+    font-size: 13.5px;
+    color: var(--ink);
+    margin-bottom: 8px;
+}
+
+.field-label .opt {
+    color: var(--muted-2);
+    font-weight: 600;
+    margin-left: 4px;
+}
+
+.field-label .req {
+    color: var(--danger);
+    margin-left: 3px;
+}
+
+.control {
+    width: 100%;
+    border: 1px solid var(--line);
+    border-radius: var(--r-sm);
+    padding: 14px 15px;
+    font-size: 14.5px;
+    color: var(--ink);
+    background: #fff;
+}
+
+.control::placeholder {
+    color: var(--faint);
+}
+
+.control:focus {
+    outline: none;
+    border-color: var(--green);
+    box-shadow: 0 0 0 3px rgba(34, 164, 92, 0.14);
+}
+
+.control.has-error {
+    border-color: var(--danger);
+}
+
+textarea.control {
+    resize: vertical;
+    min-height: 96px;
+}
+
+.field-error {
+    margin: 7px 0 0;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--danger);
+}
+
+.field-hint {
+    margin: 7px 0 0;
+    font-size: 12.5px;
+    color: var(--muted);
+}
+
+/* 라디오/체크를 버튼처럼 쓰는 선택 그룹 */
+.choice-row {
+    display: flex;
+    gap: 8px;
+}
+
+.choice {
+    flex: 1;
+    position: relative;
+}
+
+.choice input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.choice span {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--line);
+    border-radius: var(--r-sm);
+    padding: 13px;
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--ink-soft);
+    cursor: pointer;
+}
+
+.choice input:checked + span {
+    border-color: var(--green);
+    background: var(--green-soft);
+    color: var(--green-dark);
+}
+
+.choice input:focus-visible + span {
+    box-shadow: 0 0 0 3px rgba(34, 164, 92, 0.2);
+}
+
+/* ───────────────────────── 바텀시트/모달 ───────────────────────── */
+.sheet {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    border: none;
+    padding: 0;
+    margin: 0;
+    width: 100%;
+    max-width: none;
+    max-height: none;
+    height: 100%;
+    background: transparent;
+}
+
+.sheet::backdrop {
+    background: rgba(0, 0, 0, 0.4);
+}
+
+.sheet-inner {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: #fff;
+    border-radius: var(--r-lg) var(--r-lg) 0 0;
+    box-shadow: var(--shadow-sheet);
+    padding: 10px 20px calc(24px + env(safe-area-inset-bottom, 0px));
+    max-height: 86%;
+    overflow-y: auto;
+}
+
+.sheet-handle {
+    width: 40px;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--line);
+    margin: 0 auto 14px;
+}
+
+.sheet-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+}
+
+.sheet-head h2 {
+    margin: 0;
+    font-weight: 800;
+    font-size: 17px;
+    color: var(--ink);
+}
+
+.sheet-close {
+    border: none;
+    background: none;
+    cursor: pointer;
+    color: var(--muted);
+    padding: 4px;
+}
+
+@media (min-width: 1024px) {
+    .sheet-inner {
+        left: 50%;
+        right: auto;
+        bottom: auto;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        width: 440px;
+        border-radius: var(--r-lg);
+        max-height: 80vh;
+    }
+}
+
+/* 가운데 모달 */
+.modal {
+    border: none;
+    padding: 0;
+    border-radius: var(--r-lg);
+    width: min(320px, calc(100% - 48px));
+    box-shadow: var(--shadow-card);
+}
+
+.modal::backdrop {
+    background: rgba(0, 0, 0, 0.4);
+}
+
+.modal-inner {
+    padding: 24px 20px 18px;
+    text-align: center;
+}
+
+.modal-inner h2 {
+    margin: 0 0 8px;
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--ink);
+}
+
+.modal-inner p {
+    margin: 0 0 20px;
+    font-size: 13.5px;
+    color: var(--muted);
+    line-height: 1.5;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.modal-actions .btn {
+    flex: 1;
+    font-size: 14px;
+    padding: 14px;
+}
+
+/* ───────────────────────── 빈 상태 ───────────────────────── */
+.empty {
+    text-align: center;
+    padding: 56px 20px;
+    color: var(--muted);
+}
+
+.empty .ico {
+    font-size: 44px;
+    color: var(--line);
+}
+
+.empty strong {
+    display: block;
+    margin-top: 14px;
+    font-size: 15px;
+    color: var(--ink);
+}
+
+.empty p {
+    margin: 6px 0 0;
+    font-size: 13px;
+}
+
+/* ───────────────────────── 알림 배너 ───────────────────────── */
+.notice {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    border-radius: var(--r-sm);
+    padding: 13px 15px;
+    font-size: 12.5px;
+    font-weight: 600;
+    line-height: 1.5;
+    background: var(--line-soft);
+    color: var(--muted);
+}
+
+.notice .ico {
+    font-size: 17px;
+    flex: none;
+}
+
+.notice-green {
+    background: var(--green-soft);
+    color: var(--green-dark);
+}
+
+.notice-danger {
+    background: #fdeced;
+    color: var(--danger);
+}
+
+/* ───────────────────────── 홈 ───────────────────────── */
+.home-hero {
+    position: relative;
+    height: 330px;
+    overflow: hidden;
+    background: linear-gradient(180deg, var(--warm) 0%, var(--warm-2) 60%, #fff 100%);
+}
+
+.home-hero-deco {
+    position: absolute;
+    right: -10px;
+    top: 44px;
+    width: 210px;
+    height: 270px;
+    border-radius: 26px 0 0 26px;
+    background: repeating-linear-gradient(48deg, #e7dfd2, #e7dfd2 11px, #ded4c4 11px, #ded4c4 22px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #b3a794;
+}
+
+.home-hero-deco .ico {
+    font-size: 60px;
+}
+
+.home-hero-inner {
+    position: relative;
+    z-index: 2;
+    padding: 44px 24px 0;
+}
+
+.home-hero-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.home-brand {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 800;
+    font-size: 20px;
+    color: var(--ink);
+    letter-spacing: -0.3px;
+}
+
+.home-brand .ico {
+    font-size: 26px;
+    color: var(--green);
+}
+
+.home-hero-actions {
+    display: flex;
+    gap: 16px;
+}
+
+.home-hero-actions button {
+    border: none;
+    background: none;
+    cursor: pointer;
+    color: var(--ink-soft);
+    padding: 0;
+}
+
+.home-hero-actions .ico {
+    font-size: 24px;
+}
+
+/* 히어로 우측 인증 영역. 로그인 상태에 따라 프로필 또는 로그인·회원가입이 온다. (이슈 #117) */
+.home-hero-actions {
+    align-items: center;
+}
+
+.home-hero-actions .auth-link {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ink-soft);
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.home-hero-actions .auth-link-primary {
+    padding: 7px 14px;
+    border-radius: var(--r-pill);
+    background: var(--green);
+    color: #fff;
+}
+
+.home-hero-actions .profile-button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 12px 5px 5px;
+    border-radius: var(--r-pill);
+    background: rgba(255, 255, 255, 0.72);
+    text-decoration: none;
+}
+
+.home-hero-actions .profile-avatar {
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    border-radius: var(--r-pill);
+    background: var(--green-soft);
+    color: var(--green-dark);
+    font-size: 14px;
+    font-weight: 800;
+}
+
+.home-hero-actions .profile-copy {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.25;
+}
+
+.home-hero-actions .profile-copy small {
+    font-size: 10px;
+    color: var(--muted);
+}
+
+.home-hero-actions .profile-copy strong {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--ink);
+    white-space: nowrap;
+}
+
+/* 좁은 화면에서는 인사말을 접어 브랜드와 겹치지 않게 한다. */
+@media (max-width: 400px) {
+    .home-hero-actions .profile-copy small {
+        display: none;
+    }
+}
+
+.home-headline {
+    margin: 30px 0 0;
+    font-weight: 800;
+    font-size: 27px;
+    line-height: 1.32;
+    color: var(--ink);
+    letter-spacing: -0.5px;
+}
+
+.home-headline em {
+    font-style: normal;
+    color: var(--green);
+}
+
+.home-sub {
+    margin: 12px 0 0;
+    font-size: 13.5px;
+    color: #8a8578;
+}
+
+/* 히어로 위로 겹쳐 올라오는 검색 카드 */
+.home-search {
+    position: relative;
+    z-index: 3;
+    margin-top: -64px;
+    background: #fff;
+    border-radius: var(--r-lg);
+    box-shadow: var(--shadow-card);
+    padding: 8px 6px;
+}
+
+.home-search-row {
+    display: flex;
+}
+
+.home-search-field {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 16px 14px;
+    color: var(--ink);
+    border-radius: var(--r-sm);
+}
+
+.home-search-field:hover {
+    color: var(--ink);
+    background: #fafafa;
+}
+
+.home-search-field > .ico {
+    font-size: 20px;
+    color: var(--green);
+    flex: none;
+}
+
+.home-search-value {
+    flex: 1;
+    min-width: 0;
+    font-weight: 700;
+    font-size: 14.5px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.home-search-caret {
+    font-size: 18px;
+    color: var(--muted-2);
+    flex: none;
+}
+
+.home-search-divider {
+    width: 1px;
+    background: var(--line-faint);
+    margin: 12px 0;
+}
+
+.home-search-line {
+    height: 1px;
+    background: var(--line-faint);
+    margin: 0 10px;
+}
+
+.home-search-submit {
+    margin-top: 6px;
+}
+
+/* 최근 조회한 호스트 */
+.home-recent {
+    display: flex;
+    gap: 12px;
+    margin: 0 -20px;
+    padding: 0 20px 4px;
+}
+
+.home-recent-card {
+    flex: none;
+    width: 148px;
+    color: var(--ink);
+}
+
+.home-recent-card:hover {
+    color: var(--ink);
+}
+
+.home-recent-media {
+    height: 118px;
+}
+
+.home-recent-title {
+    display: block;
+    font-weight: 700;
+    font-size: 14.5px;
+    margin-top: 9px;
+}
+
+.home-recent-loc {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    color: var(--muted);
+    font-size: 12px;
+    margin-top: 4px;
+}
+
+.home-recent-loc .ico {
+    font-size: 14px;
+}
+
+.home-recent-price {
+    display: block;
+    font-weight: 800;
+    font-size: 14.5px;
+    color: var(--green);
+    margin-top: 7px;
+}
+
+.home-recent-empty {
+    margin: 0;
+    padding: 26px 0;
+    font-size: 13px;
+    color: var(--muted);
+}
+
+.home-feature {
+    display: flex;
+    height: 172px;
+    border-radius: 18px;
+}
+
+@media (min-width: 1024px) {
+    .home-hero {
+        height: 360px;
+    }
+
+    .home-hero-inner {
+        padding: 56px 32px 0;
+    }
+
+    .home-headline {
+        font-size: 34px;
+    }
+
+    .home-hero-deco {
+        width: 280px;
+        height: 300px;
+    }
+
+    /* 데스크톱에서는 가로 스크롤 대신 그리드로 펼친다 */
+    .home-recent {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        margin: 0;
+        padding: 0;
+        overflow: visible;
+    }
+
+    .home-recent-card {
+        width: auto;
+    }
+
+    .home-recent-media {
+        height: 150px;
+    }
+
+    .home-feature {
+        height: 240px;
+    }
+}
+
+/* ─────────────────────── 마이페이지 · 반려동물 ─────────────────────── */
+.my-page {
+    background: #f8faf8;
+}
+
+.my-hero {
+    position: relative;
+    min-height: 310px;
+    overflow: hidden;
+    padding: 42px 24px 84px;
+    background:
+        radial-gradient(circle at 110% -8%, rgba(255, 255, 255, 0.2) 0 27%, transparent 27.4%),
+        linear-gradient(145deg, #12683a 0%, var(--green) 100%);
+    color: #fff;
+}
+
+.my-hero::after {
+    content: "";
+    position: absolute;
+    right: -54px;
+    bottom: -86px;
+    width: 220px;
+    height: 220px;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 50%;
+    box-shadow:
+        0 0 0 34px rgba(255, 255, 255, 0.04),
+        0 0 0 68px rgba(255, 255, 255, 0.025);
+}
+
+.my-hero-copy,
+.my-family-count {
+    position: relative;
+    z-index: 2;
+}
+
+.my-kicker {
+    display: block;
+    color: var(--green-dark);
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: 0.14em;
+}
+
+.my-hero .my-kicker {
+    color: #b9f4d1;
+}
+
+.my-hero h1 {
+    margin: 14px 0 12px;
+    color: #fff;
+    font-size: clamp(31px, 9vw, 43px);
+    line-height: 1.16;
+    letter-spacing: -0.055em;
+}
+
+.my-hero h1 strong {
+    color: #d9ffab;
+}
+
+.my-hero-copy > p {
+    max-width: 460px;
+    margin: 0;
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 13px;
+    line-height: 1.65;
+}
+
+.my-hero-paws {
+    position: absolute;
+    top: 34px;
+    right: 22px;
+    display: grid;
+    gap: 7px;
+    color: rgba(255, 255, 255, 0.12);
+    transform: rotate(27deg);
+}
+
+.my-hero-paws .ico:nth-child(1) {
+    font-size: 30px;
+}
+
+.my-hero-paws .ico:nth-child(2) {
+    margin-left: 24px;
+    font-size: 23px;
+}
+
+.my-hero-paws .ico:nth-child(3) {
+    margin-left: 5px;
+    font-size: 17px;
+}
+
+.my-family-count {
+    width: fit-content;
+    margin-top: 26px;
+    display: grid;
+    grid-template-columns: auto auto;
+    align-items: end;
+    column-gap: 7px;
+}
+
+.my-family-count span {
+    grid-column: 1 / -1;
+    color: rgba(255, 255, 255, 0.62);
+    font-size: 10px;
+    font-weight: 700;
+}
+
+.my-family-count strong {
+    font-size: 42px;
+    line-height: 1;
+    letter-spacing: -0.06em;
+}
+
+.my-family-count small {
+    padding-bottom: 5px;
+    color: #c8efd7;
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.my-layout {
+    position: relative;
+    z-index: 3;
+    margin-top: -50px;
+    display: grid;
+    gap: 20px;
+}
+
+.my-family,
+.my-account {
+    border: 1px solid rgba(17, 24, 39, 0.06);
+    border-radius: var(--r-lg);
+    background: #fff;
+    box-shadow: 0 16px 46px rgba(30, 69, 45, 0.09);
+}
+
+.my-family {
+    padding: 24px 16px 16px;
+}
+
+.my-section-head {
+    margin: 0 4px 20px;
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.my-section-head h2,
+.my-account h2 {
+    margin: 5px 0 0;
+    color: var(--ink-strong);
+    font-size: 24px;
+    letter-spacing: -0.045em;
+}
+
+.my-add-button {
+    min-height: 42px;
+    padding: 0 13px;
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+.pet-passport-list {
+    display: grid;
+    gap: 12px;
+}
+
+.pet-passport {
+    position: relative;
+    min-height: 156px;
+    overflow: hidden;
+    padding: 20px 16px 17px;
+    display: grid;
+    grid-template-columns: 58px minmax(0, 1fr);
+    gap: 14px;
+    border: 1px solid var(--line-soft);
+    border-radius: 18px;
+    background:
+        linear-gradient(90deg, transparent 0 68px, rgba(34, 164, 92, 0.07) 68px 69px, transparent 69px),
+        #fcfdfc;
+}
+
+.pet-passport-index {
+    position: absolute;
+    top: 12px;
+    right: 14px;
+    color: #dce2de;
+    font-size: 33px;
+    font-weight: 900;
+    line-height: 1;
+    letter-spacing: -0.06em;
+}
+
+.pet-passport-avatar {
+    width: 58px;
+    height: 72px;
+    display: grid;
+    place-items: center;
+    border-radius: 18px 18px 8px 18px;
+    background: var(--green-soft);
+    color: var(--green);
+}
+
+.pet-passport-avatar .ico {
+    font-size: 29px;
+}
+
+.pet-passport-label {
+    color: var(--muted);
+    font-size: 8px;
+    font-weight: 900;
+    letter-spacing: 0.13em;
+}
+
+.pet-passport-copy h3 {
+    margin: 5px 40px 13px 0;
+    color: var(--ink-strong);
+    font-size: 22px;
+    letter-spacing: -0.04em;
+}
+
+.pet-passport-meta {
+    display: flex;
+    gap: 22px;
+}
+
+.pet-passport-meta span {
+    display: grid;
+    gap: 3px;
+}
+
+.pet-passport-meta small {
+    color: var(--muted);
+    font-size: 9px;
+}
+
+.pet-passport-meta strong {
+    color: var(--ink-soft);
+    font-size: 12px;
+}
+
+.pet-passport-edit {
+    grid-column: 1 / -1;
+    justify-self: end;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    color: var(--green-dark);
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.pet-passport-edit .ico {
+    font-size: 15px;
+    transition: transform 160ms ease;
+}
+
+.pet-passport-edit:hover .ico {
+    transform: translateX(3px);
+}
+
+.my-empty {
+    min-height: 330px;
+    justify-content: center;
+}
+
+.my-empty .btn {
+    margin-top: 8px;
+}
+
+.my-account {
+    padding: 24px 20px;
+}
+
+.my-account-profile {
+    margin-top: 17px;
+    display: flex;
+    align-items: center;
+    gap: 13px;
+}
+
+.my-account-avatar {
+    width: 54px;
+    height: 54px;
+    display: grid;
+    place-items: center;
+    border: 1px solid #f0ddc2;
+    border-radius: 18px 18px 18px 7px;
+    background: #fff5e7;
+    color: #b96b13;
+    font-size: 20px;
+    font-weight: 900;
+}
+
+.my-account-profile h2 {
+    font-size: 18px;
+}
+
+.my-account-profile p {
+    margin: 3px 0 0;
+    color: var(--muted);
+    font-size: 11px;
+}
+
+.my-account-note {
+    margin-top: 22px;
+    padding: 15px;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    border-radius: var(--r-md);
+    background: var(--green-soft);
+    color: var(--green-dark);
+}
+
+.my-account-note > .ico {
+    margin-top: 2px;
+    font-size: 21px;
+}
+
+.my-account-note p {
+    margin: 0;
+    color: #527160;
+    font-size: 10.5px;
+    line-height: 1.5;
+}
+
+.my-account-note strong {
+    display: block;
+    margin-bottom: 3px;
+    color: var(--green-dark);
+    font-size: 12px;
+}
+
+.my-quick-links {
+    margin-top: 10px;
+    display: grid;
+}
+
+.my-quick-links a {
+    padding: 14px 4px;
+    display: grid;
+    grid-template-columns: 28px 1fr 20px;
+    align-items: center;
+    gap: 9px;
+    border-bottom: 1px solid var(--line-soft);
+    color: var(--ink);
+}
+
+.my-quick-links a:last-child {
+    border-bottom: 0;
+}
+
+.my-quick-links a > .ico:first-child {
+    color: var(--green);
+    font-size: 20px;
+}
+
+.my-quick-links a > .ico:last-child {
+    color: var(--faint);
+    font-size: 18px;
+}
+
+.my-quick-links a > span:nth-child(2) {
+    display: grid;
+    gap: 2px;
+}
+
+.my-quick-links strong {
+    font-size: 12px;
+}
+
+.my-quick-links small {
+    color: var(--muted);
+    font-size: 9.5px;
+}
+
+@media (min-width: 1024px) {
+    .my-hero {
+        min-height: 300px;
+        padding: 58px 48px 78px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 48px;
+    }
+
+    .my-hero h1 {
+        font-size: 43px;
+    }
+
+    .my-hero-copy > p {
+        font-size: 13.5px;
+    }
+
+    .my-family-count {
+        flex: none;
+        margin: 0 54px 0 0;
+    }
+
+    .my-family-count strong {
+        font-size: 64px;
+    }
+
+    .my-layout {
+        grid-template-columns: minmax(0, 1fr) 250px;
+        align-items: start;
+        padding-inline: 32px;
+    }
+
+    .my-family {
+        padding: 30px 24px 24px;
+    }
+
+    .pet-passport-list {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .pet-passport {
+        min-height: 168px;
+    }
+
+    .my-account {
+        position: sticky;
+        top: 24px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .pet-passport-edit .ico {
+        transition: none;
+    }
+}
+
+/* ─────────────────────── 반려동물 등록 · 정보 수정 ─────────────────────── */
+.pet-editor-page {
+    min-height: 100vh;
+    min-height: 100dvh;
+    background:
+        radial-gradient(circle at 92% 8%, rgba(34, 164, 92, 0.08), transparent 18rem),
+        #f7f5f1;
+}
+
+.pet-editor-topbar {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: rgba(255, 255, 255, 0.94);
+    backdrop-filter: blur(14px);
+}
+
+.pet-editor {
+    width: min(100%, 900px);
+    margin: 0 auto;
+    padding: 24px 20px 48px;
+}
+
+.pet-editor-intro {
+    position: relative;
+    overflow: hidden;
+    min-height: 250px;
+    padding: 26px 24px;
+    display: grid;
+    grid-template-columns: 92px minmax(0, 1fr);
+    align-items: center;
+    gap: 22px;
+    border-radius: 26px 26px 26px 9px;
+    background:
+        radial-gradient(circle at 115% -10%, rgba(255, 255, 255, 0.2) 0 29%, transparent 29.4%),
+        linear-gradient(145deg, #12683a, var(--green));
+    color: #fff;
+    box-shadow: 0 20px 45px rgba(22, 104, 58, 0.17);
+}
+
+.pet-editor-intro::after {
+    content: "";
+    position: absolute;
+    right: -58px;
+    bottom: -74px;
+    width: 180px;
+    height: 180px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 50%;
+    box-shadow: 0 0 0 28px rgba(255, 255, 255, 0.035);
+}
+
+.pet-editor-intro.is-edit {
+    background:
+        radial-gradient(circle at 115% -10%, rgba(255, 255, 255, 0.21) 0 29%, transparent 29.4%),
+        linear-gradient(145deg, #8a4c12, #e3932a);
+    box-shadow: 0 20px 45px rgba(138, 76, 18, 0.16);
+}
+
+.pet-editor-portrait,
+.pet-editor-intro > div {
+    position: relative;
+    z-index: 2;
+}
+
+.pet-editor-portrait {
+    width: 92px;
+    height: 112px;
+    display: grid;
+    place-items: center;
+    border: 4px solid rgba(255, 255, 255, 0.35);
+    border-radius: 26px 26px 8px 26px;
+    background: #f5f1e8;
+    color: var(--green);
+    box-shadow: 0 17px 32px rgba(20, 62, 36, 0.24);
+    transform: rotate(-3deg);
+}
+
+.is-edit .pet-editor-portrait {
+    color: #c7781b;
+}
+
+.pet-editor-portrait > .ico:first-child {
+    font-size: 40px;
+}
+
+.pet-editor-portrait > i {
+    position: absolute;
+    right: -8px;
+    bottom: -8px;
+    width: 34px;
+    height: 34px;
+    display: grid;
+    place-items: center;
+    border: 4px solid var(--green);
+    border-radius: 50%;
+    background: #fff;
+    color: var(--green);
+    font-size: 17px;
+    font-style: normal;
+}
+
+.is-edit .pet-editor-portrait > i {
+    border-color: #d78321;
+    color: #c7781b;
+}
+
+.pet-editor-kicker {
+    color: #c7f7d9;
+    font-size: 9px;
+    font-weight: 900;
+    letter-spacing: 0.15em;
+}
+
+.is-edit .pet-editor-kicker {
+    color: #ffedcd;
+}
+
+.pet-editor-intro h2 {
+    margin: 8px 0 9px;
+    color: #fff;
+    font-size: clamp(26px, 7.2vw, 35px);
+    line-height: 1.15;
+    letter-spacing: -0.055em;
+}
+
+.pet-editor-intro p {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 11px;
+    line-height: 1.55;
+}
+
+.pet-editor-fields {
+    margin-top: 16px;
+    padding: 26px 18px 20px;
+    border: 1px solid rgba(17, 24, 39, 0.05);
+    border-radius: 26px;
+    background: #fff;
+    box-shadow: 0 16px 42px rgba(53, 63, 56, 0.07);
+}
+
+.pet-editor-fields .field > label,
+.pet-editor-fields .field-label {
+    margin-bottom: 9px;
+    font-size: 12px;
+}
+
+.pet-editor-fields .req {
+    margin-left: 3px;
+    color: var(--danger);
+    font-size: 9px;
+    font-weight: 800;
+}
+
+.pet-editor-fields .opt {
+    margin-left: 3px;
+    color: var(--muted);
+    font-size: 9px;
+    font-weight: 600;
+}
+
+.pet-editor-name .control {
+    height: 58px;
+    font-size: 18px;
+    font-weight: 800;
+}
+
+.pet-editor-fieldset {
+    min-width: 0;
+    padding: 0;
+    border: 0;
+}
+
+.pet-size-choices {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.pet-size-choices .choice span {
+    min-height: 96px;
+    padding: 12px 4px;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.pet-size-choices .ico {
+    margin-bottom: 2px;
+    color: var(--faint);
+    font-size: 23px;
+}
+
+.pet-size-choices b {
+    font-size: 12px;
+}
+
+.pet-size-choices small {
+    color: var(--muted);
+    font-size: 8.5px;
+    font-weight: 600;
+}
+
+.pet-size-choices input:checked + span .ico,
+.pet-size-choices input:checked + span small {
+    color: var(--green);
+}
+
+.pet-editor-split {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.pet-unit-control {
+    position: relative;
+    display: block;
+}
+
+.pet-unit-control .control {
+    padding-right: 42px;
+}
+
+.pet-unit-control > span {
+    position: absolute;
+    top: 50%;
+    right: 15px;
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 700;
+    transform: translateY(-50%);
+    pointer-events: none;
+}
+
+.pet-sex-choices .choice span {
+    min-height: 48px;
+}
+
+.pet-toggle {
+    position: relative;
+    margin: 3px 0 22px;
+    padding: 16px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 42px;
+    align-items: center;
+    gap: 15px;
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    cursor: pointer;
+}
+
+.pet-toggle input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.pet-toggle > span {
+    display: grid;
+    gap: 3px;
+}
+
+.pet-toggle strong {
+    color: var(--ink);
+    font-size: 12px;
+}
+
+.pet-toggle small {
+    color: var(--muted);
+    font-size: 9.5px;
+}
+
+.pet-toggle > i {
+    position: relative;
+    width: 42px;
+    height: 24px;
+    border-radius: var(--r-pill);
+    background: #d5d8d6;
+    transition: background 160ms ease;
+}
+
+.pet-toggle > i::after {
+    content: "";
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.16);
+    transition: transform 160ms ease;
+}
+
+.pet-toggle input:checked ~ i {
+    background: var(--green);
+}
+
+.pet-toggle input:checked ~ i::after {
+    transform: translateX(18px);
+}
+
+.pet-toggle input:focus-visible ~ i {
+    box-shadow: 0 0 0 3px rgba(34, 164, 92, 0.2);
+}
+
+.pet-memo {
+    min-height: 130px;
+    line-height: 1.6;
+}
+
+.pet-editor-fields .field-hint {
+    font-size: 10px;
+    line-height: 1.5;
+}
+
+.pet-editor-actions {
+    display: grid;
+    grid-template-columns: 0.75fr 1.25fr;
+    gap: 9px;
+}
+
+.pet-editor-actions .btn {
+    min-height: 52px;
+}
+
+.pet-danger-link {
+    margin: 20px auto 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    color: #b34b4b;
+    font-size: 10px;
+    font-weight: 700;
+}
+
+.pet-danger-link:hover {
+    color: #8e2f2f;
+}
+
+.pet-danger-link .ico {
+    font-size: 16px;
+}
+
+@media (min-width: 700px) {
+    .pet-editor {
+        padding: 36px 32px 64px;
+    }
+
+    .pet-editor-intro {
+        min-height: 280px;
+        padding: 38px;
+        grid-template-columns: 112px minmax(0, 1fr);
+        gap: 30px;
+    }
+
+    .pet-editor-portrait {
+        width: 112px;
+        height: 138px;
+    }
+
+    .pet-editor-intro h2 {
+        font-size: 38px;
+    }
+
+    .pet-editor-intro p {
+        max-width: 390px;
+        font-size: 12.5px;
+    }
+
+    .pet-editor-fields {
+        padding: 34px 32px 28px;
+    }
+}
+
+@media (min-width: 1024px) {
+    .pet-editor {
+        padding-top: 44px;
+        display: grid;
+        grid-template-columns: 300px minmax(0, 1fr);
+        align-items: start;
+        gap: 22px;
+    }
+
+    .pet-editor-intro {
+        position: sticky;
+        top: 112px;
+        min-height: 470px;
+        padding: 40px 30px;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        justify-content: center;
+    }
+
+    .pet-editor-portrait {
+        width: 120px;
+        height: 148px;
+    }
+
+    .pet-editor-intro h2 {
+        margin-top: 15px;
+        font-size: 37px;
+    }
+
+    .pet-editor-fields {
+        margin-top: 0;
+        padding: 38px 36px 30px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .pet-toggle > i,
+    .pet-toggle > i::after {
+        transition: none;
+    }
+}
+
+/* ─────────────────────── 반려동물 삭제 확인 ─────────────────────── */
+.pet-delete-page {
+    min-height: 100vh;
+    min-height: 100dvh;
+    background:
+        radial-gradient(circle at 9% 10%, rgba(179, 75, 75, 0.08), transparent 16rem),
+        #f8f5f1;
+}
+
+.pet-delete-topbar {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: rgba(255, 255, 255, 0.94);
+    backdrop-filter: blur(14px);
+}
+
+.pet-delete-card {
+    width: min(100% - 40px, 520px);
+    margin: 24px auto 48px;
+    padding: 34px 20px 20px;
+    text-align: center;
+    border: 1px solid rgba(179, 75, 75, 0.12);
+    border-radius: 28px 28px 28px 10px;
+    background: #fff;
+    box-shadow: 0 18px 50px rgba(84, 46, 46, 0.1);
+}
+
+.pet-delete-symbol {
+    width: 76px;
+    height: 76px;
+    margin: 0 auto 19px;
+    display: grid;
+    place-items: center;
+    border: 1px solid #f0cccc;
+    border-radius: 25px 25px 25px 8px;
+    background: #fff1f0;
+    color: #b34b4b;
+    transform: rotate(-4deg);
+}
+
+.pet-delete-symbol .ico {
+    font-size: 34px;
+}
+
+.pet-delete-kicker {
+    color: #b34b4b;
+    font-size: 9px;
+    font-weight: 900;
+    letter-spacing: 0.15em;
+}
+
+.pet-delete-card h2 {
+    margin: 11px 0 13px;
+    color: var(--ink-strong);
+    font-size: clamp(28px, 8vw, 39px);
+    line-height: 1.16;
+    letter-spacing: -0.06em;
+}
+
+.pet-delete-card h2 strong {
+    color: #b34b4b;
+}
+
+.pet-delete-lead {
+    max-width: 300px;
+    margin: 0 auto;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+.pet-delete-profile {
+    margin-top: 25px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-align: left;
+    border: 1px solid var(--line-soft);
+    border-radius: var(--r-md);
+    background: #fcfdfc;
+}
+
+.pet-delete-avatar {
+    width: 48px;
+    height: 54px;
+    display: grid;
+    place-items: center;
+    border-radius: 15px 15px 6px 15px;
+    background: var(--green-soft);
+    color: var(--green);
+}
+
+.pet-delete-avatar .ico {
+    font-size: 25px;
+}
+
+.pet-delete-profile > div {
+    display: grid;
+    gap: 4px;
+}
+
+.pet-delete-profile strong {
+    color: var(--ink);
+    font-size: 15px;
+}
+
+.pet-delete-profile > div > span {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--muted);
+    font-size: 10px;
+}
+
+.pet-delete-profile i {
+    color: var(--faint);
+    font-style: normal;
+}
+
+.pet-delete-notice {
+    margin-top: 10px;
+    padding: 14px;
+    display: flex;
+    align-items: flex-start;
+    gap: 9px;
+    text-align: left;
+    border-radius: var(--r-md);
+    background: #fff8ed;
+    color: #a76424;
+}
+
+.pet-delete-notice > .ico {
+    margin-top: 2px;
+    font-size: 18px;
+}
+
+.pet-delete-notice p {
+    margin: 0;
+    font-size: 10px;
+    line-height: 1.55;
+}
+
+.pet-delete-notice strong {
+    display: block;
+    margin-bottom: 3px;
+    color: #9b5618;
+    font-size: 11px;
+}
+
+.pet-delete-actions {
+    margin-top: 20px;
+    display: grid;
+    grid-template-columns: 0.8fr 1.2fr;
+    gap: 9px;
+}
+
+.pet-delete-actions .btn {
+    min-height: 52px;
+}
+
+@media (min-width: 700px) {
+    .pet-delete-card {
+        margin-top: 52px;
+        padding: 50px 44px 28px;
+    }
+
+    .pet-delete-symbol {
+        width: 88px;
+        height: 88px;
+    }
+
+    .pet-delete-profile {
+        margin-top: 30px;
+    }
+}
