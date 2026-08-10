@@ -47,13 +47,18 @@
     </select>
 
     <update id="updatePet">
-    UPDATE pets
-    SET name = #{name}, size = #{size},
-        weight = #{weight}, is_neutered = #{isNeutered},
-        memo = #{memo}
-
-    WHERE id = #{petId}
-        AND user_id = #{userId}
+        UPDATE pets
+        SET name = #{name},
+            birth_year = #{birthYear},
+            sex = #{sex},
+            size = #{size},
+            weight = #{weight},
+            is_neutered = #{isNeutered},
+            memo = #{memo}
+        WHERE id = #{petId}
+          AND user_id = #{userId}
+          <!-- 이미 삭제된 반려동물은 되살아나지 않는다. getDetail·deletePet 과 같은 조건. -->
+          AND deleted_at IS NULL
     </update>
 
     <select id="getDetail"
