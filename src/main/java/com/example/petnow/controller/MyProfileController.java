@@ -41,7 +41,7 @@ public class MyProfileController {
 
     // 회원탈퇴 , 페이지 생성 후 버튼, form 연결 필요
     @PostMapping("/withdraw")
-    public String withdrqw(HttpSession session) {
+    public String withdraw(HttpSession session) {
 
         Long userId = (Long) session.getAttribute(SessionConst.LOGIN_USER_ID);
 
