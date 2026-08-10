@@ -138,9 +138,17 @@ public class ReservationServiceImpl implements ReservationService {
 	private BigDecimal calculateTotalPrice(Place place, String reservationType, LocalDateTime checkIn, LocalDateTime checkOut) {
 		BigDecimal totalPrice;
 		if ("당일".equals(reservationType)) {
+			BigDecimal hourlyPrice = place.getHourlyPrice();
+			if (hourlyPrice == null) {
+				throw new BusinessException(ReservationErrorCode.HOURLY_PRICE_NOT_SET);
+			}
 			long totalHours = Duration.between(checkIn, checkOut).toHours();
 			totalPrice = place.getHourlyPrice().multiply(BigDecimal.valueOf(totalHours));
 		} else {
+			BigDecimal nightlyPrice = place.getNightlyPrice();
+			if (nightlyPrice == null) {
+				throw new BusinessException(ReservationErrorCode.NIGHTLY_PRICE_NOT_SET);
+			}
 			long totalDays = ChronoUnit.DAYS.between(checkIn.toLocalDate(), checkOut.toLocalDate());
 			totalPrice = place.getNightlyPrice().multiply(BigDecimal.valueOf(totalDays));
 		}
