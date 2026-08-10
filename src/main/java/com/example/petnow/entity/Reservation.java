@@ -19,6 +19,10 @@ import lombok.Setter;
 @AllArgsConstructor
 public class Reservation {
 
+	private static final String RESERVATION_NUMBER_PREFIX = "PN";
+	private static final String RESERVATION_NUMBER_DATE_PATTERN = "yyyyMMdd";
+	private static final int RANDOM_CODE_LENGTH = 8;
+
 	private Long id;
 	private Long userId;
 	private Long placeId;
@@ -38,10 +42,9 @@ public class Reservation {
 	private List<Pet> pets;
 
 	public static String createReservationNo() {
-		String prefix = "PN";
-		String dateStr = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-		String randomCode = UUID.randomUUID().toString().substring(0,8).toUpperCase();
+		String dateStr = LocalDateTime.now().format(DateTimeFormatter.ofPattern(RESERVATION_NUMBER_DATE_PATTERN));
+		String randomCode = UUID.randomUUID().toString().substring(0, RANDOM_CODE_LENGTH).toUpperCase();
 
-		return String.format("%s-%s-%s", prefix, dateStr, randomCode);
+		return String.format("%s-%s-%s", RESERVATION_NUMBER_PREFIX, dateStr, randomCode);
 	}
 }

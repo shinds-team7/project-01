@@ -39,6 +39,9 @@ application-local.properties
 # docker-compose secrets
 .env
 
+# 개인 로컬 환경용 compose 오버라이드 (포트 충돌 회피 등). 커밋 금지
+docker-compose.override.yml
+
 ### STS ###
 .apt_generated
 .classpath

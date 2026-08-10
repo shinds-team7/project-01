@@ -82,7 +82,7 @@
         WHERE r.id = #{reservationId}
     </select>
 
-    <select id="findById" resultType="com.example.petnow.entity.Reservation">
+    <select id="findById" resultMap="ReservationDetailMap">
         SELECT * FROM reservations WHERE id = #{reservationId}
     </select>
 
@@ -116,4 +116,11 @@
         </where>
         ORDER BY r.check_in_at DESC
     </select>
+
+    <update id="cancelReservation">
+        UPDATE reservations
+        SET status='CANCELED', updated_at=CURRENT_TIMESTAMP
+        WHERE id = #{reservationId} AND
+        status != 'CANCELED'
+    </update>
 </mapper>

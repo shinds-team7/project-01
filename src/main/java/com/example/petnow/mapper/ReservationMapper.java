@@ -25,4 +25,6 @@ public interface ReservationMapper {
 	ReservationDetailResponse detailReservation(Long reservationId);
 
 	Reservation findById(Long reservationId);
+
+	int cancelReservation(@Param("reservationId") Long reservationId);
 }

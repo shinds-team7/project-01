@@ -10,7 +10,9 @@ import com.example.petnow.dto.response.ReservationDetailResponse;
 public interface ReservationService {
 	String saveReservation(ReservationRequest request, Long userId);
 
-	ReservationDetailResponse detailReservation(Long reservationId);
+	ReservationDetailResponse detailReservation(Long reservationId, Long userId);
 
 	List<ReservationListResponse> getReservationList(Long userId, String useStatus);
+
+	void cancelReservation(Long reservationId, Long userId);
 }

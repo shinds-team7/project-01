@@ -11,7 +11,7 @@
 <form th:action="@{/pet/update}" method="post">
 
     <!-- 수정할 반려동물 ID -->
-    <input type="hidden" name="petId" th:value="${pet.petId}">
+    <input type="hidden" name="petId" th:value="${petId}">
 
     <p>
         이름<br>
@@ -21,9 +21,9 @@
     <p>
         크기<br>
         <select name="size">
-            <option value="SMALL" th:selected="${pet.size == 'SMALL'}">소형견</option>
-            <option value="MEDIUM" th:selected="${pet.size == 'MEDIUM'}">중형견</option>
-            <option value="LARGE" th:selected="${pet.size == 'LARGE'}">대형견</option>
+            <option value="SMALL" th:selected="${pet.size?.name() == 'SMALL'}">소형견</option>
+            <option value="MEDIUM" th:selected="${pet.size?.name() == 'MEDIUM'}">중형견</option>
+            <option value="LARGE" th:selected="${pet.size?.name() == 'LARGE'}">대형견</option>
         </select>
     </p>
 
@@ -69,7 +69,7 @@
     <p>
         <label>
             <input type="checkbox"
-                   name="neutered"
+                   name="isNeutered"
                    th:checked="${pet.isNeutered}">
             중성화 완료
         </label>
