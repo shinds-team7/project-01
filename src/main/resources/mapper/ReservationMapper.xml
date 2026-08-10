@@ -147,12 +147,12 @@
     <update id="approveReservation">
         UPDATE reservations
         SET status='CONFIRMED', responded_at=CURRENT_TIMESTAMP
-        WHERE id = #{reservationId}
+        WHERE id = #{reservationId} AND status='PENDING'
     </update>
 
     <update id="rejectReservation">
         UPDATE reservations
         SET status='CANCELED', responded_at=CURRENT_TIMESTAMP
-        WHERE id = #{reservationId}
+        WHERE id = #{reservationId} AND status='PENDING'
     </update>
 </mapper>
