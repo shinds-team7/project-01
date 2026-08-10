@@ -4,7 +4,6 @@ import com.example.petnow.common.constant.SessionConst;
 import com.example.petnow.common.session.LoginSession;
 import com.example.petnow.dto.response.MyProfileResponse;
 import com.example.petnow.service.MyProfileService;
-import com.example.petnow.service.MyProfileServiceImpl;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
@@ -18,7 +17,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @RequiredArgsConstructor
 public class MyProfileController {
 
-    private final MyProfileServiceImpl myProfileServiceImpl;
     private final MyProfileService myProfileService;
 
     @GetMapping("/profile")
@@ -30,7 +28,7 @@ public class MyProfileController {
             return "redirect:/auth/login";
         }
 
-        MyProfileResponse profile = myProfileServiceImpl.getProfile(userId);
+        MyProfileResponse profile = myProfileService.getProfile(userId);
 
         model.addAttribute("profile", profile);
 
