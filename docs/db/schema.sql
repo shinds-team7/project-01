@@ -113,6 +113,7 @@ CREATE TABLE pet_photos (
 CREATE TABLE places (
     id                      BIGINT         NOT NULL AUTO_INCREMENT,
     host_user_id            BIGINT         NOT NULL,
+    host_user_nickname      VARCHAR(50)    NOT NULL COMMENT '호스트 닉네임(등록 시점 스냅샷)',
     name                    VARCHAR(100)   NOT NULL,
     description             TEXT           NULL,
     place_type              ENUM('APARTMENT', 'HOUSE', 'OFFICETEL') NULL,
