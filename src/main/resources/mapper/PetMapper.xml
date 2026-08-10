@@ -78,6 +78,7 @@
         UPDATE pets
         SET deleted_at = NOW()
         WHERE id = #{petId}
+        AND user_id = #{userId}
         AND deleted_at IS NULL
     </update>
 
