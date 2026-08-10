@@ -68,8 +68,11 @@
 
     <p>
         <label>
+            <input type="hidden" name="isNeutered" value="false">
+
             <input type="checkbox"
-                   name="neutered"
+                   name="isNeutered"
+                   value="true"
                    th:checked="${pet.isNeutered}">
             중성화 완료
         </label>
