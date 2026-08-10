@@ -1,0 +1,29 @@
+<!-- 프로필 상세 조회 기능 Test -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>내 정보</title>
+</head>
+
+<body>
+    <table border="1">
+        <thead>
+        <tr>
+            <th>이메일</th>
+            <th>닉네임</th>
+            <th>전화번호</th>
+        </tr>
+        </thead>
+
+        <tbody>
+        <tr>
+            <td th:text="${profile.email}">이메일</td>
+            <td th:text="${profile.nickname}">닉네임</td>
+            <td th:text="${profile.phone}">전화번호</td>
+        </tr>
+        </tbody>
+    </table>
+</body>
+</html>

@@ -23,7 +23,7 @@ public class MyProfileController {
 
     @GetMapping("/profile")
     // 프로필 상세 조회
-    public String getProgile(HttpSession session, Model model) {
+    public String getProfile(HttpSession session, Model model) {
         Long userId = (Long) session.getAttribute(SessionConst.LOGIN_USER_ID);
 
         if(userId == null) {
