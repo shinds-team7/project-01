@@ -35,6 +35,8 @@ public class ReservationServiceImpl implements ReservationService {
 	private final PlaceMapper placeMapper;
 	private final PetMapper petMapper;
 
+	private static final long MIN_RESERVATION_MINUTES = 60;
+
 	@Override
 	@Transactional
 	public String saveReservation(ReservationRequest request, Long userId) {
@@ -46,6 +48,10 @@ public class ReservationServiceImpl implements ReservationService {
 		if (request.getCheckOut().isBefore(request.getCheckIn())
 			|| request.getCheckOut().isEqual(request.getCheckIn())) {
 			throw new BusinessException(ReservationErrorCode.INVALID_RESERVATION_PERIOD);
+		}
+
+		if (Duration.between(request.getCheckIn(), request.getCheckOut()).toMinutes() < MIN_RESERVATION_MINUTES) {
+			throw new BusinessException(ReservationErrorCode.RESERVATION_TOO_SHORT);
 		}
 
 		List<PetListResponse> myPets = petMapper.getPetList(userId);
