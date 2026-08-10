@@ -6,4 +6,6 @@ public interface MyProfileService {
 
     MyProfileResponse getProfile(Long userId);
 
+    void withdraw(Long userID);
+
 }
