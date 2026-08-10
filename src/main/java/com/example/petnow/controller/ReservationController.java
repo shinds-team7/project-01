@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.example.petnow.common.constant.SessionConst;
 import com.example.petnow.dto.request.ReservationCancelRequest;
@@ -39,18 +40,29 @@ public class ReservationController {
 
 	@PostMapping("/create")
 	public String saveReservation(@Valid @ModelAttribute ReservationRequest request,
-		BindingResult bindingResult, HttpSession session, Model model) {
+		BindingResult bindingResult, HttpSession session, Model model, RedirectAttributes redirectAttributes) {
+		Long userId = (Long) session.getAttribute(SessionConst.LOGIN_USER_ID);
+		if (userId == null) {
+			return "redirect:/";
+		}
+
 		if (bindingResult.hasErrors()) {
 			Place place = placeMapper.findById(request.getPlaceId());
 			model.addAttribute("place", place);
 			return "booking-request";
 		}
-		Long userId = (Long) session.getAttribute(SessionConst.LOGIN_USER_ID);
-		if (userId == null) {
-			return "redirect:/";
+
+		String reservationNo = reservationService.saveReservation(request, userId);
+		redirectAttributes.addFlashAttribute("reservationNo", reservationNo);
+		return "redirect:/reservation/success";
+	}
+
+	@GetMapping("/success")
+	public String success(Model model) {
+		if (!model.containsAttribute("reservationNo")) {
+			return "redirect:/reservation/list";
 		}
-		reservationService.saveReservation(request, userId);
-		return "redirect:/reservation/list";
+		return "reservations/success";
 	}
 
 	@GetMapping("/booking-request")
