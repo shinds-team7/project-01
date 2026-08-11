@@ -74,6 +74,10 @@ public class HostController {
             return "redirect:/";
         }
 
+        if (!tab.equals("booking") && !tab.equals("reviews") && !tab.equals("places")) {
+            tab = "places";
+        }
+
         model.addAttribute("tab", tab);
         model.addAttribute("places", hostService.getPlacesByUserId(loginUserId));
 
