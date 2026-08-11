@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
 @RequestMapping("/host")
@@ -65,14 +66,17 @@ public class HostController {
     }
 
     @GetMapping
-    public String list(Model model, HttpSession session) {
+    public String dashboard(@RequestParam(defaultValue = "places") String tab,
+                            Model model,
+                            HttpSession session) {
         Long loginUserId = (Long) session.getAttribute(SessionConst.LOGIN_USER_ID);
         if (loginUserId == null) {
             return "redirect:/";
         }
 
+        model.addAttribute("tab", tab);
         model.addAttribute("places", hostService.getPlacesByUserId(loginUserId));
 
-        return "host/manage";
+        return "host/dashboard";
     }
 }
