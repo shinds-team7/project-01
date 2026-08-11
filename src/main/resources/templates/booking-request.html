@@ -1,98 +1,111 @@
 <!DOCTYPE html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#22a45c">
-    <title>예약 요청 | Pet NOW</title>
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-    <link rel="alternate icon" href="/favicon.ico">
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-    <link rel="preconnect" href="https://cdn.jsdelivr.net">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
-    <link rel="stylesheet" href="../static/css/pet-now.css" th:href="@{/css/pet-now.css}">
-    <link rel="stylesheet" href="../static/css/host-place.css" th:href="@{/css/host-place.css}">
-    <link rel="stylesheet" href="../static/css/app-flow.css" th:href="@{/css/app-flow.css}">
-    <script defer src="../static/js/app-flow.js" th:src="@{/js/app-flow.js}"></script>
-</head>
-<body class="flow-page">
-<a class="skip-link" href="#main-content">본문으로 바로가기</a>
+<!--/*
+  예약 요청 = 프로토타입의 "BOOKING REQUEST" 화면.
 
-<header class="site-header is-scrolled" data-header>
-    <div class="header-inner">
-        <a class="brand" href="/places" aria-label="Pet NOW 홈">
-            <span class="brand-mark material-symbols-rounded" aria-hidden="true">pets</span>
-            <span>Pet <b>NOW</b></span>
-        </a>
-        <div class="header-actions">
-            <a class="profile-button" href="/mypage" aria-label="마이페이지">
-                <span class="profile-avatar">지</span>
-                <span class="profile-copy"><small>반가워요</small><strong>지우 보호자님</strong></span>
-            </a>
-        </div>
-    </div>
-</header>
+  이식 전에는 폼이 없고 하단 버튼이 매핑 없는 /places/{id}/payment 를 가리켜
+  404 로 끝났다. 지금은 실제로 있는 POST /reservation/create 로 보낸다.
+  (프로토타입의 결제 화면은 서버가 없어 건너뛴다 — payment.html 주석 참고)
 
-<main id="main-content" class="flow-shell">
-    <div class="flow-topbar">
-        <a class="flow-back" th:href="@{/places/{id}(id=${place.id})}" aria-label="뒤로 가기">
-            <span class="material-symbols-rounded" aria-hidden="true">arrow_back_ios_new</span>
+  ReservationRequest 가 요구하는 값
+    placeId  hidden
+    petIds   ${pets} 체크박스. 컨트롤러가 아직 pets 를 모델에 넣지 않는다.
+    checkIn / checkOut  datetime-local (ISO_LOCAL_DATE_TIME 으로 그대로 바인딩된다)
+    memo     선택
+
+  검증 실패로 되돌아올 때 컨트롤러가 place 를 다시 담아주므로 화면은 그대로 그려진다.
+  이때만 모델에 reservationRequest 가 있어 필드 에러를 띄울 수 있다.
+*/-->
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/base :: page('예약 요청', 'none', ~{::main})}">
+<body>
+<main id="main-content" class="app-main no-nav has-cta">
+    <div class="topbar">
+        <a class="topbar-back" th:href="@{/places/{id}(id=${place.id})}" aria-label="뒤로 가기">
+            <span class="ico" aria-hidden="true">arrow_back_ios_new</span>
         </a>
         <h1>예약 요청</h1>
     </div>
 
-    <div class="summary-card">
-        <div class="media-placeholder"><span class="material-symbols-rounded" aria-hidden="true">weekend</span></div>
-        <div class="summary-body">
-            <span class="summary-tag" th:text="${place.placeType.label + ' · ' + place.areaSize + '평'}">단독주택 · 42평</span>
-            <strong th:text="${place.name}">성수 조용한 단독주택 마당</strong>
-            <small th:text="${place.hostUserNickname}">김도윤 안심 가디언</small>
-        </div>
-    </div>
+    <form th:action="@{/reservation/create}" method="post">
+        <input type="hidden" name="placeId" th:value="${place.id}">
 
-    <div class="flow-section">
-        <div class="schedule-split">
-            <div>
-                <small>인계일 (체크인)</small>
-                <strong>8월 9일</strong>
-                <span>시간 13:00</span>
+        <div class="screen">
+            <div th:if="${reservationRequest != null}" th:object="${reservationRequest}">
+                <div class="notice notice-danger" role="alert" th:if="${#fields.hasAnyErrors()}">
+                    <span class="ico" aria-hidden="true">error</span>
+                    <span th:each="err : ${#fields.allErrors()}" th:text="${err}">입력값을 확인해주세요.</span>
+                </div>
             </div>
-            <div>
-                <small>귀가일 (체크아웃)</small>
-                <strong>8월 9일</strong>
-                <span>시간 18:00</span>
+
+            <div class="summary-row">
+                <div class="media">
+                    <span class="ico" aria-hidden="true">weekend</span>
+                </div>
+                <div class="summary-copy">
+                    <span class="badge badge-warn" th:if="${place.placeType != null}"
+                          th:text="${place.placeType.label}">단독주택</span>
+                    <strong th:text="${place.name}">성수 조용한 단독주택 마당</strong>
+                    <small th:text="${place.hostUserNickname}">김도윤 호스트</small>
+                </div>
             </div>
-        </div>
-    </div>
 
-    <div class="flow-section">
-        <p class="flow-section-title">반려견 프로필<button type="button" class="link-action" data-pending-feature="반려견 변경">변경하기</button></p>
-        <div class="pet-row">
-            <span class="avatar"><span class="material-symbols-rounded" aria-hidden="true">pets</span></span>
-            <span class="who">
-                <strong>초코</strong>
-                <small>푸들 · 6kg · 소형</small>
-            </span>
-            <span class="material-symbols-rounded is-check" aria-hidden="true">check_circle</span>
-        </div>
-    </div>
+            <div class="schedule-split">
+                <div>
+                    <label for="checkIn"><small>인계일 (체크인)</small></label>
+                    <input class="control" id="checkIn" name="checkIn" type="datetime-local" required
+                           th:value="${reservationRequest?.checkIn}">
+                </div>
+                <div>
+                    <label for="checkOut"><small>귀가일 (체크아웃)</small></label>
+                    <input class="control" id="checkOut" name="checkOut" type="datetime-local" required
+                           th:value="${reservationRequest?.checkOut}">
+                </div>
+            </div>
 
-    <div class="flow-section">
-        <p class="flow-section-title">호스트에게 요청 메시지</p>
-        <textarea class="control" rows="4" placeholder="분리불안이 조금 있어요. 자주 확인 부탁드립니다 🐾"></textarea>
-    </div>
+            <div class="section-head">
+                <h2 class="section-title">반려견 프로필</h2>
+                <a class="section-more" th:href="@{/mypage}">변경하기</a>
+            </div>
+
+            <div class="pet-picks" th:if="${pets != null and !#lists.isEmpty(pets)}">
+                <label class="pet-pick" th:each="pet : ${pets}">
+                    <input type="checkbox" name="petIds" th:value="${pet.id}">
+                    <span class="person-row">
+                        <span class="avatar"><span class="ico" aria-hidden="true">pets</span></span>
+                        <span class="person-copy">
+                            <strong th:text="${pet.name}">초코</strong>
+                            <small th:text="${pet.size != null ? pet.size.label : ''} + (${pet.weight != null} ? ' · ' + ${pet.weight} + 'kg' : '')">소형 · 6kg</small>
+                        </span>
+                        <span class="ico is-check" aria-hidden="true">check_circle</span>
+                    </span>
+                </label>
+            </div>
+
+            <!--/*
+              컨트롤러가 pets 를 모델에 담기 전까지는 이 안내가 대신 나온다.
+              petIds 는 @NotEmpty 라 선택 없이 보내면 검증에서 막힌다.
+            */-->
+            <div class="notice" th:unless="${pets != null and !#lists.isEmpty(pets)}">
+                <span class="ico" aria-hidden="true">pets</span>
+                <span>맡길 반려동물을 먼저 등록해주세요. <a th:href="@{/pet/new}">반려동물 등록하기</a></span>
+            </div>
+
+            <h2 class="section-title">호스트에게 요청 메시지</h2>
+            <textarea class="control" name="memo" rows="4"
+                      placeholder="분리불안이 조금 있어요. 자주 확인 부탁드립니다 🐾"
+                      th:text="${reservationRequest?.memo}"></textarea>
+        </div>
+
+        <div class="cta-bar no-nav">
+            <div class="cta-copy">
+                <p class="cta-price" th:if="${place.hourlyPrice != null}"
+                   th:text="${#numbers.formatInteger(place.hourlyPrice, 0, 'COMMA')} + '원'">12,000원</p>
+                <p class="cta-price" th:if="${place.hourlyPrice == null}">가격 문의</p>
+                <small class="cta-note">시간당 요금 · 총액은 이용 시간에 따라 정해져요</small>
+            </div>
+            <button class="btn btn-dark" type="submit">예약 요청하기</button>
+        </div>
+    </form>
 </main>
-
-<div class="sticky-footer">
-    <div class="footer-price">
-        <strong><span th:text="${#numbers.formatInteger(place.hourlyPrice * 5 + 3000, 0, 'COMMA')}">63,000</span>원</strong>
-        <small>5시간 · 시간당 <span th:text="${#numbers.formatInteger(place.hourlyPrice, 0, 'COMMA')}">12,000</span>원</small>
-    </div>
-    <a class="flow-cta" th:href="@{/places/{id}/payment(id=${place.id})}">결제하기</a>
-</div>
-
-<div class="toast" data-toast role="status" aria-live="polite" aria-atomic="true"></div>
 </body>
 </html>

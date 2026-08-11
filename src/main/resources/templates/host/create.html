@@ -1,265 +1,163 @@
 <!DOCTYPE html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#22a45c">
-    <title>돌봄 공간 등록 | Pet NOW</title>
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-    <link rel="alternate icon" href="/favicon.ico">
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-    <link rel="preconnect" href="https://cdn.jsdelivr.net">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
-    <link rel="stylesheet" href="../../static/css/pet-now.css" th:href="@{/css/pet-now.css}">
-    <link rel="stylesheet" href="../../static/css/host-place.css" th:href="@{/css/host-place.css}">
-    <script defer src="../../static/js/host-place.js" th:src="@{/js/host-place.js}"></script>
-</head>
-<body class="host-place-page">
-<a class="skip-link" href="#place-form">등록 양식으로 바로가기</a>
+<!--/*
+  게시글 작성 = 프로토타입의 "HOST POST CREATE" 화면.
 
-<header class="site-header is-scrolled host-header">
-    <div class="header-inner host-header-inner">
-        <a class="brand" href="/places" aria-label="Pet NOW 홈">
-            <span class="brand-mark material-symbols-rounded" aria-hidden="true">pets</span>
-            <span>Pet <b>NOW</b></span>
+  프로토타입에는 있지만 PlaceCreateRequest 에 없어 옮기지 않은 것 (#182 의 함정 1)
+    대표 썸네일 · 주소(도로명주소 API) · 요금 임시저장 · 가능한 일정 캘린더 · 고정 휴무
+  전부 서버 모델과 저장 로직이 먼저 있어야 해서 화면만 앞서 만들면 빈 껍데기가 된다.
+
+  반대로 프로토타입에 없지만 develop 에 있는 것은 그대로 지켰다 (#182 의 함정 2)
+    placeType 라디오는 컨트롤러가 넘기는 ${placeTypes} 로 그리고,
+    모든 입력은 th:field 로 placeCreateRequest 에 바인딩된 채 검증 에러를 표시한다.
+
+  기타 옵션 토글은 체크박스 형제 선택자로만 동작해 별도 스크립트가 필요 없다.
+*/-->
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/base :: page('게시글 작성', 'none', ~{::main})}">
+<body>
+<main id="main-content" class="app-main no-nav">
+    <div class="topbar has-line">
+        <a class="topbar-back" th:href="@{/host}" aria-label="내 호스팅 장소로 돌아가기">
+            <span class="ico" aria-hidden="true">arrow_back_ios_new</span>
         </a>
-        <span class="host-center-label"><i aria-hidden="true"></i> 호스트 센터</span>
-        <nav class="desktop-nav host-nav" aria-label="주요 메뉴">
-            <a href="/places">펫시터 찾기</a>
-            <a href="/places#care">안심 돌봄</a>
-            <a href="/places#how-it-works">이용 방법</a>
-        </nav>
-        <div class="header-actions">
-            <span class="save-status" data-save-status><i aria-hidden="true"></i> 브라우저에서 입력 중</span>
-            <button type="button" data-exit-form><span class="material-symbols-rounded" aria-hidden="true">close</span><span>나가기</span></button>
-        </div>
+        <h1>게시글 작성</h1>
     </div>
-</header>
 
-<div class="mobile-progress" aria-hidden="true"><span data-mobile-progress></span></div>
+    <form th:action="@{/host}" th:object="${placeCreateRequest}" method="post">
+        <div class="screen">
+            <p class="field-hint" style="margin-top:14px">정성껏 돌볼 수 있는 공간을 소개해주세요.</p>
 
-<main class="host-layout">
-    <aside class="journey-card" aria-label="장소 등록 단계">
-        <div class="journey-stamp" aria-hidden="true">
-            <span class="material-symbols-rounded">home_and_garden</span>
-            <i>HOST</i>
+            <div class="notice notice-danger" role="alert" th:if="${#fields.hasAnyErrors()}">
+                <span class="ico" aria-hidden="true">error</span>
+                <span>입력하지 않았거나 형식이 맞지 않는 항목이 있어요.</span>
+            </div>
+
+            <h2 class="section-title">장소명</h2>
+            <div class="field">
+                <label class="sr-only" for="name">장소명</label>
+                <input class="control" id="name" type="text" th:field="*{name}" th:errorclass="has-error"
+                       maxlength="100" placeholder="예) 성수 조용한 단독주택 마당" required>
+                <p class="field-hint">동네와 공간의 매력이 드러나는 이름이면 더 좋아요.</p>
+                <p class="field-error" th:errors="*{name}"></p>
+            </div>
+
+            <h2 class="section-title">소개글 <span class="req">*</span></h2>
+            <div class="field">
+                <label class="sr-only" for="description">소개글</label>
+                <textarea class="control" id="description" th:field="*{description}" th:errorclass="has-error"
+                          rows="5" required
+                          placeholder="집의 분위기, 아이들이 쉴 공간, 평소 돌봄 방식과 주변 산책 환경을 알려주세요."></textarea>
+                <p class="field-error" th:errors="*{description}"></p>
+            </div>
+
+            <h2 class="section-title">수용 조건 <span class="req">*</span></h2>
+
+            <fieldset class="field host-fieldset">
+                <legend>주거 형태</legend>
+                <div class="choice-row type-choices" style="margin-top:8px">
+                    <label class="choice" th:each="type : ${placeTypes}">
+                        <input type="radio" th:field="*{placeType}" th:value="${type}" required>
+                        <span>
+                            <i class="ico" aria-hidden="true"
+                               th:text="${type.name() == 'APARTMENT' ? 'apartment'
+                                        : (type.name() == 'HOUSE' ? 'home' : 'domain')}">home</i>
+                            <b th:text="${type.label}">주택</b>
+                            <small th:text="${type.name() == 'APARTMENT' ? '공동 출입 공간'
+                                             : (type.name() == 'HOUSE' ? '독립된 생활 공간' : '도심형 주거 공간')}">독립된 생활 공간</small>
+                        </span>
+                    </label>
+                </div>
+                <p class="field-error" th:errors="*{placeType}"></p>
+            </fieldset>
+
+            <div class="field-split">
+                <div class="field">
+                    <label class="field-label" for="areaSize">평수 <span class="req">*</span></label>
+                    <div class="unit-control">
+                        <input id="areaSize" type="number" min="1" max="500" step="1" inputmode="numeric"
+                               th:field="*{areaSize}" placeholder="32" required>
+                        <span>평</span>
+                    </div>
+                    <p class="field-error" th:errors="*{areaSize}"></p>
+                </div>
+                <div class="field">
+                    <label class="field-label" for="capacity">최대 수용 <span class="req">*</span></label>
+                    <div class="unit-control">
+                        <input id="capacity" type="number" min="1" max="20" step="1" inputmode="numeric"
+                               th:field="*{capacity}" placeholder="2" required>
+                        <span>마리</span>
+                    </div>
+                    <p class="field-error" th:errors="*{capacity}"></p>
+                </div>
+            </div>
+
+            <h2 class="section-title">서비스 옵션 <span class="opt">선택</span></h2>
+
+            <fieldset class="field host-fieldset">
+                <legend>수용 가능한 아이</legend>
+                <div class="option-grid">
+                    <label><input type="checkbox" th:field="*{allowsSmallDog}"><span>소형견 (10kg 미만)</span></label>
+                    <label><input type="checkbox" th:field="*{allowsMediumDog}"><span>중형견 (10–25kg)</span></label>
+                    <label><input type="checkbox" th:field="*{allowsLargeDog}"><span>대형견 (25kg 이상)</span></label>
+                </div>
+            </fieldset>
+
+            <fieldset class="field host-fieldset">
+                <legend>제공 서비스</legend>
+                <div class="option-grid">
+                    <label><input type="checkbox" th:field="*{providesHomeCamera}"><span>홈 카메라</span></label>
+                    <label><input type="checkbox" th:field="*{providesRealtimePhoto}"><span>실시간 사진</span></label>
+                    <label><input type="checkbox" th:field="*{providesYard}"><span>마당</span></label>
+                    <label><input type="checkbox" th:field="*{providesWalk}"><span>산책</span></label>
+                </div>
+            </fieldset>
+
+            <div class="other-option field">
+                <input type="checkbox" th:field="*{otherOptionsEnabled}">
+                <label class="switch-row" for="otherOptionsEnabled">
+                    <span>
+                        <strong>그 밖의 특별한 돌봄이 있나요?</strong>
+                        <small>투약, 노령견 케어처럼 직접 설명할 수 있어요.</small>
+                    </span>
+                    <i aria-hidden="true"></i>
+                </label>
+                <div class="reveal-field">
+                    <label class="sr-only" for="otherOptions">기타 돌봄 옵션</label>
+                    <input class="control" id="otherOptions" type="text" th:field="*{otherOptions}"
+                           placeholder="예) 노령견 투약 케어 가능">
+                </div>
+            </div>
+
+            <h2 class="section-title">요금 <span class="req">*</span></h2>
+            <div class="field-split">
+                <div class="field">
+                    <label class="field-label" for="hourlyPrice">시간당</label>
+                    <div class="unit-control">
+                        <input id="hourlyPrice" type="number" min="1" max="10000000" step="1" inputmode="numeric"
+                               th:field="*{hourlyPrice}" placeholder="12000" required>
+                        <span>원</span>
+                    </div>
+                    <p class="field-error" th:errors="*{hourlyPrice}"></p>
+                </div>
+                <div class="field">
+                    <label class="field-label" for="nightlyPrice">1박</label>
+                    <div class="unit-control">
+                        <input id="nightlyPrice" type="number" min="1" max="10000000" step="1" inputmode="numeric"
+                               th:field="*{nightlyPrice}" placeholder="48000" required>
+                        <span>원</span>
+                    </div>
+                    <p class="field-error" th:errors="*{nightlyPrice}"></p>
+                </div>
+            </div>
+
+            <div class="notice">
+                <span class="ico" aria-hidden="true">shield_with_heart</span>
+                <span>등록한 정보는 운영팀 확인 후 검색 결과에 공개됩니다.</span>
+            </div>
+
+            <button class="btn btn-primary btn-block" type="submit" style="margin-top:24px">게시글 등록</button>
         </div>
-        <p class="eyebrow">PLACE NOTE</p>
-        <h1>아이들이 머물<br>공간의 이야기를<br>들려주세요.</h1>
-        <p class="journey-copy">정확한 정보일수록 보호자가 안심하고 호스트님의 공간을 선택할 수 있어요.</p>
-
-        <ol class="journey-steps">
-            <li class="is-current" data-step-indicator="identity"><span>01</span><p><strong>공간 소개</strong><small>이름과 특징</small></p><i class="material-symbols-rounded">check</i></li>
-            <li data-step-indicator="condition"><span>02</span><p><strong>수용 조건</strong><small>주거 형태와 규모</small></p><i class="material-symbols-rounded">check</i></li>
-            <li data-step-indicator="service"><span>03</span><p><strong>돌봄 옵션</strong><small>제공 가능한 서비스</small></p><i class="material-symbols-rounded">check</i></li>
-            <li data-step-indicator="price"><span>04</span><p><strong>요금 안내</strong><small>시간·숙박 요금</small></p><i class="material-symbols-rounded">check</i></li>
-        </ol>
-
-        <div class="safety-note">
-            <span class="material-symbols-rounded" aria-hidden="true">shield_with_heart</span>
-            <p><strong>등록 후 운영팀이 확인해요</strong><small>공간 정보는 검토가 끝난 뒤 검색 결과에 공개됩니다.</small></p>
-        </div>
-    </aside>
-
-    <section class="form-stage">
-        <div class="form-intro">
-            <p class="eyebrow">BECOME A HOST</p>
-            <h2>우리 집의 좋은 리듬을<br>반려가족과 나눠보세요.</h2>
-            <p>필수 항목은 <i>*</i>로 표시되어 있어요. 작성에는 약 4분이 걸립니다.</p>
-        </div>
-
-        <form id="place-form" th:action="@{/host}" th:object="${placeCreateRequest}" method="post" data-place-form>
-            <section class="form-section" id="identity" data-form-section="identity" aria-labelledby="identity-title">
-                <div class="section-number">01</div>
-                <div class="section-content">
-                    <div class="section-heading">
-                        <div><p class="eyebrow">FIRST IMPRESSION</p><h3 id="identity-title">공간을 소개해주세요.</h3></div>
-                        <span>필수 2개</span>
-                    </div>
-
-                    <div class="field">
-                        <div class="field-label">
-                            <label for="name">장소 이름 <i>*</i></label>
-                            <span><b data-name-count>0</b>/100</span>
-                        </div>
-                        <input class="control" id="name" type="text" th:field="*{name}" th:errorclass="has-error"
-                               maxlength="100" autocomplete="organization"
-                               placeholder="예) 햇살이 오래 머무는 연남 단독주택" required data-count-name>
-                        <p class="field-hint">동네와 공간의 매력이 드러나는 이름이면 더 좋아요.</p>
-                        <p class="field-error" th:errors="*{name}"></p>
-                    </div>
-
-                    <div class="field">
-                        <div class="field-label">
-                            <label for="description">공간 소개 <i>*</i></label>
-                            <span><b data-description-count>0</b>자</span>
-                        </div>
-                        <textarea class="control" id="description" th:field="*{description}" th:errorclass="has-error"
-                                  rows="7" placeholder="집의 분위기, 아이들이 쉴 공간, 평소 돌봄 방식과 주변 산책 환경을 차근차근 알려주세요."
-                                  required data-count-description></textarea>
-                        <div class="writing-prompts" aria-label="소개글 작성 도움말">
-                            <span><i class="material-symbols-rounded" aria-hidden="true">light_mode</i> 채광과 분위기</span>
-                            <span><i class="material-symbols-rounded" aria-hidden="true">pets</i> 돌봄 경험</span>
-                            <span><i class="material-symbols-rounded" aria-hidden="true">directions_walk</i> 주변 산책 환경</span>
-                        </div>
-                        <p class="field-error" th:errors="*{description}"></p>
-                    </div>
-                </div>
-            </section>
-
-            <section class="form-section" id="condition" data-form-section="condition" aria-labelledby="condition-title">
-                <div class="section-number">02</div>
-                <div class="section-content">
-                    <div class="section-heading">
-                        <div><p class="eyebrow">SPACE &amp; SCALE</p><h3 id="condition-title">어떤 공간에서 돌보나요?</h3></div>
-                        <span>필수 3개</span>
-                    </div>
-
-                    <fieldset class="field">
-                        <legend class="field-label"><span>주거 형태 <i>*</i></span></legend>
-                        <div class="place-type-grid">
-                            <label class="type-card" th:each="type : ${placeTypes}">
-                                <input type="radio" th:field="*{placeType}" th:value="${type}" required>
-                                <span>
-                                    <i class="material-symbols-rounded" aria-hidden="true"
-                                       th:text="${type.name() == 'APARTMENT' ? 'apartment' : (type.name() == 'HOUSE' ? 'home' : 'domain')}">home</i>
-                                    <strong th:text="${type.name() == 'APARTMENT' ? '아파트' : (type.name() == 'HOUSE' ? '단독주택' : '오피스텔')}">단독주택</strong>
-                                    <small th:text="${type.name() == 'APARTMENT' ? '공동 출입 공간' : (type.name() == 'HOUSE' ? '독립된 생활 공간' : '도심형 주거 공간')}">독립된 생활 공간</small>
-                                </span>
-                            </label>
-                        </div>
-                        <p class="field-error" th:errors="*{placeType}"></p>
-                    </fieldset>
-
-                    <div class="split-fields">
-                        <div class="field">
-                            <label class="field-label" for="areaSize"><span>공간 면적 <i>*</i></span></label>
-                            <div class="unit-control">
-                                <input id="areaSize" type="number" min="1" max="500" step="1" th:field="*{areaSize}"
-                                       placeholder="32" inputmode="decimal" required>
-                                <span>평</span>
-                            </div>
-                            <p class="field-hint">아이들이 실제로 생활할 수 있는 면적</p>
-                            <p class="field-error" th:errors="*{areaSize}"></p>
-                        </div>
-                        <div class="field">
-                            <label class="field-label" for="capacity"><span>최대 수용 <i>*</i></span></label>
-                            <div class="unit-control">
-                                <input id="capacity" type="number" min="1" max="20" step="1" th:field="*{capacity}"
-                                       placeholder="2" inputmode="numeric" required>
-                                <span>마리</span>
-                            </div>
-                            <p class="field-hint">동시에 안전하게 돌볼 수 있는 수</p>
-                            <p class="field-error" th:errors="*{capacity}"></p>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <section class="form-section" id="service" data-form-section="service" aria-labelledby="service-title">
-                <div class="section-number">03</div>
-                <div class="section-content">
-                    <div class="section-heading">
-                        <div><p class="eyebrow">CARE DETAILS</p><h3 id="service-title">가능한 돌봄을 골라주세요.</h3></div>
-                        <span>복수 선택</span>
-                    </div>
-
-                    <div class="option-groups">
-                        <fieldset>
-                            <legend>수용 가능한 아이</legend>
-                            <div class="option-grid">
-                                <label><input type="checkbox" th:field="*{allowsSmallDog}"><span><i class="material-symbols-rounded">cruelty_free</i><strong>소형견</strong><small>10kg 미만</small></span></label>
-                                <label><input type="checkbox" th:field="*{allowsMediumDog}"><span><i class="material-symbols-rounded">pets</i><strong>중형견</strong><small>10–25kg</small></span></label>
-                                <label><input type="checkbox" th:field="*{allowsLargeDog}"><span><i class="material-symbols-rounded">sound_detection_dog_barking</i><strong>대형견</strong><small>25kg 이상</small></span></label>
-                            </div>
-                        </fieldset>
-                        <fieldset>
-                            <legend>제공 서비스</legend>
-                            <div class="option-grid option-grid-wide">
-                                <label><input type="checkbox" th:field="*{providesHomeCamera}"><span><i class="material-symbols-rounded">videocam</i><strong>홈캠</strong><small>보호자 확인 가능</small></span></label>
-                                <label><input type="checkbox" th:field="*{providesRealtimePhoto}"><span><i class="material-symbols-rounded">add_a_photo</i><strong>실시간 사진</strong><small>돌봄 소식 전송</small></span></label>
-                                <label><input type="checkbox" th:field="*{providesYard}"><span><i class="material-symbols-rounded">yard</i><strong>마당</strong><small>야외 활동 공간</small></span></label>
-                                <label><input type="checkbox" th:field="*{providesWalk}"><span><i class="material-symbols-rounded">directions_walk</i><strong>산책</strong><small>일정에 맞춰 제공</small></span></label>
-                            </div>
-                        </fieldset>
-                    </div>
-
-                    <div class="other-option">
-                        <label class="switch-row">
-                            <span><strong>그 밖의 특별한 돌봄이 있나요?</strong><small>투약, 노령견 케어처럼 직접 설명할 수 있어요.</small></span>
-                            <input id="otherOptionsEnabled" type="checkbox" th:field="*{otherOptionsEnabled}" data-other-toggle>
-                            <i aria-hidden="true"></i>
-                        </label>
-                        <div class="other-option-field" th:classappend="*{otherOptionsEnabled} ? ' is-visible'" data-other-field>
-                            <label class="sr-only" for="otherOptions">기타 돌봄 옵션</label>
-                            <input class="control" id="otherOptions" type="text" th:field="*{otherOptions}"
-                                   placeholder="예) 노령견 투약과 식사 보조가 가능해요" data-other-input>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <section class="form-section" id="price" data-form-section="price" aria-labelledby="price-title">
-                <div class="section-number">04</div>
-                <div class="section-content">
-                    <div class="section-heading">
-                        <div><p class="eyebrow">CARE FEE</p><h3 id="price-title">돌봄 요금을 알려주세요.</h3></div>
-                        <span>필수 2개</span>
-                    </div>
-
-                    <div class="price-guide">
-                        <span class="material-symbols-rounded" aria-hidden="true">tips_and_updates</span>
-                        <p><strong>처음 등록한다면</strong><small>비슷한 공간의 평균은 시간당 12,000원, 1박 48,000원이에요.</small></p>
-                    </div>
-
-                    <div class="split-fields">
-                        <div class="field price-field">
-                            <label class="field-label" for="hourlyPrice"><span>시간당 요금 <i>*</i></span></label>
-                            <div class="unit-control">
-                                <input id="hourlyPrice" type="number" min="1" max="10000000" step="1"
-                                       th:field="*{hourlyPrice}" placeholder="12000" inputmode="numeric" required>
-                                <span>원 / 시간</span>
-                            </div>
-                            <p class="field-error" th:errors="*{hourlyPrice}"></p>
-                        </div>
-                        <div class="field price-field">
-                            <label class="field-label" for="nightlyPrice"><span>1박 요금 <i>*</i></span></label>
-                            <div class="unit-control">
-                                <input id="nightlyPrice" type="number" min="1" max="10000000" step="1"
-                                       th:field="*{nightlyPrice}" placeholder="48000" inputmode="numeric" required>
-                                <span>원 / 1박</span>
-                            </div>
-                            <p class="field-error" th:errors="*{nightlyPrice}"></p>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <footer class="form-submit">
-                <div>
-                    <span class="material-symbols-rounded" aria-hidden="true">verified_user</span>
-                    <p><strong>입력한 정보는 등록 전 다시 확인할 수 있어요.</strong><small>제출 후 운영팀 검토에는 영업일 기준 1–2일이 걸립니다.</small></p>
-                </div>
-                <button type="submit" data-submit-button>
-                    <span>장소 등록 신청</span>
-                    <i class="material-symbols-rounded" aria-hidden="true">arrow_forward</i>
-                </button>
-            </footer>
-        </form>
-    </section>
+    </form>
 </main>
-
-<dialog class="exit-dialog" data-exit-dialog aria-labelledby="exit-title">
-    <div>
-        <span class="material-symbols-rounded" aria-hidden="true">edit_note</span>
-        <h2 id="exit-title">작성을 그만할까요?</h2>
-        <p>아직 임시 저장 기능이 없어 입력한 내용이 사라질 수 있어요.</p>
-        <div><button type="button" data-stay-form>계속 작성</button><a href="/places">나가기</a></div>
-    </div>
-</dialog>
-
-<div class="form-toast" data-form-toast role="status" aria-live="polite" aria-atomic="true"></div>
 </body>
 </html>

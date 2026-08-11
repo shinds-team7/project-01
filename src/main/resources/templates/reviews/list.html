@@ -1,169 +1,86 @@
 <!DOCTYPE html>
 <!--/*
-  ============================================================================
-  내 리뷰 내역 (REVIEWS)  —  PET NOW 프로토타입 660~690행 이식
-  ============================================================================
+  리뷰 목록 = 프로토타입의 "REVIEWS" 화면.
 
-  [화면 개요]
-  로그인한 사용자가 지금까지 쓴 리뷰를 모아 보고, 각 리뷰를 수정하거나 삭제하는 화면입니다.
-  마이페이지의 "내 리뷰" 탭은 요약만 보여주므로, 관리 동작은 이 화면이 맡습니다.
+  한 템플릿이 두 곳에서 쓰인다.
+    GET /reviews/my            → 내가 쓴 리뷰. 모델에 placeId 가 없다.
+    GET /reviews/place/{id}    → 장소별 리뷰. 모델에 placeId 가 있다.
+  수정·삭제는 내 리뷰일 때만 의미가 있어 placeId 가 없을 때만 그린다.
 
-  [왜 이 화면이 필요한가]
-  ReviewController.createReview() 가 리뷰 저장 후 redirect:/reviews 로 보내는데
-  GET /reviews 매핑이 아직 없습니다. 이 템플릿이 그 도착지입니다.
+  ⚠ 수정·삭제가 부르는 GET /reviews/{id}/edit · POST /reviews/{id}/delete 는
+    ReviewController 에 아직 없다. 이식 전에도 없던 링크라 그대로 두었다.
 
-  [Model 속성 계약]
-
-    reviews : List<?>  내가 쓴 리뷰 목록. 최신순 정렬을 권장합니다.
-    deleteError : String (선택) 삭제 실패 시 상단에 띄울 문구. 없으면 표시하지 않습니다.
-
-  [reviews 원소가 가져야 할 필드]
-    id           Long           리뷰 ID. reviews.id
-    placeId      Long           장소 ID. 장소명 클릭 시 /places/{placeId} 로 이동
-    placeName    String         장소명. places.name
-    stayInfo     String         돌봄 정보 한 줄. 예) "7월 18일 · 1박 · 초코"
-                                reservations + pets 조인이 필요합니다.
-                                아직 조인이 어렵다면 빈 문자열을 주세요. 해당 줄이 숨겨집니다.
-    rating       Integer        별점 1~5. reviews.rating
-    content      String         리뷰 본문. reviews.content (NULL 허용)
-    createdAt    LocalDateTime  작성 일시. reviews.created_at
-
-  [이 화면이 서버로 보내는 요청]
-    수정하기 : GET  /reviews/{id}/edit     → 리뷰 수정 폼
-    삭제하기 : POST /reviews/{id}/delete   → 삭제 후 redirect:/reviews 권장
-
-  삭제는 되돌릴 수 없어 form 전송 전에 확인 단계를 거칩니다(reviews.css 의 .confirm-pop).
-  JS 없이 details/summary 로만 구현했으므로 별도 스크립트가 필요 없습니다.
-
-  [주의]
-  - reviews 테이블에는 soft delete 용 deleted_at 컬럼이 있습니다.
-    삭제 처리 시 물리 삭제 대신 deleted_at 갱신을 권장합니다(V4__create_review_tables.sql).
-  - reviews 는 reservation_id 에 UNIQUE 제약이 있어 예약당 리뷰는 1건입니다.
-    따라서 목록에 같은 예약이 두 번 나올 수 없습니다.
+  [reviews 원소가 쓰는 필드] ReviewResponse
+    id · placeId · placeName · stayInfo · rating · content · createdAt
 */-->
-<html lang="ko" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#22a45c">
-    <title>내 리뷰 내역 | Pet NOW</title>
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-    <link rel="alternate icon" href="/favicon.ico">
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-    <link rel="preconnect" href="https://cdn.jsdelivr.net">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
-    <link rel="stylesheet" href="../../static/css/pet-now.css" th:href="@{/css/pet-now.css}">
-    <link rel="stylesheet" href="../../static/css/app-flow.css" th:href="@{/css/app-flow.css}">
-    <link rel="stylesheet" href="../../static/css/reviews.css" th:href="@{/css/reviews.css}">
-    <script defer src="../../static/js/app-flow.js" th:src="@{/js/app-flow.js}"></script>
-</head>
-<body class="flow-page">
-<a class="skip-link" href="#review-list">리뷰 목록으로 바로가기</a>
-
-<header class="site-header is-scrolled" data-header>
-    <div class="header-inner">
-        <a class="brand" href="/places" aria-label="Pet NOW 홈">
-            <span class="brand-mark material-symbols-rounded" aria-hidden="true">pets</span>
-            <span>Pet <b>NOW</b></span>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/base :: page(${placeId != null} ? '장소 리뷰' : '내 리뷰', 'my', ~{::main})}">
+<body>
+<main id="main-content" class="app-main">
+    <div class="topbar">
+        <a class="topbar-back" th:href="${placeId != null} ? @{/places/{id}(id=${placeId})} : @{/mypage}"
+           aria-label="뒤로 가기">
+            <span class="ico" aria-hidden="true">arrow_back_ios_new</span>
         </a>
-        <nav class="desktop-nav" aria-label="주요 메뉴">
-            <a href="/places#places">펫시터 찾기</a>
-            <a href="/places#care">안심 돌봄</a>
-            <a href="/places#how-it-works">이용 방법</a>
-        </nav>
-        <div class="header-actions">
-            <a class="profile-button" href="/mypage" aria-label="마이페이지">
-                <span class="profile-avatar">지</span>
-                <span class="profile-copy"><small>반가워요</small><strong>지우 보호자님</strong></span>
-            </a>
+        <h1 th:text="${placeId != null} ? '장소 리뷰' : '리뷰 내역'">리뷰 내역</h1>
+    </div>
+
+    <div class="screen">
+        <div class="notice notice-danger" role="alert" th:if="${deleteError}" th:text="${deleteError}"></div>
+
+        <div class="empty" th:if="${#lists.isEmpty(reviews)}">
+            <span class="ico" aria-hidden="true">rate_review</span>
+            <strong th:text="${placeId != null} ? '아직 등록된 리뷰가 없어요' : '아직 작성한 리뷰가 없어요'">아직 작성한 리뷰가 없어요</strong>
+            <p>돌봄이 끝난 예약에 후기를 남겨보세요.</p>
+            <a class="btn btn-primary" th:if="${placeId == null}" th:href="@{/reservation/list}">예약 내역 보러 가기</a>
         </div>
-    </div>
-</header>
 
-<main class="flow-shell">
-    <div class="flow-topbar">
-        <a class="flow-back" href="/mypage" aria-label="뒤로 가기">
-            <span class="material-symbols-rounded" aria-hidden="true">arrow_back_ios_new</span>
-        </a>
-        <div>
-            <h1>리뷰 내역</h1>
-            <small>내가 남긴 후기를 모아봤어요</small>
-        </div>
-    </div>
+        <ul class="my-review-list" th:unless="${#lists.isEmpty(reviews)}">
+            <li class="card-plain" th:each="review : ${reviews}">
+                <div class="my-review-top">
+                    <div class="media">
+                        <span class="ico" aria-hidden="true">weekend</span>
+                    </div>
+                    <div class="my-review-head">
+                        <a class="place-name" th:href="@{/places/{id}(id=${review.placeId})}"
+                           th:text="${review.placeName}">성수 조용한 단독주택 마당</a>
 
-    <!--/* 삭제 실패 등 서버에서 내려준 오류 메시지 자리 */-->
-    <p class="review-alert" th:if="${deleteError}" th:text="${deleteError}" role="alert"></p>
+                        <small th:if="${!#strings.isEmpty(review.stayInfo)}"
+                               th:text="${review.stayInfo}">7월 18일 · 1박 · 초코</small>
 
-    <!--/* 리뷰가 하나도 없을 때. 컨트롤러 연결 전에도 이 상태로 렌더링됩니다. */-->
-    <div class="flow-empty" th:if="${#lists.isEmpty(reviews)}">
-        <span class="material-symbols-rounded" aria-hidden="true">rate_review</span>
-        <p>아직 작성한 리뷰가 없어요.<br>돌봄이 끝난 예약에 후기를 남겨보세요.</p>
-        <a class="flow-cta is-green" href="/mypage#reservations">예약 내역 보러 가기</a>
-    </div>
+                        <small th:if="${review.createdAt != null}"
+                               th:text="${#temporals.format(review.createdAt, 'yyyy년 M월 d일')} + ' 작성'">2026년 7월 20일 작성</small>
 
-    <ul class="my-review-list" id="review-list" th:unless="${#lists.isEmpty(reviews)}">
-        <li class="my-review-card" th:each="review : ${reviews}">
-
-            <div class="my-review-top">
-                <div class="media-placeholder">
-                    <span class="material-symbols-rounded" aria-hidden="true">weekend</span>
+                        <p class="rating">
+                            <span class="ico" aria-hidden="true">star</span>
+                            <span th:text="${review.rating}">5</span>
+                            <span class="sr-only">점</span>
+                        </p>
+                    </div>
                 </div>
-                <div class="my-review-head">
-                    <a class="place-name" th:href="@{/places/{id}(id=${review.placeId})}" href="/places/1"
-                       th:text="${review.placeName}">성수 조용한 단독주택 마당</a>
 
-                    <small class="stay-info" th:if="${!#strings.isEmpty(review.stayInfo)}"
-                           th:text="${review.stayInfo}">7월 18일 · 1박 · 초코</small>
+                <p class="my-review-body" th:text="${review.content}">
+                    마당이 넓어서 우리 강아지가 정말 좋아했어요.
+                </p>
 
-                    <small class="written-at"
-                           th:text="${#temporals.format(review.createdAt, 'yyyy년 M월 d일')} + ' 작성'">2026년 7월 20일 작성</small>
+                <!--/* 내 리뷰 목록에서만 수정·삭제를 보여준다 */-->
+                <div class="card-actions" th:if="${placeId == null}">
+                    <a th:href="@{/reviews/{id}/edit(id=${review.id})}">수정하기</a>
 
-                    <p class="my-review-rating">
-                        <span class="material-symbols-rounded is-star" aria-hidden="true">star</span>
-                        <b th:text="${review.rating}">5</b>
-                        <span class="sr-only">점</span>
-                    </p>
-                </div>
-            </div>
-
-            <p class="my-review-body" th:text="${review.content}">
-                마당이 넓어서 우리 강아지가 정말 좋아했어요. 사진도 자주 보내주셔서 안심됐습니다.
-            </p>
-
-            <div class="my-review-actions">
-                <a class="review-action" th:href="@{/reviews/{id}/edit(id=${review.id})}" href="/reviews/1/edit">
-                    수정하기
-                </a>
-
-                <!--/*
-                  삭제 확인. details/summary 만으로 만들어 JS 의존이 없습니다.
-                  열면 아래에서 확인 문구와 실제 삭제 버튼이 나옵니다.
-                */-->
-                <details class="confirm-pop">
-                    <summary class="review-action is-danger">삭제하기</summary>
-                    <div class="confirm-body">
-                        <p>이 리뷰를 삭제할까요?<br>삭제한 리뷰는 되돌릴 수 없어요.</p>
-                        <div class="confirm-buttons">
+                    <!--/* 삭제 확인. details/summary 라 스크립트가 필요 없다. */-->
+                    <details class="confirm-pop">
+                        <summary>삭제하기</summary>
+                        <div class="confirm-body">
+                            <p>이 리뷰를 삭제할까요?<br>삭제한 리뷰는 되돌릴 수 없어요.</p>
                             <form th:action="@{/reviews/{id}/delete(id=${review.id})}" method="post">
-                                <button class="confirm-yes" type="submit">삭제</button>
+                                <button class="btn btn-danger" type="submit">삭제</button>
                             </form>
                         </div>
-                    </div>
-                </details>
-            </div>
-        </li>
-    </ul>
+                    </details>
+                </div>
+            </li>
+        </ul>
+    </div>
 </main>
-
-<nav class="mobile-nav" aria-label="모바일 메뉴">
-    <a href="/places#home"><span class="material-symbols-rounded" aria-hidden="true">home</span><small>홈</small></a>
-    <a href="/places#places"><span class="material-symbols-rounded" aria-hidden="true">search</span><small>검색</small></a>
-    <a href="/mypage#reservations"><span class="material-symbols-rounded" aria-hidden="true">calendar_month</span><small>예약</small></a>
-    <a href="/mypage"><span class="material-symbols-rounded" aria-hidden="true">person</span><small>마이</small></a>
-</nav>
-
-<div class="toast" data-toast role="status" aria-live="polite" aria-atomic="true"></div>
 </body>
 </html>

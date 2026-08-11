@@ -1,115 +1,107 @@
 <!DOCTYPE html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#22a45c">
-    <title>예약 내역 상세 | Pet NOW</title>
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-    <link rel="alternate icon" href="/favicon.ico">
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-    <link rel="preconnect" href="https://cdn.jsdelivr.net">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
-    <link rel="stylesheet" href="../static/css/pet-now.css" th:href="@{/css/pet-now.css}">
-    <link rel="stylesheet" href="../static/css/app-flow.css" th:href="@{/css/app-flow.css}">
-    <script defer src="../static/js/app-flow.js" th:src="@{/js/app-flow.js}"></script>
-</head>
-<body class="flow-page">
-<header class="site-header is-scrolled" data-header>
-    <div class="header-inner">
-        <a class="brand" href="/places" aria-label="Pet NOW 홈">
-            <span class="brand-mark material-symbols-rounded" aria-hidden="true">pets</span>
-            <span>Pet <b>NOW</b></span>
-        </a>
-        <div class="header-actions">
-            <a class="profile-button" href="/mypage" aria-label="마이페이지">
-                <span class="profile-avatar">지</span>
-                <span class="profile-copy"><small>반가워요</small><strong>지우 보호자님</strong></span>
-            </a>
-        </div>
-    </div>
-</header>
+<!--/*
+  예약 내역 상세 = 프로토타입의 "BOOKING DETAIL" 화면.
 
-<main class="flow-shell">
-    <div class="flow-topbar">
-        <a class="flow-back" href="/mypage#reservations" aria-label="뒤로 가기">
-            <span class="material-symbols-rounded" aria-hidden="true">arrow_back_ios_new</span>
+  ⚠ 매핑 없는 화면. 실제로 열리는 예약 상세는 reservations/reservationDetail.html 이고
+  GET /reservation/detail?reservationId=... 가 그걸 그린다.
+
+  이식하면서 예전에 쓰던 booking.* (statusColor·whenLabel·petLine 처럼 어디에도 없는 값)을
+  버리고, 실제로 내려오는 ReservationDetailResponse(=reservation) 에 맞췄다.
+  프로토타입에만 있는 결제 정보 블록은 결제 도메인이 없어 옮기지 않았다.
+
+  둘 중 하나로 정리하는 게 좋다.
+    (a) GET /reservation/detail 이 이 템플릿을 그리게 하고 reservationDetail.html 을 지운다
+    (b) 이 파일을 지우고 reservationDetail.html 에 취소 버튼만 옮긴다
+*/-->
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/base :: page('예약 내역 상세', 'none', ~{::main})}">
+<body>
+<main id="main-content" class="app-main no-nav">
+    <div class="topbar">
+        <a class="topbar-back" th:href="@{/reservation/list}" aria-label="예약 목록으로 돌아가기">
+            <span class="ico" aria-hidden="true">arrow_back_ios_new</span>
         </a>
         <h1>예약 내역 상세</h1>
     </div>
 
-    <div style="display:flex;align-items:center;justify-content:space-between;">
-        <strong style="font-size:20px;color:var(--ink-deep);font-weight:800;" th:text="${booking.status}">확정</strong>
-        <span style="font-size:12.5px;font-weight:700;padding:6px 12px;border-radius:8px;background:var(--pet-green-soft);"
-              th:style="'color:' + ${booking.statusColor} + ';'" th:text="${booking.status}">확정</span>
+    <div class="screen">
+        <div class="section-head">
+            <h2 class="section-title" style="margin:0"
+                th:text="${reservation.placeName}">성수 조용한 단독주택 마당</h2>
+            <span class="badge"
+                  th:classappend="${reservation.status?.name() == 'CONFIRMED' ? 'badge-green'
+                                  : (reservation.status?.name() == 'CANCELED' ? 'badge-danger' : 'badge-warn')}"
+                  th:text="${reservation.status?.name() == 'CONFIRMED' ? '예약 확정'
+                           : (reservation.status?.name() == 'CANCELED' ? '취소됨' : '승인 대기')}">승인 대기</span>
+        </div>
+
+        <div class="media" style="height:150px">
+            <span class="ico" aria-hidden="true">weekend</span>
+        </div>
+
+        <div class="block-gap"></div>
+
+        <h2 class="section-title">일정</h2>
+        <div class="info-rows">
+            <div class="info-row">
+                <span>맡기기</span>
+                <span th:text="${reservation.checkIn != null
+                                 ? #temporals.format(reservation.checkIn, 'yyyy.MM.dd (E) HH:mm')
+                                 : '일정 미정'}">2026.08.02 (토) 13:00</span>
+            </div>
+            <div class="info-row">
+                <span>데려오기</span>
+                <span th:text="${reservation.checkOut != null
+                                 ? #temporals.format(reservation.checkOut, 'yyyy.MM.dd (E) HH:mm')
+                                 : '일정 미정'}">2026.08.02 (토) 18:00</span>
+            </div>
+        </div>
+
+        <div class="block-gap"></div>
+
+        <h2 class="section-title">반려견 정보</h2>
+
+        <div class="empty" th:if="${#lists.isEmpty(reservation.pets)}">
+            <span class="ico" aria-hidden="true">pets</span>
+            <strong>등록된 동반 반려동물이 없어요</strong>
+        </div>
+
+        <div class="pet-picks" th:unless="${#lists.isEmpty(reservation.pets)}">
+            <div class="person-row is-tinted" th:each="pet : ${reservation.pets}">
+                <span class="avatar is-square"><span class="ico" aria-hidden="true">pets</span></span>
+                <span class="person-copy">
+                    <strong th:text="${pet.petName}">초코</strong>
+                    <small>
+                        <span th:text="${pet.size} ?: '크기 미입력'">소형</span>
+                        <th:block th:if="${pet.weight != null}">
+                            · <span th:text="${pet.weight} + 'kg'">6kg</span>
+                        </th:block>
+                    </small>
+                </span>
+            </div>
+        </div>
+
+        <div class="block-gap"></div>
+
+        <h2 class="section-title">예약 정보</h2>
+        <div class="info-rows">
+            <div class="info-row">
+                <span>예약번호</span>
+                <span th:text="${reservation.reservationNo}">PN-20260802-0001</span>
+            </div>
+            <div class="info-row">
+                <span>예약자 이름</span>
+                <span th:text="${reservation.userName}">김하늘</span>
+            </div>
+        </div>
+
+        <!--/* POST /reservation/cancel 은 ReservationCancelRequest(reservationId) 를 받는다 */-->
+        <form th:action="@{/reservation/cancel}" method="post"
+              th:if="${reservation.status?.name() != 'CANCELED'}">
+            <input type="hidden" name="reservationId" th:value="${reservation.reservationId}">
+            <button class="btn btn-danger btn-block" type="submit" style="margin-top:24px">예약 취소</button>
+        </form>
     </div>
-
-    <div class="media-placeholder" style="height:150px;border-radius:var(--radius-md);margin-top:16px;">
-        <span class="material-symbols-rounded" aria-hidden="true">weekend</span>
-    </div>
-    <strong style="display:block;margin-top:16px;color:var(--ink-deep);font-size:17px;font-weight:800;" th:text="${booking.placeName}">초코의 포근한 오후</strong>
-    <small style="display:block;margin-top:4px;color:var(--muted);font-size:12.5px;" th:text="${booking.region}">서울 마포구 연남동</small>
-
-    <div style="display:flex;gap:10px;margin-top:16px;">
-        <button type="button" class="link-action" data-pending-feature="주소 복사"
-                style="flex:1;border:1px solid var(--line);border-radius:12px;padding:13px;font-size:13.5px;font-weight:700;color:#374151;display:flex;align-items:center;justify-content:center;gap:6px;">
-            <span class="material-symbols-rounded" aria-hidden="true" style="font-size:17px;">content_copy</span>주소 복사</button>
-        <button type="button" class="link-action" data-pending-feature="호스트 문의"
-                style="flex:1;border:1px solid var(--line);border-radius:12px;padding:13px;font-size:13.5px;font-weight:700;color:#374151;display:flex;align-items:center;justify-content:center;gap:6px;">
-            <span class="material-symbols-rounded" aria-hidden="true" style="font-size:17px;">chat_bubble</span>호스트 문의</button>
-    </div>
-
-    <div class="flow-divider"></div>
-
-    <p class="flow-section-title">일정</p>
-    <div style="display:flex;gap:14px;font-size:13.5px;">
-        <span style="width:96px;flex:none;color:var(--muted);">이용 일시</span>
-        <span style="color:var(--ink);font-weight:600;" th:text="${booking.whenLabel}">2026.08.08 (토) 14:00 ~ 20:00</span>
-    </div>
-
-    <div class="flow-divider"></div>
-
-    <p class="flow-section-title">반려견 정보</p>
-    <div class="pet-row">
-        <span class="avatar"><span class="material-symbols-rounded" aria-hidden="true">pets</span></span>
-        <span class="who"><strong>반려견 정보</strong><small th:text="${booking.petLine}">초코 · 토이 푸들 · 4.2kg</small></span>
-    </div>
-
-    <div class="flow-divider"></div>
-
-    <p class="flow-section-title">예약 정보</p>
-    <div style="display:flex;gap:14px;font-size:13.5px;align-items:center;">
-        <span style="width:96px;flex:none;color:var(--muted);">예약번호</span>
-        <span style="color:var(--ink);font-weight:600;" th:text="${booking.reservationCode}">PN-20260808-0001</span>
-        <button type="button" class="link-action" data-pending-feature="예약번호 복사" style="color:var(--pet-green-dark);font-weight:700;">복사</button>
-    </div>
-
-    <div class="flow-divider"></div>
-
-    <div style="display:flex;align-items:center;justify-content:space-between;">
-        <p class="flow-section-title" style="margin:0;">결제 정보</p>
-        <button type="button" class="link-action" data-pending-feature="결제 증빙"
-                style="font-size:12px;font-weight:700;color:#374151;border:1px solid var(--line);border-radius:8px;padding:6px 10px;">결제 증빙 보기</button>
-    </div>
-    <div class="price-breakdown" style="border-top:0;margin-top:14px;">
-        <div class="row"><span>결제 일시</span><span th:text="${booking.paidAt}">2026.08.07 (금) 21:04</span></div>
-        <div class="row"><span>결제 수단</span><span th:text="${booking.payMethod}">토스페이</span></div>
-        <div class="row"><span>이용 요금</span><span th:text="${#numbers.formatInteger(booking.usageFee, 0, 'COMMA')} + '원'">60,000원</span></div>
-        <div class="row"><span>서비스 수수료</span><span th:text="${#numbers.formatInteger(booking.serviceFee, 0, 'COMMA')} + '원'">3,000원</span></div>
-    </div>
-    <div class="price-total">
-        <strong>실 결제 금액</strong>
-        <strong style="color:var(--danger);" th:text="${#numbers.formatInteger(booking.usageFee + booking.serviceFee, 0, 'COMMA')} + '원'">63,000원</strong>
-    </div>
-
-    <button type="button" class="flow-cta is-block" data-pending-feature="예약 취소" th:if="${booking.cancellable}"
-            style="margin-top:24px;background:#fdeced;color:var(--danger);border:1px solid #f2c3c4;">예약 취소</button>
-    <a class="flow-cta is-block" th:unless="${booking.cancellable}" th:href="@{/reviews/new(reservationId=${booking.id}, placeName=${booking.placeName})}"
-       style="margin-top:24px;">리뷰 쓰기</a>
 </main>
-
-<div class="toast" data-toast role="status" aria-live="polite" aria-atomic="true"></div>
 </body>
 </html>
