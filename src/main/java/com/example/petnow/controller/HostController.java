@@ -25,7 +25,8 @@ public class HostController {
 
     @GetMapping("/create")
     public String createForm(Model model, HttpSession session) {
-        Long loginUserId = (Long) session.getAttribute(SessionConst.LOGIN_USER_ID);
+        Long loginUserId = 1L;
+//        Long loginUserId = (Long) session.getAttribute(SessionConst.LOGIN_USER_ID);
         if (loginUserId == null) {
             return "redirect:/";
         }
@@ -41,7 +42,8 @@ public class HostController {
                          BindingResult bindingResult,
                          Model model,
                          HttpSession session) {
-        Long loginUserId = (Long) session.getAttribute(SessionConst.LOGIN_USER_ID);
+        Long loginUserId = 1L;
+//        Long loginUserId = (Long) session.getAttribute(SessionConst.LOGIN_USER_ID);
         if (loginUserId == null) {
             return "redirect:/";
         }
@@ -69,7 +71,8 @@ public class HostController {
     public String dashboard(@RequestParam(defaultValue = "places") String tab,
                             Model model,
                             HttpSession session) {
-        Long loginUserId = (Long) session.getAttribute(SessionConst.LOGIN_USER_ID);
+        Long loginUserId = 1L;
+//        Long loginUserId = (Long) session.getAttribute(SessionConst.LOGIN_USER_ID);
         if (loginUserId == null) {
             return "redirect:/";
         }
