@@ -1,91 +1,85 @@
 <!DOCTYPE html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#22a45c">
-    <title>결제 | Pet NOW</title>
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-    <link rel="alternate icon" href="/favicon.ico">
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-    <link rel="preconnect" href="https://cdn.jsdelivr.net">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
-    <link rel="stylesheet" href="../static/css/pet-now.css" th:href="@{/css/pet-now.css}">
-    <link rel="stylesheet" href="../static/css/app-flow.css" th:href="@{/css/app-flow.css}">
-    <script defer src="../static/js/app-flow.js" th:src="@{/js/app-flow.js}"></script>
-</head>
-<body class="flow-page">
-<a class="skip-link" href="#main-content">본문으로 바로가기</a>
+<!--/*
+  결제 = 프로토타입의 "PAYMENT" 화면.
 
-<header class="site-header is-scrolled" data-header>
-    <div class="header-inner">
-        <a class="brand" href="/places" aria-label="Pet NOW 홈">
-            <span class="brand-mark material-symbols-rounded" aria-hidden="true">pets</span>
-            <span>Pet <b>NOW</b></span>
-        </a>
-        <div class="header-actions">
-            <a class="profile-button" href="/mypage" aria-label="마이페이지">
-                <span class="profile-avatar">지</span>
-                <span class="profile-copy"><small>반가워요</small><strong>지우 보호자님</strong></span>
-            </a>
-        </div>
-    </div>
-</header>
+  ⚠ 이 화면에는 컨트롤러 매핑이 없다. 결제 도메인(PG 연동·결제 엔티티)이 아직 없어서
+  예약 플로우는 예약 요청 → POST /reservation/create → /reservation/success 로 곧장 간다.
+  프로토타입의 결제 단계를 살릴 때 쓰라고 마크업만 앱 셸로 옮겨 뒀다.
 
-<main id="main-content" class="flow-shell">
-    <div class="flow-topbar">
-        <a class="flow-back" th:href="@{/places/{id}/booking(id=${place.id})}" aria-label="뒤로 가기">
-            <span class="material-symbols-rounded" aria-hidden="true">arrow_back_ios_new</span>
+  살리려면 필요한 것
+    - GET  /reservation/payment?reservationId=... 매핑과 place·금액 모델
+    - POST 결제 승인 엔드포인트
+  모델이 없어도 깨지지 않도록 place 참조는 모두 안전 참조(?.)로 두었다.
+*/-->
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/base :: page('결제', 'none', ~{::main})}">
+<body>
+<main id="main-content" class="app-main no-nav has-cta">
+    <div class="topbar">
+        <a class="topbar-back" th:href="${place != null} ? @{/places/{id}(id=${place.id})} : @{/places}"
+           aria-label="뒤로 가기">
+            <span class="ico" aria-hidden="true">arrow_back_ios_new</span>
         </a>
         <h1>결제</h1>
     </div>
 
-    <div class="summary-card">
-        <div class="media-placeholder"><span class="material-symbols-rounded" aria-hidden="true">image</span></div>
-        <div class="summary-body">
-            <strong th:text="${place.name}">성수 조용한 단독주택 마당</strong>
-            <small>8월 9일 13:00-18:00 · 초코</small>
+    <div class="screen">
+        <div class="notice">
+            <span class="ico" aria-hidden="true">info</span>
+            <span>결제 연동 전 디자인 화면이에요. 실제 결제는 아직 동작하지 않습니다.</span>
+        </div>
+
+        <div class="summary-row is-boxed">
+            <div class="media">
+                <span class="ico" aria-hidden="true">image</span>
+            </div>
+            <div class="summary-copy">
+                <strong th:text="${place?.name} ?: '성수 조용한 단독주택 마당'">성수 조용한 단독주택 마당</strong>
+                <small th:text="${stayInfo} ?: '이용 일정과 반려견 정보가 들어갑니다'">이용 일정과 반려견 정보가 들어갑니다</small>
+            </div>
+        </div>
+
+        <h2 class="section-title">결제 수단</h2>
+        <div class="pay-methods">
+            <label class="pay-method">
+                <input type="radio" name="payMethod" value="toss" data-cta-label="토스로" checked>
+                <span>
+                    <span class="method-mark">t</span>
+                    <span class="method-name">토스페이 간편결제</span>
+                    <span class="ico method-check" aria-hidden="true">check_circle</span>
+                </span>
+            </label>
+            <label class="pay-method">
+                <input type="radio" name="payMethod" value="card" data-cta-label="카드로">
+                <span>
+                    <span class="method-mark is-card"><span class="ico" aria-hidden="true">credit_card</span></span>
+                    <span class="method-name">신용·체크카드</span>
+                    <span class="ico method-check" aria-hidden="true">check_circle</span>
+                </span>
+            </label>
+        </div>
+
+        <h2 class="section-title">결제 금액</h2>
+        <div class="info-rows">
+            <div class="info-row is-split">
+                <span>이용 요금</span>
+                <span th:text="${usageFee != null} ? ${#numbers.formatInteger(usageFee, 0, 'COMMA')} + '원' : '-'">-</span>
+            </div>
+            <div class="info-row is-split">
+                <span>서비스 수수료</span>
+                <span th:text="${serviceFee != null} ? ${#numbers.formatInteger(serviceFee, 0, 'COMMA')} + '원' : '-'">-</span>
+            </div>
+        </div>
+        <div class="info-total">
+            <span>총 결제금액</span>
+            <span class="amount"
+                  th:text="${totalPrice != null} ? ${#numbers.formatInteger(totalPrice, 0, 'COMMA')} + '원' : '-'">-</span>
         </div>
     </div>
 
-    <div class="flow-section">
-        <p class="flow-section-title">결제 수단</p>
-        <label class="pay-method">
-            <input type="radio" name="payMethod" value="toss" data-cta-label="토스로" checked>
-            <span class="method-mark">t</span>
-            <span class="method-name">토스페이 간편결제</span>
-            <span class="material-symbols-rounded method-check" aria-hidden="true">check_circle</span>
-        </label>
-        <label class="pay-method">
-            <input type="radio" name="payMethod" value="card" data-cta-label="카드로">
-            <span class="method-mark is-card"><span class="material-symbols-rounded" aria-hidden="true">credit_card</span></span>
-            <span class="method-name">신용·체크카드</span>
-            <span class="material-symbols-rounded method-check" aria-hidden="true">check_circle</span>
-        </label>
-    </div>
-
-    <div class="flow-section">
-        <p class="flow-section-title">결제 금액</p>
-        <div class="price-breakdown">
-            <div class="row"><span>이용 요금 (5시간)</span><span th:text="${#numbers.formatInteger(place.hourlyPrice * 5, 0, 'COMMA')} + '원'">60,000원</span></div>
-            <div class="row"><span>서비스 수수료</span><span>3,000원</span></div>
-        </div>
-        <div class="price-total">
-            <strong>총 결제금액</strong>
-            <strong th:text="${#numbers.formatInteger(place.hourlyPrice * 5 + 3000, 0, 'COMMA')} + '원'">63,000원</strong>
-        </div>
+    <div class="cta-bar no-nav">
+        <button class="btn btn-toss btn-block" type="button" disabled>결제하기</button>
     </div>
 </main>
-
-<div class="sticky-footer" style="flex-direction:column;align-items:stretch;gap:6px;">
-    <a class="flow-cta is-block is-toss" th:href="@{/places/{id}/booking/success(id=${place.id})}"
-       th:attr="data-pay-cta=${#numbers.formatInteger(place.hourlyPrice * 5 + 3000, 0, 'COMMA')}"
-       th:text="'토스로 ' + ${#numbers.formatInteger(place.hourlyPrice * 5 + 3000, 0, 'COMMA')} + '원 결제하기'">토스로 63,000원 결제하기</a>
-    <p class="flow-note" style="justify-content:center;"><span class="material-symbols-rounded" aria-hidden="true">info</span>디자인 미리보기예요. 실제 결제와 예약 저장은 아직 연결되지 않았어요.</p>
-</div>
-
-<div class="toast" data-toast role="status" aria-live="polite" aria-atomic="true"></div>
 </body>
 </html>

@@ -822,14 +822,17 @@ img {
     margin-bottom: 8px;
 }
 
-.field-label .opt {
+/* 제목·라벨 옆에 붙는 필수/선택 표시 */
+.opt {
     color: var(--muted-2);
+    font-size: 12px;
     font-weight: 600;
     margin-left: 4px;
 }
 
-.field-label .req {
+.req {
     color: var(--danger);
+    font-size: 12px;
     margin-left: 3px;
 }
 
@@ -2441,5 +2444,1733 @@ textarea.control {
 
     .pet-delete-profile {
         margin-top: 30px;
+    }
+}
+
+/* ═════════════════ 프로토타입 17화면 이식 (이슈 #183) ═════════════════ */
+
+/* ─────────────────────── 화면 공통 조각 ─────────────────────── */
+/* 섹션과 섹션 사이를 가르는 회색 띠. 프로토타입 예약/요청 상세에서 쓴다. */
+.block-gap {
+    height: 8px;
+    background: #f4f4f5;
+    margin: 22px -20px;
+}
+
+@media (min-width: 1024px) {
+    .block-gap {
+        margin-inline: -32px;
+    }
+}
+
+/* 라벨 + 값 한 줄. 일정·예약 정보처럼 정보를 나열하는 곳에 쓴다. */
+.info-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 14px;
+}
+
+.info-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13.5px;
+}
+
+.info-row > span:first-child {
+    flex: none;
+    width: 96px;
+    color: var(--muted);
+}
+
+.info-row > span + span {
+    color: var(--ink);
+    font-weight: 600;
+}
+
+/* 좌우로 벌리는 변형 — 금액 내역 */
+.info-row.is-split {
+    justify-content: space-between;
+}
+
+.info-row.is-split > span:first-child {
+    width: auto;
+}
+
+/* 합계 줄 */
+.info-total {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-top: 1px solid var(--line-faint);
+    margin-top: 16px;
+    padding-top: 16px;
+    font-weight: 800;
+    font-size: 16px;
+    color: var(--ink);
+}
+
+.info-total .amount {
+    font-size: 20px;
+}
+
+/* 썸네일 + 제목 요약 카드 (예약 요청·결제·리뷰 작성 상단) */
+.summary-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-top: 20px;
+}
+
+.summary-row .media {
+    width: 72px;
+    height: 72px;
+    flex: none;
+}
+
+.summary-row .media .ico {
+    font-size: 28px;
+}
+
+.summary-row .summary-copy {
+    min-width: 0;
+}
+
+.summary-row .summary-copy strong {
+    display: block;
+    font-weight: 800;
+    font-size: 15.5px;
+    color: var(--ink);
+    line-height: 1.35;
+}
+
+.summary-row .summary-copy small {
+    display: block;
+    margin-top: 5px;
+    font-size: 12.5px;
+    color: var(--muted);
+}
+
+.summary-row.is-boxed {
+    border: 1px solid var(--line-faint);
+    border-radius: var(--r-md);
+    padding: 14px;
+}
+
+.summary-row.is-tinted {
+    background: #f8f8f8;
+    border-radius: var(--r-md);
+    padding: 14px;
+}
+
+/* 아바타 + 이름 한 줄 (호스트 프로필, 예약자 정보, 반려견 카드) */
+.person-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.person-row .avatar {
+    flex: none;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--sand);
+    color: #b9b1a2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.person-row .avatar .ico {
+    font-size: 26px;
+    font-variation-settings: 'FILL' 1;
+}
+
+.person-row .avatar.is-square {
+    border-radius: var(--r-sm);
+}
+
+.person-row .avatar.is-sm {
+    width: 34px;
+    height: 34px;
+}
+
+.person-row .avatar.is-sm .ico {
+    font-size: 19px;
+}
+
+.person-row .person-copy {
+    flex: 1;
+    min-width: 0;
+}
+
+.person-row .person-copy strong {
+    display: block;
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--ink);
+}
+
+.person-row .person-copy small {
+    display: block;
+    margin-top: 3px;
+    font-size: 12.5px;
+    color: var(--muted);
+}
+
+.person-row .ico.is-check {
+    flex: none;
+    color: var(--green);
+    font-size: 24px;
+    font-variation-settings: 'FILL' 1;
+}
+
+/* 테두리 안에 넣는 변형 */
+.person-row.is-boxed {
+    border: 1px solid #ececee;
+    border-radius: var(--r-md);
+    padding: 14px 16px;
+}
+
+.person-row.is-tinted {
+    background: #f8f8f8;
+    border-radius: 14px;
+    padding: 14px;
+}
+
+/* 인증 배지 */
+.verified {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    border: 1px solid var(--line);
+    border-radius: var(--r-pill);
+    padding: 6px 11px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--green);
+}
+
+.verified .ico {
+    font-size: 15px;
+}
+
+/* 카드 하단에 붙는 액션 줄 (리뷰 카드, 호스트 예약 카드) */
+.card-actions {
+    display: flex;
+    border-top: 1px solid var(--line-soft);
+}
+
+.card-actions > * {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    border: none;
+    border-right: 1px solid var(--line-soft);
+    background: #fafafa;
+    padding: 13px;
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--ink-soft);
+    cursor: pointer;
+}
+
+.card-actions > *:last-child {
+    border-right: none;
+}
+
+.card-actions > .is-danger {
+    color: var(--danger);
+}
+
+/* 서버가 아직 없어 눌리지 않는 액션 */
+.card-actions > :disabled {
+    color: var(--faint);
+    cursor: not-allowed;
+}
+
+/* 테두리만 있는 카드 — 액션 줄을 붙일 수 있게 padding 을 뺀 형태 */
+.card-plain {
+    border: 1px solid var(--line-faint);
+    border-radius: var(--r-md);
+    overflow: hidden;
+    background: #fff;
+}
+
+/* 탭 (전체 / 이용 완료) */
+.tab-row {
+    display: flex;
+    gap: 24px;
+    border-bottom: 1px solid var(--line-faint);
+    margin-top: 22px;
+}
+
+.tab-row a,
+.tab-row button {
+    border: none;
+    background: none;
+    cursor: pointer;
+    padding: 0 0 12px;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--muted);
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+}
+
+.tab-row .is-active {
+    color: var(--ink);
+    font-weight: 800;
+    border-bottom-color: var(--ink-strong);
+}
+
+/* 토스트 — auth.js / app-flow.js 가 .is-visible 을 붙인다 */
+.toast {
+    position: fixed;
+    left: 50%;
+    bottom: calc(var(--nav-h) + 22px);
+    z-index: 80;
+    max-width: calc(100% - 40px);
+    transform: translate(-50%, 10px);
+    background: rgba(17, 17, 17, 0.92);
+    color: #fff;
+    font-size: 13.5px;
+    font-weight: 600;
+    padding: 12px 18px;
+    border-radius: var(--r-pill);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+.toast.is-visible {
+    opacity: 1;
+    transform: translate(-50%, 0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .toast {
+        transition: none;
+    }
+}
+
+/* ─────────────────────── 로그인 · 회원가입 ─────────────────────── */
+/*
+  프로토타입에는 인증 화면이 없다. 앱 셸의 토큰과 폼 조각을 그대로 써서
+  나머지 화면과 같은 결로 맞춘 화면이다.
+*/
+.auth-screen {
+    /* 주소창이 보일 때 100vh 가 실제 높이보다 커서 카드가 중앙에서 밀린다. dvh 를 쓴다. */
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 20px 48px;
+    background: linear-gradient(180deg, var(--warm) 0%, var(--warm-2) 46%, #fff 100%);
+}
+
+.auth-card {
+    width: 100%;
+    max-width: 420px;
+    background: #fff;
+    border-radius: var(--r-lg);
+    box-shadow: var(--shadow-card);
+    padding: 32px 24px 28px;
+}
+
+.auth-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 800;
+    font-size: 18px;
+    color: var(--ink);
+    letter-spacing: -0.3px;
+}
+
+.auth-brand:hover {
+    color: var(--ink);
+}
+
+.auth-brand .ico {
+    font-size: 24px;
+    color: var(--green);
+    font-variation-settings: 'FILL' 1;
+}
+
+.auth-kicker {
+    margin: 26px 0 0;
+    font-size: 11.5px;
+    font-weight: 800;
+    letter-spacing: 1.4px;
+    color: var(--green);
+}
+
+.auth-card h1 {
+    margin: 10px 0 0;
+    font-weight: 800;
+    font-size: 25px;
+    line-height: 1.32;
+    color: var(--ink);
+    letter-spacing: -0.5px;
+}
+
+.auth-sub {
+    margin: 10px 0 24px;
+    font-size: 13.5px;
+    color: var(--muted);
+}
+
+.auth-card form {
+    margin: 0;
+}
+
+/* 비밀번호 입력 + 표시 토글 */
+.password-control {
+    position: relative;
+}
+
+.password-control .control {
+    padding-right: 48px;
+}
+
+.password-toggle {
+    position: absolute;
+    top: 50%;
+    right: 6px;
+    transform: translateY(-50%);
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: none;
+    border-radius: 50%;
+    color: var(--muted-2);
+    cursor: pointer;
+}
+
+.password-toggle:hover {
+    background: var(--line-soft);
+}
+
+.password-toggle .ico {
+    font-size: 20px;
+}
+
+.auth-divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 22px 0;
+    color: var(--muted-2);
+    font-size: 12.5px;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--line-faint);
+}
+
+.kakao-btn {
+    background: #fee500;
+    color: #191600;
+}
+
+.kakao-btn:hover {
+    background: #f4dc00;
+    color: #191600;
+}
+
+.auth-switch {
+    margin: 22px 0 0;
+    text-align: center;
+    font-size: 13.5px;
+    color: var(--muted);
+}
+
+.auth-switch a {
+    font-weight: 700;
+}
+
+/* 폼 안에서 쓰는 배너는 위쪽 여백만 다르게 준다 */
+.auth-card .notice {
+    margin-bottom: 18px;
+}
+
+/* ─────────────────────── 장소 목록 (검색) ─────────────────────── */
+/* 탭하면 검색 화면으로 넘어가는 가짜 입력창 */
+.search-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-top: 16px;
+}
+
+.search-bar .search-field {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    background: #f4f4f5;
+    border: none;
+    border-radius: 14px;
+    padding: 13px 16px;
+    font-size: 13.5px;
+    color: var(--muted-2);
+    cursor: text;
+    text-align: left;
+}
+
+.search-bar .search-field:hover {
+    color: var(--muted-2);
+}
+
+.search-bar .search-field .ico {
+    font-size: 20px;
+    color: var(--muted-2);
+}
+
+.search-bar .search-submit {
+    flex: none;
+    border: none;
+    background: none;
+    color: var(--ink-soft);
+    cursor: pointer;
+    padding: 4px;
+}
+
+.search-bar .search-submit .ico {
+    font-size: 24px;
+}
+
+/* 필터 칩 줄은 화면 여백 밖까지 흘려보낸다 */
+.filter-row {
+    margin: 16px -20px 0;
+    padding: 0 20px;
+}
+
+.filter-row .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    border-radius: 11px;
+    padding: 9px 13px;
+    font-weight: 600;
+}
+
+.filter-row .chip .ico {
+    font-size: 16px;
+}
+
+.sort-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 16px;
+}
+
+.sort-row .chip {
+    padding: 7px 15px;
+}
+
+.result-count {
+    font-size: 12.5px;
+    color: var(--muted-2);
+}
+
+/* 장소 카드 목록 */
+.place-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    margin-top: 18px;
+}
+
+.place-card {
+    display: block;
+    color: inherit;
+}
+
+.place-card:hover {
+    color: inherit;
+}
+
+.place-card .media {
+    height: 172px;
+}
+
+.place-card .media .ico {
+    font-size: 42px;
+}
+
+.place-card-body {
+    margin-top: 12px;
+}
+
+.place-card-title {
+    font-weight: 800;
+    font-size: 16.5px;
+    color: var(--ink);
+    letter-spacing: -0.3px;
+}
+
+.place-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 9px;
+}
+
+.place-tags span {
+    font-size: 11.5px;
+    font-weight: 700;
+    border-radius: 6px;
+    padding: 3px 8px;
+    background: var(--line-soft);
+    color: var(--ink-soft);
+}
+
+/*
+  칩 글자는 11.5px 라 WCAG AA 의 4.5:1 을 그대로 적용받는다.
+  프로토타입 원래 색(#17924f, #c07a1e)은 각각 3.58:1, 3.08:1 로 미달이라
+  같은 색상 계열에서 명도만 낮춰 통과시켰다. 파랑은 4.56:1 로 원래 값을 유지한다.
+*/
+.place-tags .is-type {
+    color: #2563eb;
+    background: #eaf1ff;
+}
+
+.place-tags .is-size {
+    color: #0f7a40;
+    background: var(--green-soft);
+}
+
+.place-tags .is-extra {
+    color: #8a5a15;
+    background: #fbf0dd;
+}
+
+.place-loc {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    margin-top: 8px;
+    font-size: 12.5px;
+    color: var(--muted);
+}
+
+.place-loc .ico {
+    font-size: 15px;
+}
+
+.place-price {
+    margin-top: 6px;
+    text-align: right;
+    font-weight: 800;
+    font-size: 16px;
+    color: var(--ink);
+}
+
+.place-price small {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted);
+}
+
+/* 지도 미리보기 (실제 지도 SDK 연결 전 자리) */
+.map-preview {
+    position: relative;
+    border-radius: var(--r-md);
+    overflow: hidden;
+    background: linear-gradient(135deg, #e8eee6 0%, #edf0ec 50%, #e4ebe9 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #7d8a80;
+    font-weight: 800;
+}
+
+.map-preview .map-pin {
+    width: 40px;
+    height: 40px;
+    border-radius: 50% 50% 50% 2px;
+    transform: rotate(45deg);
+    background: var(--green);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.map-preview .map-pin .ico {
+    font-size: 21px;
+    color: #fff;
+    transform: rotate(-45deg);
+    font-variation-settings: 'FILL' 1;
+}
+
+/* 목록 ↔ 지도 전환 버튼 */
+.map-toggle {
+    position: fixed;
+    left: 50%;
+    bottom: calc(var(--nav-h) + 16px);
+    transform: translateX(-50%);
+    z-index: 34;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    background: #fff;
+    border: 1px solid var(--line-faint);
+    border-radius: 24px;
+    padding: 11px 18px;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--ink);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.16);
+    cursor: pointer;
+}
+
+.map-toggle:hover {
+    color: var(--ink);
+}
+
+.map-toggle .ico {
+    font-size: 19px;
+}
+
+@media (min-width: 1024px) {
+    .place-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 26px 20px;
+    }
+
+    .map-toggle {
+        left: auto;
+        right: 40px;
+        transform: none;
+        bottom: 28px;
+    }
+}
+
+/* ─────────────────────── 장소 상세 ─────────────────────── */
+/* 상단 사진 자리 — 뒤로가기·찜 버튼이 위에 얹힌다 */
+.detail-hero {
+    position: relative;
+    height: 300px;
+    border-radius: 0;
+    margin: 0 -20px;
+}
+
+.detail-hero .ico {
+    font-size: 56px;
+}
+
+.detail-hero .hero-btn {
+    position: absolute;
+    top: 16px;
+    width: 38px;
+    height: 38px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.92);
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+}
+
+.detail-hero .hero-btn:hover {
+    color: var(--ink);
+}
+
+.detail-hero .hero-btn .ico {
+    font-size: 21px;
+}
+
+.detail-hero .hero-btn.is-back {
+    left: 16px;
+}
+
+.detail-hero .hero-btn.is-like {
+    right: 16px;
+}
+
+.detail-title {
+    margin: 22px 0 0;
+    font-weight: 800;
+    font-size: 21px;
+    color: var(--ink);
+    letter-spacing: -0.4px;
+}
+
+.detail-meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 9px;
+    font-size: 13px;
+    color: var(--ink-dim);
+}
+
+.detail-meta .ico {
+    font-size: 16px;
+    color: var(--warn);
+    font-variation-settings: 'FILL' 1;
+}
+
+.detail-meta .sep {
+    color: var(--faint);
+}
+
+.detail-meta a {
+    color: var(--ink-dim);
+    text-decoration: underline;
+}
+
+/* 호스트 프로필 줄은 위아래 선으로 감싼다 */
+.detail-host {
+    margin-top: 20px;
+    padding: 16px 0;
+    border-top: 1px solid #f0f0f1;
+    border-bottom: 1px solid #f0f0f1;
+}
+
+.detail-desc {
+    margin: 18px 0 0;
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--ink-dim);
+    text-wrap: pretty;
+}
+
+/* 수용 조건 알약 */
+.cond-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 9px;
+}
+
+.cond-row span {
+    border: 1px solid var(--line);
+    border-radius: var(--r-sm);
+    padding: 11px 18px;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--ink-soft);
+}
+
+/* 리뷰 카드 (장소 상세 · 호스트 리뷰 공용) */
+.review-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.review-item {
+    background: #f8f8f8;
+    border-radius: 14px;
+    padding: 16px;
+}
+
+.review-item-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.review-item-head .who {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--ink);
+}
+
+.review-item-head .when {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 12px;
+    color: var(--muted);
+}
+
+.review-item-head .when .ico {
+    font-size: 14px;
+    color: var(--warn);
+    font-variation-settings: 'FILL' 1;
+}
+
+.review-item-body {
+    margin: 10px 0 0;
+    font-size: 13px;
+    line-height: 1.65;
+    color: var(--ink-dim);
+    text-wrap: pretty;
+}
+
+/* ─────────────────────── 예약 요청 · 결제 ─────────────────────── */
+/* 체크인 / 체크아웃 2단 카드 */
+.schedule-split {
+    display: flex;
+    background: #f7f7f8;
+    border-radius: var(--r-md);
+    margin-top: 20px;
+    overflow: hidden;
+}
+
+.schedule-split > div {
+    flex: 1;
+    min-width: 0;
+    padding: 16px;
+    text-align: center;
+}
+
+.schedule-split > div + div {
+    border-left: 1px solid #e6e6e8;
+}
+
+.schedule-split small {
+    display: block;
+    font-size: 12px;
+    color: var(--muted);
+}
+
+.schedule-split .control {
+    margin-top: 8px;
+    text-align: center;
+    font-weight: 700;
+    font-size: 13.5px;
+    padding: 11px 8px;
+    background: #fff;
+}
+
+.schedule-split strong {
+    display: block;
+    margin-top: 8px;
+    font-weight: 800;
+    font-size: 15px;
+    color: var(--ink);
+}
+
+.schedule-split > div > span {
+    display: block;
+    margin-top: 6px;
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--ink-soft);
+}
+
+/* 반려견 선택 — 체크박스를 카드처럼 쓴다 */
+.pet-picks {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.pet-pick {
+    position: relative;
+    display: block;
+}
+
+.pet-pick input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.pet-pick .person-row {
+    border: 1px solid #ececee;
+    border-radius: var(--r-md);
+    padding: 14px 16px;
+    cursor: pointer;
+}
+
+.pet-pick .ico.is-check {
+    color: var(--faint);
+}
+
+.pet-pick input:checked + .person-row {
+    border-color: var(--green);
+    background: #f6fbf8;
+}
+
+.pet-pick input:checked + .person-row .ico.is-check {
+    color: var(--green);
+}
+
+.pet-pick input:focus-visible + .person-row {
+    box-shadow: 0 0 0 3px rgba(34, 164, 92, 0.2);
+}
+
+/* 결제 수단 선택 */
+.pay-methods {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.pay-method {
+    position: relative;
+    display: block;
+}
+
+.pay-method input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.pay-method > span {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 16px;
+    cursor: pointer;
+}
+
+.pay-method input:checked + span {
+    border-color: var(--green);
+    box-shadow: 0 0 0 1px var(--green);
+}
+
+.pay-method input:focus-visible + span {
+    box-shadow: 0 0 0 3px rgba(34, 164, 92, 0.2);
+}
+
+.pay-method .method-mark {
+    flex: none;
+    width: 26px;
+    height: 26px;
+    border-radius: 8px;
+    background: #3182f6;
+    color: #fff;
+    font-weight: 800;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.pay-method .method-mark.is-card {
+    background: none;
+    color: var(--muted-2);
+}
+
+.pay-method .method-mark .ico {
+    font-size: 24px;
+}
+
+.pay-method .method-name {
+    flex: 1;
+    font-weight: 700;
+    font-size: 14.5px;
+    color: var(--ink);
+}
+
+.pay-method .method-check {
+    flex: none;
+    font-size: 22px;
+    color: var(--faint);
+}
+
+.pay-method input:checked + span .method-check {
+    color: var(--green);
+    font-variation-settings: 'FILL' 1;
+}
+
+/* 토스 결제 버튼 */
+.btn-toss {
+    background: #3182f6;
+    color: #fff;
+}
+
+.btn-toss:hover {
+    background: #2b74dd;
+}
+
+/* ─────────────────────── 완료 화면 ─────────────────────── */
+.success-screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    min-height: 70vh;
+    padding: 40px 24px 48px;
+}
+
+.success-mark {
+    width: 82px;
+    height: 82px;
+    border-radius: 50%;
+    background: var(--ink-strong);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.success-mark .ico {
+    font-size: 44px;
+}
+
+.success-mark.is-green {
+    background: var(--green);
+}
+
+.success-screen h1 {
+    margin: 26px 0 0;
+    font-weight: 800;
+    font-size: 23px;
+    color: var(--ink);
+    letter-spacing: -0.4px;
+}
+
+.success-screen > p {
+    margin: 12px 0 0;
+    font-size: 14.5px;
+    line-height: 1.6;
+    color: var(--muted);
+}
+
+.success-summary {
+    width: 100%;
+    max-width: 420px;
+    border: 1px solid var(--line-faint);
+    border-radius: var(--r-md);
+    padding: 18px;
+    margin-top: 30px;
+    text-align: left;
+}
+
+.success-summary strong {
+    display: block;
+    font-weight: 800;
+    font-size: 15px;
+    color: var(--ink);
+}
+
+.success-summary small {
+    display: block;
+    margin-top: 7px;
+    font-size: 13px;
+    color: var(--muted);
+}
+
+.success-actions {
+    width: 100%;
+    max-width: 420px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 24px;
+}
+
+/* 단계 안내 (호스트 등록 완료) */
+.step-timeline {
+    width: 100%;
+    max-width: 420px;
+    list-style: none;
+    margin: 28px 0 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    text-align: left;
+}
+
+.step-timeline li {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border: 1px solid var(--line-faint);
+    border-radius: 14px;
+    padding: 14px 16px;
+}
+
+.step-timeline li > span:first-child {
+    flex: none;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--line-soft);
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.step-timeline li.is-done > span:first-child {
+    background: var(--green);
+    color: #fff;
+}
+
+.step-timeline li.is-done .ico {
+    font-size: 17px;
+}
+
+.step-timeline strong {
+    display: block;
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--ink);
+}
+
+.step-timeline small {
+    display: block;
+    margin-top: 3px;
+    font-size: 12px;
+    color: var(--muted);
+}
+
+/* ─────────────────────── 리뷰 작성 ─────────────────────── */
+.rating-ask {
+    margin: 30px 0 0;
+    text-align: center;
+    font-weight: 800;
+    font-size: 16px;
+    color: var(--ink);
+}
+
+.star-picker {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 16px;
+}
+
+.star-picker button {
+    border: none;
+    background: none;
+    padding: 0;
+    cursor: pointer;
+    color: #e0e0e2;
+    line-height: 1;
+}
+
+.star-picker button .ico {
+    font-size: 40px;
+}
+
+.star-picker button.is-active {
+    color: var(--warn);
+}
+
+.star-picker button.is-active .ico {
+    font-variation-settings: 'FILL' 1;
+}
+
+.rating-label {
+    margin: 10px 0 0;
+    text-align: center;
+    font-size: 13px;
+    color: var(--muted);
+}
+
+/* 후기에 붙여 넣는 추천 문구 */
+.suggest-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 14px;
+}
+
+.suggest-row .chip {
+    font-weight: 600;
+    font-size: 12.5px;
+    padding: 9px 14px;
+}
+
+/* ─────────────────────── 내 리뷰 목록 ─────────────────────── */
+.my-review-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.my-review-top {
+    display: flex;
+    gap: 12px;
+    padding: 16px;
+}
+
+.my-review-top .media {
+    width: 56px;
+    height: 56px;
+    flex: none;
+}
+
+.my-review-top .media .ico {
+    font-size: 24px;
+}
+
+.my-review-head {
+    flex: 1;
+    min-width: 0;
+}
+
+.my-review-head .place-name {
+    display: block;
+    font-weight: 800;
+    font-size: 15px;
+    color: var(--ink);
+}
+
+.my-review-head .place-name:hover {
+    color: var(--green-dark);
+}
+
+.my-review-head small {
+    display: block;
+    margin-top: 4px;
+    font-size: 12px;
+    color: var(--muted);
+}
+
+.my-review-head .rating {
+    margin-top: 6px;
+}
+
+.my-review-body {
+    margin: 0;
+    padding: 0 16px 14px;
+    font-size: 13.5px;
+    line-height: 1.6;
+    color: var(--ink-dim);
+    text-wrap: pretty;
+}
+
+/* ─────────────────────── 호스트 홈 · 예약 관리 ─────────────────────── */
+.host-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding-top: 22px;
+}
+
+.host-head h1 {
+    margin: 0;
+    font-weight: 800;
+    font-size: 24px;
+    color: var(--ink);
+    letter-spacing: -0.4px;
+}
+
+.host-mode-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--muted);
+}
+
+.host-mode-link:hover {
+    color: var(--ink-soft);
+}
+
+.host-mode-link .ico {
+    font-size: 16px;
+}
+
+.card-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-top: 16px;
+}
+
+/* 내 호스팅 장소 카드 */
+.host-place-card .place-summary {
+    display: flex;
+    gap: 14px;
+}
+
+.host-place-card .media {
+    width: 76px;
+    height: 76px;
+    flex: none;
+}
+
+.host-place-card .media .ico {
+    font-size: 26px;
+}
+
+.host-place-card .place-summary-copy {
+    flex: 1;
+    min-width: 0;
+}
+
+.host-place-card .place-summary-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.host-place-card .place-summary-head strong {
+    font-weight: 800;
+    font-size: 15px;
+    color: var(--ink);
+}
+
+.host-place-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 14px;
+}
+
+.host-place-actions .btn {
+    flex: 1;
+    padding: 12px;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.host-place-actions .btn .ico {
+    font-size: 16px;
+}
+
+/* 점선 테두리 추가 버튼 */
+.btn-dashed {
+    width: 100%;
+    border: 1.5px dashed #d8d8dc;
+    background: none;
+    border-radius: var(--r-md);
+    padding: 20px;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--muted);
+}
+
+.btn-dashed:hover {
+    border-color: var(--muted-2);
+    color: var(--ink-soft);
+}
+
+/* ─────────────────────── 호스트 리뷰 관리 ─────────────────────── */
+.review-summary {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-top: 22px;
+    padding: 18px;
+    background: #f8f8f8;
+    border-radius: var(--r-md);
+}
+
+.review-summary .score {
+    font-weight: 800;
+    font-size: 34px;
+    color: var(--ink);
+    line-height: 1;
+}
+
+.review-summary .stars {
+    display: flex;
+    gap: 1px;
+    color: var(--warn);
+}
+
+.review-summary .stars .ico {
+    font-size: 17px;
+    font-variation-settings: 'FILL' 1;
+}
+
+.review-summary .stars .is-empty {
+    color: #e0e0e2;
+    font-variation-settings: 'FILL' 0;
+}
+
+.review-summary small {
+    display: block;
+    margin-top: 5px;
+    font-size: 12.5px;
+    color: var(--muted);
+}
+
+/* ─────────────────────── 호스트 게시글 작성 ─────────────────────── */
+/* 라디오를 카드처럼 쓰는 주거 형태 선택 */
+.type-choices {
+    display: flex;
+    gap: 8px;
+}
+
+.type-choices .choice span {
+    flex-direction: column;
+    gap: 4px;
+    padding: 14px 8px;
+    text-align: center;
+}
+
+.type-choices .ico {
+    font-size: 22px;
+    color: var(--muted-2);
+}
+
+.type-choices small {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--muted);
+}
+
+.type-choices input:checked + span .ico,
+.type-choices input:checked + span small {
+    color: var(--green-dark);
+}
+
+/* 체크박스 옵션 격자 */
+.option-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px 10px;
+    margin-top: 14px;
+}
+
+.option-grid label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13.5px;
+    color: var(--ink-soft);
+    cursor: pointer;
+}
+
+.option-grid input {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--green);
+    flex: none;
+}
+
+.host-fieldset {
+    border: none;
+    margin: 0;
+    padding: 0;
+}
+
+.host-fieldset legend {
+    padding: 0;
+    font-size: 12.5px;
+    color: var(--muted);
+}
+
+/* 숫자 + 단위 */
+.unit-control {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border: 1px solid var(--line);
+    border-radius: var(--r-sm);
+    padding: 0 14px;
+    background: #fff;
+}
+
+.unit-control:focus-within {
+    border-color: var(--green);
+    box-shadow: 0 0 0 3px rgba(34, 164, 92, 0.14);
+}
+
+.unit-control input {
+    flex: 1;
+    min-width: 0;
+    border: none;
+    outline: none;
+    background: none;
+    padding: 14px 0;
+    font-size: 14.5px;
+    color: var(--ink);
+}
+
+.unit-control > span {
+    flex: none;
+    font-size: 13px;
+    color: var(--muted);
+}
+
+.field-split {
+    display: flex;
+    gap: 10px;
+}
+
+.field-split > .field {
+    flex: 1;
+    min-width: 0;
+}
+
+/*
+  켜고 끄는 스위치 한 줄 (기타 옵션).
+  체크박스를 .switch-row 앞에 형제로 두면 :checked ~ 로 스위치 모양과
+  아래 입력칸을 함께 제어할 수 있어 JS 가 필요 없다.
+*/
+.other-option {
+    position: relative;
+}
+
+.other-option > input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.switch-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+}
+
+.switch-row > span {
+    flex: 1;
+    min-width: 0;
+}
+
+.switch-row strong {
+    display: block;
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--ink);
+}
+
+.switch-row small {
+    display: block;
+    margin-top: 3px;
+    font-size: 12px;
+    color: var(--muted);
+}
+
+.switch-row > i {
+    flex: none;
+    position: relative;
+    width: 46px;
+    height: 27px;
+    border-radius: var(--r-pill);
+    background: #e0e0e2;
+    transition: background 0.16s ease;
+}
+
+.switch-row > i::after {
+    content: "";
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 21px;
+    height: 21px;
+    border-radius: 50%;
+    background: #fff;
+    transition: transform 0.16s ease;
+}
+
+.other-option > input:checked ~ .switch-row > i {
+    background: var(--green);
+}
+
+.other-option > input:checked ~ .switch-row > i::after {
+    transform: translateX(19px);
+}
+
+.other-option > input:focus-visible ~ .switch-row > i {
+    box-shadow: 0 0 0 3px rgba(34, 164, 92, 0.2);
+}
+
+/* 스위치를 켜야 나타나는 입력칸 */
+.reveal-field {
+    display: none;
+    margin-top: 12px;
+}
+
+.other-option > input:checked ~ .reveal-field {
+    display: block;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .switch-row > i,
+    .switch-row > i::after {
+        transition: none;
+    }
+}
+
+/* ─────────────────────── 내 주변 (지도) ─────────────────────── */
+.nearby-screen {
+    padding: 0;
+}
+
+.nearby-map {
+    height: 260px;
+    border-radius: 0;
+}
+
+.nearby-map .map-pin {
+    background: var(--orange);
+}
+
+.nearby-sheet {
+    position: relative;
+    margin-top: -20px;
+    background: #fff;
+    border-radius: 20px 20px 0 0;
+    box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.14);
+    padding: 10px 20px 24px;
+}
+
+.nearby-sheet .sheet-handle {
+    margin: 0 auto 10px;
+}
+
+.nearby-sheet-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.nearby-sheet-head strong {
+    font-weight: 800;
+    font-size: 15px;
+    color: var(--ink);
+}
+
+@media (min-width: 1024px) {
+    .nearby-map {
+        height: 360px;
+        border-radius: var(--r-md);
+        margin: 20px 32px 0;
+    }
+
+    .nearby-sheet {
+        margin-top: 20px;
+        border-radius: var(--r-md);
+        box-shadow: none;
+        padding-inline: 32px;
+    }
+
+    .nearby-sheet .sheet-handle {
+        display: none;
     }
 }

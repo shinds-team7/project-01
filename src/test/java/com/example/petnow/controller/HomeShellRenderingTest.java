@@ -103,13 +103,39 @@ class HomeShellRenderingTest {
     }
 
     @Test
-    @DisplayName("하단 네비가 가리키는 검색·내 주변·찜이 404 가 아니라 준비 중 화면을 연다")
+    @DisplayName("아직 화면이 없는 검색·찜은 404 가 아니라 준비 중 화면을 연다")
     void navDestinationsResolve() throws Exception {
-        for (String path : new String[]{"/search", "/nearby", "/bookmarks"}) {
+        for (String path : new String[]{"/search", "/bookmarks"}) {
             mockMvc.perform(get(path))
                     .andExpect(status().isOk())
                     .andExpect(view().name("coming-soon"))
                     .andExpect(content().string(containsString("화면을 준비하고 있어요")));
         }
+    }
+
+    @Test
+    @DisplayName("내 주변이 준비 중 화면 대신 실제 목록을 그린다")
+    void nearbyRendersPlaceList() throws Exception {
+        given(placeService.getPublishedPlaces()).willReturn(List.of(place(3L, "햇살 가득한 마당", 5000)));
+
+        mockMvc.perform(get("/nearby"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("nearby"))
+                .andExpect(content().string(containsString("/css/app.css")))
+                .andExpect(content().string(containsString("햇살 가득한 마당")))
+                .andExpect(content().string(containsString("class=\"is-type\">아파트")))
+                .andExpect(content().string(containsString("/places/3")))
+                // 거리순·지도는 좌표가 없어 아직 못 한다는 사실을 화면이 알려야 한다
+                .andExpect(content().string(containsString("거리순 정렬과 지도 표시는 준비 중")));
+    }
+
+    @Test
+    @DisplayName("공개된 장소가 없으면 내 주변도 빈 상태를 그린다")
+    void nearbyRendersEmptyState() throws Exception {
+        given(placeService.getPublishedPlaces()).willReturn(List.of());
+
+        mockMvc.perform(get("/nearby"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("주변에 공개된 공간이 없어요")));
     }
 }
