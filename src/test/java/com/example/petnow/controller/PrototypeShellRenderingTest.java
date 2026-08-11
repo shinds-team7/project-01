@@ -84,8 +84,9 @@ class PrototypeShellRenderingTest {
                 .andExpect(content().string(containsString("/css/app.css")))
                 .andExpect(content().string(containsString("class=\"app-nav\"")))
                 .andExpect(content().string(containsString("성수 조용한 단독주택 마당")))
-                .andExpect(content().string(containsString("주택")))
-                .andExpect(content().string(containsString("소형견")))
+                // 장소 이름에 "주택"이 들어 있어 텍스트만 보면 태그가 사라져도 통과한다. 칩 마크업까지 본다.
+                .andExpect(content().string(containsString("class=\"is-type\">주택")))
+                .andExpect(content().string(containsString("class=\"is-size\">소형견")))
                 .andExpect(content().string(containsString("12,000원")));
     }
 
@@ -129,8 +130,9 @@ class PrototypeShellRenderingTest {
                 .andExpect(content().string(containsString("name=\"checkIn\"")))
                 .andExpect(content().string(containsString("name=\"checkOut\"")))
                 .andExpect(content().string(containsString("name=\"memo\"")))
-                // 이식 전에는 매핑이 없는 /places/{id}/payment 로 보내 404 였다
-                .andExpect(content().string(not(containsString("/payment"))));
+                // 이식 전에는 매핑이 없는 /places/{id}/payment 로 보내 404 였다.
+                // 셸이나 스크립트에 다른 /payment 가 생겨도 안 깨지게 예전 경로만 좁혀서 본다.
+                .andExpect(content().string(not(containsString("/places/1/payment"))));
     }
 
     @Test
@@ -156,6 +158,18 @@ class PrototypeShellRenderingTest {
                 .andExpect(content().string(containsString("아파트")))
                 .andExpect(content().string(containsString("오피스텔")))
                 .andExpect(content().string(containsString("게시글 등록")));
+    }
+
+    @Test
+    @DisplayName("기타 옵션 토글의 체크박스 id 와 라벨 for 가 맞는다")
+    void hostCreateOtherOptionToggleIsClickable() throws Exception {
+        // id 를 직접 안 적으면 Thymeleaf 가 otherOptionsEnabled1 로 그려 라벨과 어긋나고,
+        // 체크박스가 숨겨져 있어 토글을 누를 방법이 아예 없어진다.
+        mockMvc.perform(get("/host/create").session(loggedIn()))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("id=\"otherOptionsEnabled\"")))
+                .andExpect(content().string(containsString("for=\"otherOptionsEnabled\"")))
+                .andExpect(content().string(not(containsString("otherOptionsEnabled1"))));
     }
 
     @Test

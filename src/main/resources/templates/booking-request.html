@@ -49,16 +49,22 @@
                 </div>
             </div>
 
+            <!--/*
+              datetime-local 은 step 기본값이 60초라 초가 붙은 값은 stepMismatch 로 막힌다.
+              LocalDateTime 의 기본 문자열은 초가 0이 아니면 초까지 내므로 분까지만 포맷한다.
+            */-->
             <div class="schedule-split">
                 <div>
                     <label for="checkIn"><small>인계일 (체크인)</small></label>
                     <input class="control" id="checkIn" name="checkIn" type="datetime-local" required
-                           th:value="${reservationRequest?.checkIn}">
+                           th:value="${reservationRequest?.checkIn != null}
+                                     ? ${#temporals.format(reservationRequest.checkIn, 'yyyy-MM-dd''T''HH:mm')} : null">
                 </div>
                 <div>
                     <label for="checkOut"><small>귀가일 (체크아웃)</small></label>
                     <input class="control" id="checkOut" name="checkOut" type="datetime-local" required
-                           th:value="${reservationRequest?.checkOut}">
+                           th:value="${reservationRequest?.checkOut != null}
+                                     ? ${#temporals.format(reservationRequest.checkOut, 'yyyy-MM-dd''T''HH:mm')} : null">
                 </div>
             </div>
 

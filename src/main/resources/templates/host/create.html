@@ -113,7 +113,12 @@
             </fieldset>
 
             <div class="other-option field">
-                <input type="checkbox" th:field="*{otherOptionsEnabled}">
+                <!--/*
+                  id 를 직접 적어야 한다. th:field 에만 맡기면 Thymeleaf 가 체크박스에
+                  일련번호를 붙여 otherOptionsEnabled1 로 그리고, 아래 label 의 for 와
+                  어긋나 토글을 누를 수 없게 된다 (input 은 화면에서 숨겨져 있다).
+                */-->
+                <input type="checkbox" id="otherOptionsEnabled" th:field="*{otherOptionsEnabled}">
                 <label class="switch-row" for="otherOptionsEnabled">
                     <span>
                         <strong>그 밖의 특별한 돌봄이 있나요?</strong>
