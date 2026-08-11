@@ -46,9 +46,14 @@ class MyPageRenderingTest {
         mockMvc.perform(get("/mypage").session(session))
                 .andExpect(status().isOk())
                 .andExpect(view().name("mypage"))
-                .andExpect(content().string(org.hamcrest.Matchers.containsString("지우님")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("/css/app.css")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("class=\"my-profile\"")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("class=\"my-pet-card\"")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("지우")))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("/pet/detail/7")))
-                .andExpect(content().string(org.hamcrest.Matchers.containsString("소형")));
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("소형")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("예약·결제 내역")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("호스팅 장소 관리하기")));
     }
 
     @Test
@@ -59,7 +64,8 @@ class MyPageRenderingTest {
 
         mockMvc.perform(get("/mypage").session(loggedIn()))
                 .andExpect(status().isOk())
-                .andExpect(content().string(org.hamcrest.Matchers.containsString("아직 등록한 반려동물이 없어요")));
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("아직 등록한 반려동물이 없어요")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("href=\"/pet/new\"")));
     }
 
     @Test
