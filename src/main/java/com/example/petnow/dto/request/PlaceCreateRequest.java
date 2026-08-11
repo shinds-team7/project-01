@@ -1,7 +1,5 @@
 package com.example.petnow.dto.request;
 
-import com.example.petnow.entity.Place;
-import com.example.petnow.entity.PlaceStatus;
 import com.example.petnow.entity.PlaceType;
 import jakarta.validation.constraints.*;
 import lombok.Data;
@@ -69,26 +67,4 @@ public class PlaceCreateRequest {
     )
     private BigDecimal nightlyPrice;
 
-    public Place toEntity(Long userId, String userNickname) {
-        return Place.builder()
-                .hostUserId(userId)
-                .hostUserNickname(userNickname)
-                .name(name)
-                .description(description)
-                .placeType(placeType)
-                .areaSize(areaSize)
-                .capacity(capacity)
-                .allowsSmallDog(allowsSmallDog)
-                .allowsMediumDog(allowsMediumDog)
-                .allowsLargeDog(allowsLargeDog)
-                .providesHomeCamera(providesHomeCamera)
-                .providesRealtimePhoto(providesRealtimePhoto)
-                .providesYard(providesYard)
-                .providesWalk(providesWalk)
-                .otherOptions(otherOptionsEnabled ? otherOptions : null)
-                .hourlyPrice(hourlyPrice)
-                .nightlyPrice(nightlyPrice)
-                .status(PlaceStatus.PUBLISHED)
-                .build();
-    }
 }
