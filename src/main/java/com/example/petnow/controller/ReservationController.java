@@ -7,6 +7,7 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -19,6 +20,7 @@ import com.example.petnow.dto.request.ReservationRequest;
 import com.example.petnow.dto.response.ReservationDetailResponse;
 import com.example.petnow.dto.response.ReservationListResponse;
 import com.example.petnow.entity.Place;
+import com.example.petnow.entity.ReservationStatus;
 import com.example.petnow.exception.BusinessException;
 import com.example.petnow.exception.PlaceErrorCode;
 import com.example.petnow.mapper.PlaceMapper;
@@ -41,6 +43,7 @@ public class ReservationController {
 	@PostMapping("/create")
 	public String saveReservation(@Valid @ModelAttribute ReservationRequest request,
 		BindingResult bindingResult, HttpSession session, Model model, RedirectAttributes redirectAttributes) {
+
 		Long userId = (Long) session.getAttribute(SessionConst.LOGIN_USER_ID);
 		if (userId == null) {
 			return "redirect:/";
@@ -118,5 +121,38 @@ public class ReservationController {
 		}
 		reservationService.cancelReservation(request.getReservationId(), userId);
 		return "redirect:/reservation/list";
+	}
+
+	@PostMapping("/{reservationId}/approve")
+	public String approve(@PathVariable Long reservationId, HttpSession session) {
+		Long hostUserId = (Long) session.getAttribute(SessionConst.LOGIN_USER_ID);
+		if (hostUserId == null) {
+			return "redirect:/";
+		}
+
+		reservationService.approveReservation(reservationId, hostUserId);
+		return "redirect:/reservation/host/dashboard";
+	}
+
+	@PostMapping("/{reservationId}/reject")
+	public String reject(@PathVariable Long reservationId, HttpSession session) {
+		Long hostUserId = (Long) session.getAttribute(SessionConst.LOGIN_USER_ID);
+		if (hostUserId == null) {
+			return "redirect:/";
+		}
+
+		reservationService.rejectReservation(reservationId, hostUserId);
+		return "redirect:/reservation/host/dashboard";
+	}
+
+	@GetMapping("/host/dashboard")
+	public String dashBoard(HttpSession session, Model model) {
+		Long hostUserId = (Long) session.getAttribute(SessionConst.LOGIN_USER_ID);
+		if (hostUserId == null) {
+			return "redirect:/";
+		}
+
+		model.addAttribute("reservations", reservationService.getReservationByHost(hostUserId, ReservationStatus.PENDING));
+		return "host/dashboard";
 	}
 }
