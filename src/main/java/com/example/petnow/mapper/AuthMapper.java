@@ -9,5 +9,6 @@ public interface AuthMapper {
 
     User findByEmail(String email);
 
+    // 마이페이지에서 바로 보여지는 내정보 처리 (상세정보X)
     User findById(Long userId);
 }
