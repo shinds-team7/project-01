@@ -17,7 +17,7 @@
         <section class="my-pets" aria-labelledby="my-pets-title">
             <h2 id="my-pets-title">반려견 프로필</h2>
 
-            <div class="my-pet-grid">
+            <div class="my-pet-grid" th:unless="${#lists.isEmpty(petList)}">
                 <article class="my-pet-card" th:each="pet : ${petList}">
                     <span class="my-pet-avatar" aria-hidden="true">
                         <span class="ico is-filled">pets</span>
@@ -37,7 +37,12 @@
                 </a>
             </div>
 
-            <p class="sr-only" th:if="${#lists.isEmpty(petList)}">아직 등록한 반려동물이 없어요.</p>
+            <div class="empty my-pet-empty" th:if="${#lists.isEmpty(petList)}">
+                <span class="ico" aria-hidden="true">sound_detection_dog_barking</span>
+                <strong>아직 등록한 반려동물이 없어요</strong>
+                <p>이름과 돌봄 정보를 등록하고 첫 예약을 준비해 보세요.</p>
+                <a class="btn btn-primary" th:href="@{/pet/new}">첫 반려동물 등록하기</a>
+            </div>
         </section>
 
         <nav class="my-menu" aria-label="마이페이지 바로가기">

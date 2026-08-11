@@ -1421,7 +1421,6 @@ textarea.control {
  * 모바일의 2열 카드와 단정한 목록 구조를 유지하고, 넓은 화면에서는 읽기 폭만 제한한다.
  */
 .my-page {
-    padding-bottom: 0;
     background: #fff;
 }
 
@@ -1429,7 +1428,7 @@ textarea.control {
     width: 100%;
     max-width: 680px;
     margin: 0 auto;
-    padding: 66px 20px 90px;
+    padding: 66px 20px 24px;
 }
 
 .my-profile {
@@ -1575,6 +1574,17 @@ textarea.control {
     font-weight: 600;
 }
 
+.my-pet-empty {
+    padding: 40px 20px;
+    border: 1px solid #e8e8ea;
+    border-radius: var(--r-md);
+    background: #fafafa;
+}
+
+.my-pet-empty .btn {
+    margin-top: 18px;
+}
+
 .my-menu {
     margin-top: 26px;
     overflow: hidden;
@@ -1659,15 +1669,20 @@ textarea.control {
 
 .my-pet-edit:focus-visible,
 .my-pet-add:focus-visible,
-.my-menu a:focus-visible,
 .my-host-link:focus-visible {
     outline: 3px solid rgba(34, 164, 92, 0.28);
     outline-offset: 2px;
 }
 
+.my-menu a:focus-visible {
+    outline: 2px solid transparent;
+    outline-offset: -2px;
+    box-shadow: inset 0 0 0 3px rgba(34, 164, 92, 0.28);
+}
+
 @media (min-width: 1024px) {
     .my-page-content {
-        padding: 64px 48px 80px;
+        padding: 64px 48px 24px;
     }
 }
 
