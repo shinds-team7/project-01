@@ -6,6 +6,7 @@
 
 <mapper namespace="com.example.petnow.mapper.MyProfileMapper">
 
+    <!--   내 정보 상세 조회   -->
     <select id="findById" resultType="com.example.petnow.entity.User">
 
         SELECT email, nickname, phone
