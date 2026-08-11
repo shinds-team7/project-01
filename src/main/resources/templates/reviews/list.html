@@ -21,12 +21,9 @@
     id           Long           리뷰 ID. reviews.id
     placeId      Long           장소 ID. 장소명 클릭 시 /places/{placeId} 로 이동
     placeName    String         장소명. places.name
-    stayInfo     String         돌봄 정보 한 줄. 예) "7월 18일 · 1박 · 초코"
-                                reservations + pets 조인이 필요합니다.
-                                아직 조인이 어렵다면 빈 문자열을 주세요. 해당 줄이 숨겨집니다.
+    checkInAt    LocalDateTime  이용 날짜. reservations.check_in_at
     rating       Integer        별점 1~5. reviews.rating
     content      String         리뷰 본문. reviews.content (NULL 허용)
-    createdAt    LocalDateTime  작성 일시. reviews.created_at
 
   [이 화면이 서버로 보내는 요청]
     수정하기 : GET  /reviews/{id}/edit     → 리뷰 수정 폼
@@ -114,11 +111,8 @@
                     <a class="place-name" th:href="@{/places/{id}(id=${review.placeId})}" href="/places/1"
                        th:text="${review.placeName}">성수 조용한 단독주택 마당</a>
 
-                    <small class="stay-info" th:if="${!#strings.isEmpty(review.stayInfo)}"
-                           th:text="${review.stayInfo}">7월 18일 · 1박 · 초코</small>
-
-                    <small class="written-at"
-                           th:text="${#temporals.format(review.createdAt, 'yyyy년 M월 d일')} + ' 작성'">2026년 7월 20일 작성</small>
+                    <small class="stay-info" th:if="${!#strings.isEmpty(review.checkInAt)}"
+                           th:text="${review.checkInAt}">7월 18일 · 1박 · 초코</small>
 
                     <p class="my-review-rating">
                         <span class="material-symbols-rounded is-star" aria-hidden="true">star</span>
