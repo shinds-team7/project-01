@@ -22,8 +22,15 @@ public class MyProfileServiceImpl implements MyProfileService {
             if (user == null) {
                 throw new BusinessException(UserErrorCode.USER_NOT_FOUND);
             }
-
         return MyProfileResponse.from(user);
+        }
 
+        @Override
+        public void withdraw(Long userId) {
+            int result = myProfileMapper.withdraw(userId);
+
+            if(result == 0) {
+                throw new BusinessException(UserErrorCode.USER_NOT_FOUND);
+            }
         }
     }
