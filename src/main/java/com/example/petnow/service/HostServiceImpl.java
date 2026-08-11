@@ -17,7 +17,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class HostServiceImpl implements HostService{
+public class HostServiceImpl implements HostService {
 
     private final HostMapper hostMapper;
     private final AuthMapper authMapper;
