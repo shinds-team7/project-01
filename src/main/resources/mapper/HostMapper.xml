@@ -54,6 +54,9 @@
         SELECT
         id,
         name,
+        place_type AS placeType,
+        area_size AS areaSize,
+        capacity,
         status
         FROM places
         WHERE host_user_id = #{userId}
