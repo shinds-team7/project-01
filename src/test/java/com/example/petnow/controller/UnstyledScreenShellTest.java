@@ -93,34 +93,32 @@ class UnstyledScreenShellTest {
                 .andExpect(content().string(containsString("초코")));
     }
 
+    /** #179 로 host/manage.html 이 host/dashboard.html 로 교체됐다. */
     @Test
     @DisplayName("내 호스팅 장소가 앱 셸로 그려지고 게시 상태를 배지로 보여준다")
-    void hostManageRendersWithAppShell() throws Exception {
+    void hostDashboardRendersWithAppShell() throws Exception {
         given(hostService.getPlacesByUserId(1L)).willReturn(List.of(
                 HostPlaceListResponse.builder().id(3L).name("햇살 가득한 마당").status(PlaceStatus.PUBLISHED).build()));
 
         mockMvc.perform(get("/host").session(loggedIn()))
                 .andExpect(status().isOk())
-                .andExpect(view().name("host/manage"))
+                .andExpect(view().name("host/dashboard"))
                 .andExpect(content().string(containsString("/css/app.css")))
                 .andExpect(content().string(containsString("햇살 가득한 마당")))
                 .andExpect(content().string(containsString("게시")));
     }
 
     @Test
-    @DisplayName("장소가 없으면 등록 버튼이 빈 상태 안내에만 한 번 나온다")
-    void hostManageShowsSingleCreateButtonWhenEmpty() throws Exception {
+    @DisplayName("장소가 없으면 빈 상태 안내를 그린다")
+    void hostDashboardRendersEmptyState() throws Exception {
         given(hostService.getPlacesByUserId(1L)).willReturn(List.of());
 
-        String html = mockMvc.perform(get("/host").session(loggedIn()))
+        mockMvc.perform(get("/host").session(loggedIn()))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("등록된 장소가 없어요")))
-                .andReturn().getResponse().getContentAsString();
-
-        // 빈 상태 카드의 버튼과 하단 버튼이 함께 나오면 등록 링크가 두 번 보인다
-        org.assertj.core.api.Assertions.assertThat(html.split("/host/create", -1).length - 1)
-                .as("빈 상태에서 /host/create 링크 개수")
-                .isEqualTo(1);
+                // 빈 상태 카드에는 버튼을 두지 않는다. 등록 입구는 상단 "+ 장소 등록" 과
+                // 하단 "새 장소 등록하기" 두 곳뿐이고, 이건 프로토타입 HOST HOME 그대로다.
+                .andExpect(content().string(containsString("새 장소 등록하기")));
     }
 
     @Test

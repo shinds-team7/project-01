@@ -12,6 +12,7 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -67,12 +68,17 @@ public class HostController {
         model.addAttribute("placeTypes", PlaceType.values());
     }
 
+    /**
+     * 호스트 홈. 프로토타입의 HOST HOME 화면.
+     *
+     * <p>이슈 #179 로 manage.html 을 dashboard.html 로 교체했다.
+     * 예약 요청·리뷰 탭은 호스트용 조회 API 가 붙기 전까지 빈 상태로 그려진다.
+    */
     @GetMapping
     public String dashboard(@RequestParam(defaultValue = "places") String tab,
                             Model model,
                             HttpSession session) {
-        Long loginUserId = 1L;
-//        Long loginUserId = (Long) session.getAttribute(SessionConst.LOGIN_USER_ID);
+        Long loginUserId = (Long) session.getAttribute(SessionConst.LOGIN_USER_ID);
         if (loginUserId == null) {
             return "redirect:/";
         }
@@ -85,5 +91,22 @@ public class HostController {
         model.addAttribute("places", hostService.getPlacesByUserId(loginUserId));
 
         return "host/dashboard";
+    }
+
+    /**
+     * 장소 삭제. 소유자 검증은 서비스가 UPDATE 의 WHERE 절로 처리한다.
+     *
+     * <p>PRG 로 돌려보내 새로고침 때 삭제가 다시 나가지 않게 한다.
+     */
+    @PostMapping("/places/{placeId}/delete")
+    public String deletePlace(@PathVariable Long placeId, HttpSession session) {
+        Long loginUserId = (Long) session.getAttribute(SessionConst.LOGIN_USER_ID);
+        if (loginUserId == null) {
+            return "redirect:/";
+        }
+
+        hostService.deletePlace(loginUserId, placeId);
+
+        return "redirect:/host";
     }
 }
