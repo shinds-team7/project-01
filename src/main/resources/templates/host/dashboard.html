@@ -109,9 +109,6 @@
                             <p>삭제하면 예약자에게 더 이상 노출되지 않으며, 되돌릴 수 없습니다.</p>
                             <div class="modal-actions">
                                 <button class="btn btn-ghost" type="button" data-modal-close>취소</button>
-                                <form th:action="@{/host/places/{id}/delete(id=${place.id})}" method="post">
-                                    <button class="btn btn-danger btn-block" type="submit">삭제하기</button>
-                                </form>
                             </div>
                         </div>
                     </dialog>
