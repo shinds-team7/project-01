@@ -1,11 +1,22 @@
 <!DOCTYPE html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <title>오류가 발생했습니다</title>
-</head>
+<!--
+  오류 화면. ViewErrorController 가 status·message 를 담아 넘긴다.
+
+  이 화면은 다른 화면의 렌더링이 실패했을 때 대신 그려지는 마지막 방어선이라
+  세션이나 조회 결과에 손대지 않는다. 하단 네비도 띄우지 않는다('none').
+-->
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/base :: page('오류', 'none', ~{::main})}">
 <body>
-<h1 th:text="${status}">500</h1>
-<p th:text="${message}">서버 내부 오류</p>
+<main id="main-content" class="app-main no-nav">
+    <div class="screen">
+        <div class="empty">
+            <span class="ico" aria-hidden="true">sentiment_dissatisfied</span>
+            <strong th:text="${status} ?: '오류'">500</strong>
+            <p th:text="${message} ?: '잠시 후 다시 시도해 주세요.'">서버 내부 오류</p>
+        </div>
+        <a class="btn btn-primary btn-block" th:href="@{/home}">홈으로 돌아가기</a>
+    </div>
+</main>
 </body>
 </html>

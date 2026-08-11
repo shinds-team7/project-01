@@ -12,20 +12,12 @@
   ReviewController.createReview() 가 리뷰 저장 후 redirect:/reviews 로 보내는데
   GET /reviews 매핑이 아직 없습니다. 이 템플릿이 그 도착지입니다.
 
-  [라우트 — 아직 구현되지 않았습니다]
-
-      @GetMapping("/reviews")
-      public String myReviews(HttpSession session, Model model) { ... return "reviews/list"; }
-
-  세션에서 SessionConst.LOGIN_USER_ID 를 꺼내 본인 리뷰만 조회하면 됩니다.
-  (MyPageController 가 같은 방식을 쓰고 있으니 참고하세요.)
-
   [Model 속성 계약]
 
-    myReviews : List<?>  내가 쓴 리뷰 목록. 최신순 정렬을 권장합니다.
+    reviews : List<?>  내가 쓴 리뷰 목록. 최신순 정렬을 권장합니다.
     deleteError : String (선택) 삭제 실패 시 상단에 띄울 문구. 없으면 표시하지 않습니다.
 
-  [myReviews 원소가 가져야 할 필드]
+  [reviews 원소가 가져야 할 필드]
     id           Long           리뷰 ID. reviews.id
     placeId      Long           장소 ID. 장소명 클릭 시 /places/{placeId} 로 이동
     placeName    String         장소명. places.name
@@ -105,14 +97,14 @@
     <p class="review-alert" th:if="${deleteError}" th:text="${deleteError}" role="alert"></p>
 
     <!--/* 리뷰가 하나도 없을 때. 컨트롤러 연결 전에도 이 상태로 렌더링됩니다. */-->
-    <div class="flow-empty" th:if="${#lists.isEmpty(myReviews)}">
+    <div class="flow-empty" th:if="${#lists.isEmpty(reviews)}">
         <span class="material-symbols-rounded" aria-hidden="true">rate_review</span>
         <p>아직 작성한 리뷰가 없어요.<br>돌봄이 끝난 예약에 후기를 남겨보세요.</p>
         <a class="flow-cta is-green" href="/mypage#reservations">예약 내역 보러 가기</a>
     </div>
 
-    <ul class="my-review-list" id="review-list" th:unless="${#lists.isEmpty(myReviews)}">
-        <li class="my-review-card" th:each="review : ${myReviews}">
+    <ul class="my-review-list" id="review-list" th:unless="${#lists.isEmpty(reviews)}">
+        <li class="my-review-card" th:each="review : ${reviews}">
 
             <div class="my-review-top">
                 <div class="media-placeholder">

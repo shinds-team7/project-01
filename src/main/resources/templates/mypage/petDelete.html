@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/base :: page('반려동물 정보 삭제', 'none', ~{::main})}">
+<body>
+<main id="main-content" class="app-main no-nav pet-delete-page">
+    <div class="topbar has-line pet-delete-topbar">
+        <a class="topbar-back" th:href="@{/pet/detail/{petId}(petId=${petId})}" aria-label="정보 수정으로 돌아가기">
+            <span class="ico" aria-hidden="true">arrow_back_ios_new</span>
+        </a>
+        <h1>반려동물 정보 삭제</h1>
+    </div>
+
+    <section class="pet-delete-card" aria-labelledby="delete-title">
+        <div class="pet-delete-symbol" aria-hidden="true">
+            <span class="ico">delete_forever</span>
+        </div>
+        <span class="pet-delete-kicker">REMOVE PROFILE</span>
+        <h2 id="delete-title"><strong th:text="${pet.name}">초코</strong>의 정보를<br>삭제할까요?</h2>
+        <p class="pet-delete-lead">삭제하면 이 아이의 돌봄 기록과 저장된 메모를 다시 확인할 수 없어요.</p>
+
+        <div class="pet-delete-profile">
+            <span class="pet-delete-avatar" aria-hidden="true"><span class="ico is-filled">pets</span></span>
+            <div>
+                <strong th:text="${pet.name}">초코</strong>
+                <span>
+                    <span th:text="${pet.size != null ? pet.size.label : '크기 미입력'}">소형</span>
+                    <i aria-hidden="true">·</i>
+                    <span th:text="${pet.weight != null ? pet.weight + 'kg' : '몸무게 미입력'}">4.2kg</span>
+                </span>
+            </div>
+        </div>
+
+        <div class="pet-delete-notice">
+            <span class="ico" aria-hidden="true">info</span>
+            <p><strong>삭제 전 확인해 주세요</strong>진행 중인 예약이 있다면 먼저 예약 상태를 확인한 후 삭제해 주세요.</p>
+        </div>
+
+        <form class="pet-delete-actions" th:action="@{/pet/delete/{petId}(petId=${petId})}" method="post">
+            <a class="btn btn-ghost" th:href="@{/pet/detail/{petId}(petId=${petId})}">취소</a>
+            <button class="btn btn-danger" type="submit">정보 삭제하기</button>
+        </form>
+    </section>
+</main>
+</body>
+</html>
