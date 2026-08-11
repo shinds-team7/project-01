@@ -17,7 +17,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class HostServiceImpl implements HostService{
+public class HostServiceImpl implements HostService {
 
     private final HostMapper hostMapper;
     private final AuthMapper authMapper;
@@ -41,18 +41,5 @@ public class HostServiceImpl implements HostService{
     @Transactional(readOnly = true)
     public List<HostPlaceListResponse> getPlacesByUserId(Long userId) {
         return hostMapper.findAllByUserId(userId);
-    }
-
-    /**
-     * 소유자 검증은 UPDATE 의 WHERE 절이 한다. 남의 장소면 갱신된 행이 0 이라
-     * 여기서 걸린다. 없는 장소와 같은 응답이라 존재 여부가 새지 않는다.
-     */
-    @Override
-    @Transactional
-    public void deletePlace(Long userId, Long placeId) {
-        int result = hostMapper.softDelete(placeId, userId);
-        if (result != 1) {
-            throw new BusinessException(PlaceErrorCode.PLACE_NOT_FOUND);
-        }
     }
 }
