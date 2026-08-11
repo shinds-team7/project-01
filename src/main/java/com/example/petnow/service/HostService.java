@@ -21,4 +21,13 @@ public interface HostService {
      */
     List<HostPlaceListResponse> getPlacesByUserId(Long userId);
 
+    /**
+     * 호스트 본인의 장소를 소프트 삭제한다.
+     *
+     * @param userId 현재 호스트의 ID
+     * @param placeId 삭제할 장소의 ID
+     * @throws com.example.petnow.exception.BusinessException 내 장소가 아니거나 이미 삭제된 경우
+     */
+    void deletePlace(Long userId, Long placeId);
+
 }
