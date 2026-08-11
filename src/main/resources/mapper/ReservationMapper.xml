@@ -6,7 +6,7 @@
         <id property="id" column="id"/>
         <result property="userId" column="guest_user_id"/>
         <result property="placeId" column="place_id"/>
-        <result property="reservationType" column="reservation_type"/>
+        <result property="reservationType" column="reservation_type" typeHandler="com.example.petnow.mapper.handler.ReservationTypeHandler"/>
         <result property="reservationNo" column="reservation_no"/>
         <result property="checkIn" column="check_in_at"/>
         <result property="checkOut" column="check_out_at"/>
@@ -50,7 +50,7 @@
         INSERT INTO reservations
         (guest_user_id, place_id, reservation_no, reservation_type, check_in_at, check_out_at, status, request_message, total_price)
         VALUES
-        (#{userId}, #{placeId}, #{reservationNo}, #{reservationType}, #{checkIn}, #{checkOut}, #{status}, #{memo}, #{totalPrice})
+        (#{userId}, #{placeId}, #{reservationNo},#{reservationType, typeHandler=com.example.petnow.mapper.handler.ReservationTypeHandler}, #{checkIn}, #{checkOut}, #{status}, #{memo}, #{totalPrice})
     </insert>
 
     <insert id="saveReservationPets">
@@ -117,10 +117,42 @@
         ORDER BY r.check_in_at DESC
     </select>
 
+    <select id="viewReservationListByHost" resultType="com.example.petnow.dto.response.ReservationListResponse">
+        SELECT
+            r.id AS reservationId,
+            pl.name AS placeName,
+            r.total_price AS totalPrice,
+            r.status AS reservationStatus,
+            r.check_in_at AS checkIn,
+            r.check_out_at AS checkOut
+        FROM reservations r
+        INNER JOIN places pl ON r.place_id = pl.id
+        <where>
+            pl.host_user_id = #{hostUserId}
+            <if test="status != null">
+                AND r.status = #{status}
+            </if>
+        </where>
+        ORDER BY r.check_in_at DESC;
+    </select>
+
+
     <update id="cancelReservation">
         UPDATE reservations
         SET status='CANCELED', updated_at=CURRENT_TIMESTAMP
         WHERE id = #{reservationId} AND
         status != 'CANCELED'
+    </update>
+
+    <update id="approveReservation">
+        UPDATE reservations
+        SET status='CONFIRMED', responded_at=CURRENT_TIMESTAMP
+        WHERE id = #{reservationId} AND status='PENDING'
+    </update>
+
+    <update id="rejectReservation">
+        UPDATE reservations
+        SET status='CANCELED', responded_at=CURRENT_TIMESTAMP
+        WHERE id = #{reservationId} AND status='PENDING'
     </update>
 </mapper>

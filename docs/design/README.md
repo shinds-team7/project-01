@@ -38,7 +38,7 @@
 | BOOKMARKS | 없음 (`/bookmarks` → `coming-soon.html`) |
 | REVIEWS | `reviews/list.html` |
 | REVIEW WRITE | `reviews/create.html` |
-| HOST HOME | `host/manage.html`, `host/dashboard.html`(매핑 없음) |
+| HOST HOME | `host/dashboard.html` |
 | HOST BOOKING DETAIL | `host/booking-detail.html` (매핑 없음) |
 | PET CREATE | `pet-form.html`, `mypage/petUpdate.html` |
 | HOST REVIEWS | `host/reviews.html` (매핑 없음) |

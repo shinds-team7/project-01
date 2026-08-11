@@ -2,15 +2,16 @@
 <!--/*
   호스트 홈 = 프로토타입의 "HOST HOME" 화면 (예약 / 리뷰 / 장소 3개 탭).
 
-  ⚠ 매핑 없는 화면. 지금 열리는 호스트 화면은 host/manage.html 이고
-  GET /host 가 그걸 그린다. manage 는 장소 목록만 있는 축소판이다.
+  GET /host 가 이 화면을 그린다. (#179 로 manage.html 을 대체했다)
 
-  이식하면서 예전에 쓰던 bookings·req.* 처럼 어디에도 없는 모델을 버리고
-  실제로 내려오는 ${places}(HostPlaceListResponse: id·name·status)에 맞췄다.
-  예약·리뷰 탭은 호스트용 조회 API 가 아직 없어 빈 상태로 둔다.
+  ${places} 는 HostPlaceListResponse(id·name·status)다.
+  프로토타입 카드의 평점·예약 건수는 집계 쿼리가 없어 옮기지 않았다.
 
-  살리려면 GET /host?tab=... 매핑을 만들고
-  호스트 예약 목록 / 호스트 리뷰 목록 서비스를 붙이면 된다.
+  예약 요청·리뷰 탭은 호스트용 조회 API 가 아직 없어 빈 상태로 둔다.
+  붙일 자리는 #100(예약 승인/거부)에서 이어간다.
+
+  "일정 관리 및 수정"은 프로토타입 라벨을 그대로 두되 비활성이다.
+  장소 수정·일정 관리 서버 기능이 둘 다 없다.
 */-->
 <html lang="ko" xmlns:th="http://www.thymeleaf.org"
       th:replace="~{fragments/base :: page('호스트 홈', 'my', ~{::main})}">
@@ -30,7 +31,7 @@
             <a th:href="@{/host(tab='places')}" th:classappend="${activeTab == 'places'} ? 'is-active'">내 호스팅</a>
         </div>
 
-        <!--/* 예약 요청 탭 — 호스트용 예약 조회 API 가 없어 아직 비어 있다 */-->
+        <!--/* 예약 요청 탭 — 호스트용 예약 조회 API 가 없어 아직 비어 있다 (#100) */-->
         <div th:if="${activeTab == 'booking'}" class="empty">
             <span class="ico" aria-hidden="true">event_note</span>
             <strong>예약 요청을 불러올 수 없어요</strong>
@@ -58,27 +59,43 @@
 
             <div class="card-stack" th:unless="${places == null or #lists.isEmpty(places)}">
                 <div class="card host-place-card" th:each="place : ${places}">
-                    <div class="place-summary">
-                        <div class="media">
+                    <!--/* 카드 본문을 누르면 게시글(장소 상세)로 간다 */-->
+                    <a class="place-summary" th:href="@{/places/{id}(id=${place.id})}"
+                       th:aria-label="|${place.name} 게시글 보기|">
+                        <span class="media">
                             <span class="ico" aria-hidden="true">weekend</span>
-                        </div>
-                        <div class="place-summary-copy">
-                            <div class="place-summary-head">
+                        </span>
+                        <span class="place-summary-copy">
+                            <span class="place-summary-head">
                                 <strong th:text="${place.name}">성수 단독주택 마당</strong>
                                 <span class="badge"
                                       th:if="${place.status != null}"
                                       th:classappend="${place.status.name() == 'PUBLISHED'} ? 'badge-green' : 'badge-warn'"
-                                      th:text="${place.status.label}">게시 중</span>
-                            </div>
-                        </div>
-                    </div>
+                                      th:text="${place.status.label}">게시</span>
+                            </span>
+                            <span class="place-summary-more">
+                                게시글 보기 <span class="ico" aria-hidden="true">chevron_right</span>
+                            </span>
+                        </span>
+                    </a>
+
                     <div class="host-place-actions">
-                        <a class="btn btn-ghost" th:href="@{/places/{id}(id=${place.id})}">
-                            <span class="ico" aria-hidden="true">visibility</span>공개 화면 보기
-                        </a>
+                        <!--/*
+                          프로토타입 라벨 그대로 두되 비활성이다.
+                          장소 정보 수정과 가능한 일정(place_availability) 관리가 둘 다 없다.
+                        */-->
+                        <button class="btn btn-ghost" type="button" disabled
+                                title="장소 수정과 일정 관리 기능은 준비 중이에요">
+                            <span class="ico" aria-hidden="true">edit_calendar</span>일정 관리 및 수정
+                        </button>
                         <a class="btn btn-ghost" th:href="@{/reviews/place/{id}(id=${place.id})}">
-                            <span class="ico" aria-hidden="true">reviews</span>리뷰 보기
+                            <span class="ico" aria-hidden="true">reviews</span>리뷰 관리
                         </a>
+                        <button class="btn btn-danger btn-icon" type="button" disabled
+                                data-modal-open th:attr="aria-controls=|place-delete-${place.id}|"
+                                th:aria-label="|${place.name} 삭제|">
+                            <span class="ico" aria-hidden="true">delete</span>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -88,6 +105,8 @@
             </a>
         </th:block>
     </div>
+
+    <script th:src="@{/js/modal.js}"></script>
 </main>
 </body>
 </html>

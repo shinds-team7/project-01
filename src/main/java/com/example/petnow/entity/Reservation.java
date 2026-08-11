@@ -27,7 +27,7 @@ public class Reservation {
 	private Long userId;
 	private Long placeId;
 	private String reservationNo;
-	private String reservationType;
+	private ReservationType reservationType;
 	private LocalDateTime checkIn;
 	private LocalDateTime checkOut;
 	private ReservationStatus status;

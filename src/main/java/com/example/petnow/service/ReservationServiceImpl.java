@@ -13,16 +13,20 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.example.petnow.dto.request.ReservationRequest;
 import com.example.petnow.dto.response.PetListResponse;
+import com.example.petnow.dto.response.PlaceDetailResponse;
 import com.example.petnow.dto.response.ReservationDetailResponse;
 import com.example.petnow.dto.response.ReservationListResponse;
 import com.example.petnow.entity.Place;
 import com.example.petnow.entity.Reservation;
 import com.example.petnow.entity.ReservationStatus;
+import com.example.petnow.entity.ReservationType;
 import com.example.petnow.entity.ReservationUseStatus;
+import com.example.petnow.exception.AuthErrorCode;
 import com.example.petnow.exception.BusinessException;
 import com.example.petnow.exception.PlaceErrorCode;
 import com.example.petnow.exception.ReservationErrorCode;
 import com.example.petnow.mapper.PetMapper;
+
 import com.example.petnow.mapper.PlaceMapper;
 import com.example.petnow.mapper.ReservationMapper;
 
@@ -63,7 +67,7 @@ public class ReservationServiceImpl implements ReservationService {
 		}
 
 
-		String reservationType = determineReservationType(request.getCheckIn(), request.getCheckOut());
+		ReservationType reservationType = determineReservationType(request.getCheckIn(), request.getCheckOut());
 		String reservationNo = Reservation.createReservationNo();
 		BigDecimal totalPrice = calculateTotalPrice(place, reservationType, request.getCheckIn(), request.getCheckOut());
 
@@ -99,13 +103,14 @@ public class ReservationServiceImpl implements ReservationService {
 	public ReservationDetailResponse detailReservation(Long reservationId, Long userId) {
 		Reservation reservation = reservationMapper.findById(reservationId);
 		if (reservation == null || !reservation.getUserId().equals(userId)) {
-			throw new IllegalStateException("사용자가 일치하지 않습니다.");
+			throw new BusinessException(AuthErrorCode.FORBIDDEN);
 		}
 
 		return reservationMapper.detailReservation(reservationId);
 	}
 
 	@Override
+	@Transactional
 	public void cancelReservation(Long reservationId, Long userId) {
 		Reservation reservation = reservationMapper.findById(reservationId);
 		if (reservation == null) {
@@ -113,13 +118,64 @@ public class ReservationServiceImpl implements ReservationService {
 		}
 
 		if (!reservation.getUserId().equals(userId)) {
-			throw new IllegalStateException("사용자가 일치하지 않습니다.");
+			throw new BusinessException(AuthErrorCode.FORBIDDEN);
 		}
 
 		int updatedRows = reservationMapper.cancelReservation(reservationId);
 		if (updatedRows == 0) {
-			throw new IllegalStateException("이미 취소된 예약입니다.");
+			throw new BusinessException(ReservationErrorCode.RESERVATION_UPDATE_FAILED);
 		}
+	}
+
+	@Override
+	@Transactional
+	public void approveReservation(Long reservationId, Long hostUserId) {
+		Reservation reservation = reservationMapper.findById(reservationId);
+		if (reservation == null) {
+			throw new BusinessException(ReservationErrorCode.RESERVATION_NOT_FOUND);
+		}
+
+		PlaceDetailResponse place = placeMapper.findDetailById(reservation.getPlaceId());
+		if (place == null || !place.getHostUserId().equals(hostUserId)) {
+			throw new BusinessException(ReservationErrorCode.RESERVATION_ACCESS_DENIED);
+		}
+
+		if (reservation.getStatus() != ReservationStatus.PENDING) {
+			throw new BusinessException(ReservationErrorCode.INVALID_RESERVATION_STATUS);
+		}
+
+		int result = reservationMapper.approveReservation(reservationId);
+		if (result != 1) {
+			throw new BusinessException(ReservationErrorCode.RESERVATION_UPDATE_FAILED);
+		}
+	}
+
+	@Override
+	@Transactional
+	public void rejectReservation(Long reservationId, Long hostUserId) {
+		Reservation reservation = reservationMapper.findById(reservationId);
+		if (reservation == null) {
+			throw new BusinessException(ReservationErrorCode.RESERVATION_NOT_FOUND);
+		}
+
+		PlaceDetailResponse place = placeMapper.findDetailById(reservation.getPlaceId());
+		if (place == null || !place.getHostUserId().equals(hostUserId)) {
+			throw new BusinessException(ReservationErrorCode.RESERVATION_ACCESS_DENIED);
+		}
+
+		if (reservation.getStatus() != ReservationStatus.PENDING) {
+			throw new BusinessException(ReservationErrorCode.INVALID_RESERVATION_STATUS);
+		}
+
+		int result = reservationMapper.rejectReservation(reservationId);
+		if (result != 1) {
+			throw new BusinessException(ReservationErrorCode.RESERVATION_UPDATE_FAILED);
+		}
+	}
+
+	@Override
+	public List<ReservationListResponse> getReservationByHost(Long hostUserId, ReservationStatus status) {
+		return reservationMapper.viewReservationListByHost(hostUserId, status);
 	}
 
 	private ReservationUseStatus parseUseStatus(String useStatus) {
@@ -133,17 +189,17 @@ public class ReservationServiceImpl implements ReservationService {
 		}
 	}
 
-	private String determineReservationType(LocalDateTime checkIn, LocalDateTime checkOut) {
+	private ReservationType determineReservationType(LocalDateTime checkIn, LocalDateTime checkOut) {
 		if (checkIn.toLocalDate().equals(checkOut.toLocalDate())) {
-			return "당일";
+			return ReservationType.SAME_DAY;
 		} else {
-			return "숙박";
+			return ReservationType.OVERNIGHT;
 		}
 	}
 
-	private BigDecimal calculateTotalPrice(Place place, String reservationType, LocalDateTime checkIn, LocalDateTime checkOut) {
+	private BigDecimal calculateTotalPrice(Place place, ReservationType reservationType, LocalDateTime checkIn, LocalDateTime checkOut) {
 		BigDecimal totalPrice;
-		if ("당일".equals(reservationType)) {
+		if (reservationType == ReservationType.SAME_DAY) {
 			BigDecimal hourlyPrice = place.getHourlyPrice();
 			if (hourlyPrice == null) {
 				throw new BusinessException(ReservationErrorCode.HOURLY_PRICE_NOT_SET);
@@ -160,5 +216,4 @@ public class ReservationServiceImpl implements ReservationService {
 		}
 		return totalPrice;
 	}
-
 }
