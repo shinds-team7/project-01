@@ -21,7 +21,7 @@
     id           Long           리뷰 ID. reviews.id
     placeId      Long           장소 ID. 장소명 클릭 시 /places/{placeId} 로 이동
     placeName    String         장소명. places.name
-    checkInAt    LocalDateTime  이용 날짜. reservations.check_in_at
+    checkInAt    LocalDate      이용 날짜. reservations.check_in_at
     rating       Integer        별점 1~5. reviews.rating
     content      String         리뷰 본문. reviews.content (NULL 허용)
 
@@ -112,7 +112,7 @@
                        th:text="${review.placeName}">성수 조용한 단독주택 마당</a>
 
                     <small class="stay-info" th:if="${!#strings.isEmpty(review.checkInAt)}"
-                           th:text="${review.checkInAt}">7월 18일 · 1박 · 초코</small>
+                           th:text="${review.checkInAt}">2026년 7월 18일</small>
 
                     <p class="my-review-rating">
                         <span class="material-symbols-rounded is-star" aria-hidden="true">star</span>
