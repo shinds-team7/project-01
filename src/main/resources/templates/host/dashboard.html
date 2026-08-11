@@ -97,21 +97,6 @@
                             <span class="ico" aria-hidden="true">delete</span>
                         </button>
                     </div>
-
-                    <!--/* 프로토타입의 PLACE DELETE MODAL */-->
-                    <dialog class="modal" th:id="|place-delete-${place.id}|"
-                            th:aria-label="|${place.name} 삭제 확인|">
-                        <div class="modal-inner">
-                            <span class="modal-symbol" aria-hidden="true">
-                                <span class="ico">delete</span>
-                            </span>
-                            <h2>게시글을 삭제할까요?</h2>
-                            <p>삭제하면 예약자에게 더 이상 노출되지 않으며, 되돌릴 수 없습니다.</p>
-                            <div class="modal-actions">
-                                <button class="btn btn-ghost" type="button" data-modal-close>취소</button>
-                            </div>
-                        </div>
-                    </dialog>
                 </div>
             </div>
 
