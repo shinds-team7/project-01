@@ -28,10 +28,10 @@
             r.reservation_id AS reservationId,
             res.guest_user_id    AS memberId,
             res.place_id     AS placeId,
+            DATE(res.check_in_at)  AS checkInAt,
             p.name           AS placeName,
             r.content        AS content,
-            r.rating         AS rating,
-            r.created_at     AS createdAt
+            r.rating         AS rating
         FROM reviews r
         JOIN reservations res
             ON r.reservation_id = res.id
@@ -49,10 +49,10 @@
             r.reservation_id AS reservationId,
             res.guest_user_id    AS memberId,
             res.place_id     AS placeId,
+            DATE(res.check_in_at)  AS checkInAt,
             p.name           AS placeName,
             r.content        AS content,
-            r.rating         AS rating,
-            r.created_at     AS createdAt
+            r.rating         AS rating
         FROM reviews r
         JOIN reservations res
             ON r.reservation_id = res.id
