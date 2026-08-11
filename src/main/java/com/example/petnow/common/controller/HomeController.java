@@ -40,9 +40,17 @@ public class HomeController {
         return comingSoon(model, "검색", "search");
     }
 
+    /**
+     * 내 주변. 프로토타입의 NEARBY 화면.
+     *
+     * <p>거리순 정렬은 아직 못 한다. {@code place_addresses} 에 위경도 컬럼이 있지만
+     * 엔티티·매퍼가 없어 자바에서 좌표를 읽을 수 없다. 그때까지는 공개된 장소를
+     * 그대로 보여주고, 화면이 안내 문구로 그 사실을 알린다.
+     */
     @GetMapping("/nearby")
     public String nearby(Model model) {
-        return comingSoon(model, "내 주변", "nearby");
+        model.addAttribute("places", placeService.getPublishedPlaces());
+        return "nearby";
     }
 
     @GetMapping("/bookmarks")

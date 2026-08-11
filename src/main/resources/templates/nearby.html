@@ -2,13 +2,12 @@
 <!--/*
   내 주변 = 프로토타입의 "NEARBY" 화면 (지도 + 아래에서 올라오는 목록).
 
-  ⚠ 매핑 없는 화면. GET /nearby 는 HomeController 가 coming-soon 으로 넘긴다.
-    하단 탭의 "내 주변"도 그리로 간다.
+  GET /nearby 가 이 화면을 그린다. 하단 탭의 "내 주변"과 장소 목록의
+  "지도 보기" 버튼이 여기로 온다.
 
   이식하면서 예전에 쓰던 place.distanceLabel · regionLabel · averageRating ·
   reviewCount · liked 처럼 서버에 없는 값을 걷어내고
-  /places 가 쓰는 PlaceListResponse 에 맞췄다. 그래서 HomeController 의
-  /nearby 를 이 템플릿으로 바꾸기만 하면 바로 뜬다.
+  /places 가 쓰는 PlaceListResponse 에 맞췄다.
 
   거리순 정렬과 실제 지도는 아직 불가능하다.
     - place_addresses 테이블에 latitude·longitude 컬럼이 있지만

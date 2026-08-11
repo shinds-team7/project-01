@@ -27,7 +27,7 @@
 | HOME | `home.html` |
 | SEARCH LIST + MAP | `places/list.html` |
 | SEARCH INPUT | 없음 (`/search` → `coming-soon.html`) |
-| NEARBY | `nearby.html` (매핑 없음) |
+| NEARBY | `nearby.html` |
 | DETAIL | `place-detail.html` |
 | BOOKING REQUEST | `booking-request.html` |
 | PAYMENT | `payment.html` (매핑 없음) |
