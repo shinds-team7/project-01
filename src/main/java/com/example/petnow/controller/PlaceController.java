@@ -30,6 +30,6 @@ public class PlaceController {
 
         model.addAttribute("place", placeService.getPlaceDetail(placeId, loginUserId));
 
-        return "place-detail";
+        return "places/place-detail";
     }
 }
