@@ -7,6 +7,7 @@ import com.example.petnow.dto.response.LoginUser;
 import com.example.petnow.exception.AuthErrorCode;
 import com.example.petnow.exception.BusinessException;
 import com.example.petnow.service.AuthService;
+import com.example.petnow.service.PlaceService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,6 +55,10 @@ class AuthControllerTest {
 
     @MockitoBean
     private AuthService authService;
+
+    /** 홈이 최근 조회한 호스트 자리에 공개 장소를 그리므로 슬라이스에 필요하다. */
+    @MockitoBean
+    private PlaceService placeService;
 
     // ───────────────────── 1. GET 매핑 (구 #112) ─────────────────────
 
