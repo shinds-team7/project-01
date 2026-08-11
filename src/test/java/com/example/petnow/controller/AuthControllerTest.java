@@ -109,8 +109,9 @@ class AuthControllerTest {
                 .andExpect(view().name("auth/login"))
                 .andExpect(model().attributeHasErrors("userLoginRequest"))
                 // login.html 의 #fields.errors('global') 배너에 실제로 그려져야 한다
+                // (#183 에서 앱 셸로 옮기며 auth.css 의 .auth-banner 가 app.css 의 .notice 로 바뀌었다)
                 .andExpect(content().string(allOf(
-                        containsString("auth-banner is-error"),
+                        containsString("notice notice-danger"),
                         containsString(AuthErrorCode.INVALID_CREDENTIALS.getDefaultMessage()))));
     }
 

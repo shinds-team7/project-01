@@ -14,4 +14,12 @@
 
     </select>
 
+    <update id="withdraw">
+
+        UPDATE users
+        SET deleted_at = NOW()
+        WHERE id = #{userID} AND deleted_at IS NULL
+
+    </update>
+
 </mapper>

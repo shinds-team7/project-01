@@ -25,6 +25,7 @@
         SELECT id, email, nickname, password
         FROM users
         WHERE email = #{email}
+            AND deleted_at IS NULL
 
     </select>
 
@@ -33,6 +34,7 @@
         SELECT id, email, nickname
         FROM users
         WHERE id = #{userId}
+          AND deleted_at IS NULL
 
     </select>
 </mapper>

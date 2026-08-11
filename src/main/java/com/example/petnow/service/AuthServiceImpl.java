@@ -7,6 +7,7 @@ import com.example.petnow.dto.response.UserMyPageResponse;
 import com.example.petnow.entity.User;
 import com.example.petnow.exception.AuthErrorCode;
 import com.example.petnow.exception.BusinessException;
+import com.example.petnow.exception.UserErrorCode;
 import com.example.petnow.mapper.AuthMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -16,7 +17,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
 
-    private final AuthMapper userMapper;
+    private final AuthMapper authMapper;
     private final PasswordEncoder passwordEncoder;
 
     @Override
@@ -28,13 +29,13 @@ public class AuthServiceImpl implements AuthService {
                 .password(passwordEncoder.encode(request.getPassword()))
                 .build();
 
-        userMapper.signup(user);
+        authMapper.signup(user);
     }
 
     @Override
     public LoginUser login(UserLoginRequest request) {
 
-        User user = userMapper.findByEmail(request.getEmail());
+        User user = authMapper.findByEmail(request.getEmail());
 
         if (user == null) {
             throw new BusinessException(AuthErrorCode.INVALID_CREDENTIALS);
@@ -49,7 +50,11 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public UserMyPageResponse getMyPage(Long userId) {
 
-        User user = userMapper.findById(userId);
+        User user = authMapper.findById(userId);
+
+        if (user == null) {
+            throw new BusinessException(UserErrorCode.USER_NOT_FOUND);
+        }
 
         return  UserMyPageResponse.from(user);
     }
