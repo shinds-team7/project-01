@@ -23,7 +23,6 @@ public class PlaceController {
 
     private final PlaceService placeService;
 
-
     @GetMapping("/new")
     public String createForm(Model model, HttpSession session) {
         Long loginUserId = (Long) session.getAttribute(SessionConst.LOGIN_USER_ID);
@@ -57,10 +56,6 @@ public class PlaceController {
         return "redirect:/places/success";
     }
 
-    private void addCreateFormAttributes(Model model) {
-        model.addAttribute("placeTypes", PlaceType.values());
-    }
-
     @GetMapping("/success")
     public String createSuccess() {
         return "places/success";
@@ -82,5 +77,7 @@ public class PlaceController {
         return "places/place-detail";
     }
 
-
+    private void addCreateFormAttributes(Model model) {
+        model.addAttribute("placeTypes", PlaceType.values());
+    }
 }
