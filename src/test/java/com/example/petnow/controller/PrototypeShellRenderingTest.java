@@ -3,6 +3,7 @@ package com.example.petnow.controller;
 import com.example.petnow.common.constant.SessionConst;
 import com.example.petnow.dto.response.PlaceDetailResponse;
 import com.example.petnow.dto.response.PlaceListResponse;
+import com.example.petnow.dto.response.ReservationDetailResponse;
 import com.example.petnow.dto.response.ReviewResponse;
 import com.example.petnow.entity.Place;
 import com.example.petnow.entity.PlaceStatus;
@@ -23,6 +24,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.hamcrest.Matchers.containsString;
@@ -187,12 +189,17 @@ class PrototypeShellRenderingTest {
     @Test
     @DisplayName("리뷰 작성이 앱 셸로 그려지고 별점 위젯과 스크립트가 함께 온다")
     void reviewFormRendersWithAppShell() throws Exception {
+        given(reservationService.detailReservation(9L, 1L)).willReturn(reservation());
+
         mockMvc.perform(get("/reviews/new").param("reservationId", "9").session(loggedIn()))
                 .andExpect(status().isOk())
                 .andExpect(view().name("reviews/create"))
                 .andExpect(content().string(containsString("/css/app.css")))
                 .andExpect(content().string(containsString("data-star-picker")))
-                .andExpect(content().string(containsString("/js/app-flow.js")));
+                .andExpect(content().string(containsString("/js/app-flow.js")))
+                // 상단 요약 카드는 placeName 이 모델에 있을 때만 그려진다
+                .andExpect(content().string(containsString("성수 조용한 단독주택 마당")))
+                .andExpect(content().string(containsString("2026년 7월 18일 이용")));
     }
 
     @Test
@@ -288,6 +295,14 @@ class PrototypeShellRenderingTest {
                 .status(PlaceStatus.PUBLISHED)
                 .visible(true)
                 .build();
+    }
+
+    /** 리뷰 작성 폼 상단 요약 카드(장소명 · 이용 날짜)에 쓰이는 예약 상세. */
+    private ReservationDetailResponse reservation() {
+        ReservationDetailResponse reservation = new ReservationDetailResponse();
+        reservation.setPlaceName("성수 조용한 단독주택 마당");
+        reservation.setCheckIn(LocalDateTime.of(2026, 7, 18, 15, 0));
+        return reservation;
     }
 
     /** ReviewResponse 는 생성자도 세터도 없어 목으로 만든다. */

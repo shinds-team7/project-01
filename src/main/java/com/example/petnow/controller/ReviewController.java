@@ -42,6 +42,9 @@ public class ReviewController {
 
         ReservationDetailResponse reservation =
                 reservationService.detailReservation(reservationId, loginUserId);
+        if (reservation == null) {   // 요약 카드는 없어도 작성 자체는 되게 둔다
+            return;
+        }
 
         model.addAttribute("placeName", reservation.getPlaceName());
         model.addAttribute("checkInAt",
