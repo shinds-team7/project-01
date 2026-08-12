@@ -3,6 +3,24 @@
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.example.petnow.mapper.PlaceMapper">
+    <insert id="insert"
+            parameterType="com.example.petnow.entity.Place"
+            useGeneratedKeys="true"
+            keyProperty="id"
+            keyColumn="id">
+        INSERT INTO places (
+        host_user_id, host_user_nickname, name, description, place_type,
+        area_size, capacity, allows_small_dog, allows_medium_dog, allows_large_dog,
+        provides_home_camera, provides_realtime_photo, provides_yard, provides_walk,
+        other_options, hourly_price, nightly_price, status
+        ) VALUES (
+        #{hostUserId}, #{hostUserNickname}, #{name}, #{description}, #{placeType},
+        #{areaSize}, #{capacity}, #{allowsSmallDog}, #{allowsMediumDog}, #{allowsLargeDog},
+        #{providesHomeCamera}, #{providesRealtimePhoto}, #{providesYard}, #{providesWalk},
+        #{otherOptions}, #{hourlyPrice}, #{nightlyPrice}, #{status}
+        )
+    </insert>
+
     <select id="findById"
             resultType="com.example.petnow.entity.Place">
         SELECT
