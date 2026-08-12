@@ -37,15 +37,6 @@
         </collection>
     </resultMap>
 
-    <resultMap id="ReservationListResponseMap" type="com.example.petnow.dto.response.ReservationListResponse">
-        <id property="reservationId" column="id"/>
-        <result property="totalPrice" column="total_price"/>
-        <result property="placeName" column="place_name"/>
-        <result property="reservationStatus" column="status"/>
-        <result property="checkIn" column="check_in_at"/>
-        <result property="checkOut" column="check_out_at"/>
-    </resultMap>
-
     <insert id="save" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO reservations
         (guest_user_id, place_id, reservation_no, reservation_type, check_in_at, check_out_at, status, request_message, total_price)

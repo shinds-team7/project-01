@@ -30,9 +30,9 @@ public interface ReservationMapper {
 
 	Reservation findById(Long reservationId);
 
-	int cancelReservation(@Param("reservationId") Long reservationId);
+	int cancelReservation(Long reservationId);
 
-	int approveReservation(@Param("reservationId") Long reservationId);
+	int approveReservation(Long reservationId);
 
-	int rejectReservation(@Param("reservationId") Long reservationId);
+	int rejectReservation(Long reservationId);
 }
