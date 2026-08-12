@@ -9,14 +9,17 @@
     --green: #22a45c;
     --green-dark: #1b8a4b;
     --green-soft: #e8f6ee;
+    /* --green-soft 위에 올라가는 글자용. --green-dark 는 4.5:1 에 못 미친다 */
+    --green-on-soft: #12683a;
 
     --ink: #1f2937;
     --ink-strong: #111111;
     --ink-soft: #374151;
     --ink-dim: #4b5563;
 
-    --muted: #8a8f96;
-    --muted-2: #9aa0a6;
+    --muted: #676c72;
+    --muted-2: #6a6f75;
+    /* 텍스트에는 쓰지 않는다. 구분선·비활성 컨트롤·장식 아이콘 전용 */
     --faint: #c2c2c6;
 
     --line: #e3e3e5;
@@ -29,6 +32,8 @@
     --shell: #ded9d2;
 
     --danger: #e5484d;
+    /* #fdeced 위에 올라가는 글자용. --danger 는 4.5:1 에 못 미친다 */
+    --danger-on-soft: #b4252a;
     --warn: #f5a623;
     --orange: #f97316;
 
@@ -774,17 +779,17 @@ img {
 
 .badge-green {
     background: var(--green-soft);
-    color: var(--green-dark);
+    color: var(--green-on-soft);
 }
 
 .badge-warn {
     background: #fff1e7;
-    color: #ad5919;
+    color: #9c4f14;
 }
 
 .badge-danger {
     background: #fdeced;
-    color: var(--danger);
+    color: var(--danger-on-soft);
 }
 
 /* 별점 표시 */
@@ -847,7 +852,7 @@ img {
 }
 
 .control::placeholder {
-    color: var(--faint);
+    color: var(--muted-2);
 }
 
 .control:focus {
@@ -911,7 +916,7 @@ textarea.control {
 .choice input:checked + span {
     border-color: var(--green);
     background: var(--green-soft);
-    color: var(--green-dark);
+    color: var(--green-on-soft);
 }
 
 .choice input:focus-visible + span {
@@ -1081,12 +1086,12 @@ textarea.control {
 
 .notice-green {
     background: var(--green-soft);
-    color: var(--green-dark);
+    color: var(--green-on-soft);
 }
 
 .notice-danger {
     background: #fdeced;
-    color: var(--danger);
+    color: var(--danger-on-soft);
 }
 
 /* ───────────────────────── 홈 ───────────────────────── */
@@ -1193,7 +1198,7 @@ textarea.control {
     height: 30px;
     border-radius: var(--r-pill);
     background: var(--green-soft);
-    color: var(--green-dark);
+    color: var(--green-on-soft);
     font-size: 14px;
     font-weight: 800;
 }
@@ -2265,7 +2270,7 @@ textarea.control {
     text-align: left;
     border-radius: var(--r-md);
     background: #fff8ed;
-    color: #a76424;
+    color: #a46223;
 }
 
 .pet-delete-notice > .ico {
