@@ -14,7 +14,7 @@
         hourly_price AS hourlyPrice,
         nightly_price AS nightlyPrice
         FROM places
-        WHERE id = #{id}
+        WHERE id = #{placeId}
         AND deleted_at IS NULL
     </select>
     <select id="findAllPublished"
