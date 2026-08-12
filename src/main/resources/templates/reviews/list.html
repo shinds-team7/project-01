@@ -50,11 +50,8 @@
                         <a class="place-name" th:href="@{/places/{id}(id=${review.placeId})}"
                            th:text="${review.placeName}">성수 조용한 단독주택 마당</a>
 
-                        <small th:if="${!#strings.isEmpty(review.stayInfo)}"
-                               th:text="${review.stayInfo}">7월 18일 · 1박 · 초코</small>
-
-                        <small th:if="${review.createdAt != null}"
-                               th:text="${#temporals.format(review.createdAt, 'yyyy년 M월 d일')} + ' 작성'">2026년 7월 20일 작성</small>
+                        <small th:if="${review.checkInAt != null}"
+                               th:text="${#temporals.format(review.checkInAt, 'yyyy년 M월 d일')} + ' 이용'">2026년 7월 18일 이용</small>
 
                         <p class="rating">
                             <span class="ico" aria-hidden="true">star</span>
