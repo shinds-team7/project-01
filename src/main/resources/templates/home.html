@@ -83,15 +83,15 @@
                 <span class="media media-warm home-recent-media">
                     <span class="ico" aria-hidden="true">pets</span>
                 </span>
-                <span class="home-recent-title" th:text="${place.name}">햇살 가득한 마당</span>
+                <span class="home-recent-title" th:text="${place.name}">장소명</span>
                 <span class="home-recent-loc">
                     <span class="ico" aria-hidden="true">home_work</span>
-                    <span th:text="${place.placeType != null ? place.placeType.label : place.nickname}">아파트</span>
+                    <span th:text="${place.placeType != null ? place.placeType.label : '유형 미정'}">장소 유형</span>
                 </span>
                 <span class="home-recent-price"
                       th:text="${place.hourlyPrice != null
                                  ? #numbers.formatInteger(place.hourlyPrice, 0, 'COMMA') + '원~'
-                                 : '가격 문의'}">5,000원~</span>
+                                 : '가격 문의'}">시간당 가격</span>
             </a>
 
             <!--/* 조회 이력 API 가 없어 지금은 공개된 장소를 대신 보여준다. 이력 API 가 붙으면 교체한다. */-->

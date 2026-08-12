@@ -20,11 +20,11 @@
             </a>
         </div>
 
-        <h1 class="detail-title" th:text="${place.name}">성수 조용한 단독주택 마당</h1>
+        <h1 class="detail-title" th:text="${place.name}">장소명</h1>
         <p class="detail-meta">
-            <span th:if="${place.placeType != null}" th:text="${place.placeType.label}">단독주택</span>
+            <span th:if="${place.placeType != null}" th:text="${place.placeType.label}">장소 유형</span>
             <span class="sep" th:if="${place.areaSize != null}">·</span>
-            <span th:if="${place.areaSize != null}" th:text="${place.areaSize} + '평'">42평</span>
+            <span th:if="${place.areaSize != null}" th:text="${place.areaSize} + '평'">장소 면적</span>
             <span class="sep">·</span>
             <a th:href="@{/reviews/place/{id}(id=${place.id})}">리뷰 보기</a>
         </p>
@@ -32,7 +32,7 @@
         <div class="person-row detail-host">
             <span class="avatar"><span class="ico" aria-hidden="true">person</span></span>
             <span class="person-copy">
-                <strong th:text="${place.nickname} + ' 호스트'">김도윤 호스트</strong>
+                <strong th:text="${place.nickname} + ' 호스트'">호스트</strong>
                 <small>Pet NOW 등록 호스트</small>
             </span>
             <span class="verified"><span class="ico" aria-hidden="true">check</span>인증됨</span>
@@ -42,7 +42,7 @@
 
         <h2 class="section-title">수용 조건</h2>
         <div class="cond-row">
-            <span th:if="${place.capacity != null}" th:text="'최대 ' + ${place.capacity} + '마리'">최대 2마리</span>
+            <span th:if="${place.capacity != null}" th:text="'최대 ' + ${place.capacity} + '마리'">최대 수용 가능 수</span>
             <span th:if="${place.allowsSmallDog}">소형견</span>
             <span th:if="${place.allowsMediumDog}">중형견</span>
             <span th:if="${place.allowsLargeDog}">대형견</span>
@@ -70,10 +70,10 @@
     <div class="cta-bar no-nav">
         <div class="cta-copy">
             <p class="cta-price" th:if="${place.hourlyPrice != null}"
-               th:text="'시간당 ' + ${#numbers.formatInteger(place.hourlyPrice, 0, 'COMMA')} + '원'">시간당 12,000원</p>
+               th:text="'시간당 ' + ${#numbers.formatInteger(place.hourlyPrice, 0, 'COMMA')} + '원'">시간당 가격</p>
             <p class="cta-price" th:if="${place.hourlyPrice == null}">가격 문의</p>
             <small class="cta-note" th:if="${place.nightlyPrice != null}"
-                   th:text="'1박 ' + ${#numbers.formatInteger(place.nightlyPrice, 0, 'COMMA')} + '원'">1박 48,000원</small>
+                   th:text="'1박 ' + ${#numbers.formatInteger(place.nightlyPrice, 0, 'COMMA')} + '원'">숙박 가격</small>
         </div>
         <a class="btn btn-dark" th:href="@{/reservation/booking-request(placeId=${place.id})}">예약 요청하기</a>
     </div>
