@@ -67,11 +67,11 @@
                         </span>
                         <span class="place-summary-copy">
                             <span class="place-summary-head">
-                                <strong th:text="${place.name}">성수 단독주택 마당</strong>
+                                <strong th:text="${place.name}">장소명</strong>
                                 <span class="badge"
                                       th:if="${place.status != null}"
                                       th:classappend="${place.status.name() == 'PUBLISHED'} ? 'badge-green' : 'badge-warn'"
-                                      th:text="${place.status.label}">게시</span>
+                                      th:text="${place.status.label}">게시 상태</span>
                             </span>
                             <span class="place-summary-more">
                                 게시글 보기 <span class="ico" aria-hidden="true">chevron_right</span>
