@@ -107,7 +107,7 @@ class PrototypeShellRenderingTest {
 
         mockMvc.perform(get("/places/1"))
                 .andExpect(status().isOk())
-                .andExpect(view().name("place-detail"))
+                .andExpect(view().name("places/place-detail"))
                 .andExpect(content().string(containsString("/css/app.css")))
                 .andExpect(content().string(containsString("수용 조건")))
                 .andExpect(content().string(containsString("최대 2마리")))
