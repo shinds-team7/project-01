@@ -150,9 +150,9 @@ class PrototypeShellRenderingTest {
     @Test
     @DisplayName("게시글 작성이 앱 셸로 그려지고 placeType 라디오가 모델에서 온다")
     void hostCreateRendersWithAppShell() throws Exception {
-        mockMvc.perform(get("/host/create").session(loggedIn()))
+        mockMvc.perform(get("/places/new").session(loggedIn()))
                 .andExpect(status().isOk())
-                .andExpect(view().name("host/create"))
+                .andExpect(view().name("places/create"))
                 .andExpect(content().string(containsString("/css/app.css")))
                 .andExpect(content().string(containsString("name=\"placeType\"")))
                 .andExpect(content().string(containsString("아파트")))
@@ -165,7 +165,7 @@ class PrototypeShellRenderingTest {
     void hostCreateOtherOptionToggleIsClickable() throws Exception {
         // id 를 직접 안 적으면 Thymeleaf 가 otherOptionsEnabled1 로 그려 라벨과 어긋나고,
         // 체크박스가 숨겨져 있어 토글을 누를 방법이 아예 없어진다.
-        mockMvc.perform(get("/host/create").session(loggedIn()))
+        mockMvc.perform(get("/places/new").session(loggedIn()))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("id=\"otherOptionsEnabled\"")))
                 .andExpect(content().string(containsString("for=\"otherOptionsEnabled\"")))
@@ -175,9 +175,9 @@ class PrototypeShellRenderingTest {
     @Test
     @DisplayName("장소 등록 완료가 앱 셸로 그려진다")
     void hostSuccessRendersWithAppShell() throws Exception {
-        mockMvc.perform(get("/host/success"))
+        mockMvc.perform(get("/places/success"))
                 .andExpect(status().isOk())
-                .andExpect(view().name("host/success"))
+                .andExpect(view().name("places/success"))
                 .andExpect(content().string(containsString("/css/app.css")))
                 .andExpect(content().string(containsString("등록 접수")));
     }
