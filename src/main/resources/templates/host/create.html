@@ -61,9 +61,9 @@
                             <i class="ico" aria-hidden="true"
                                th:text="${type.name() == 'APARTMENT' ? 'apartment'
                                         : (type.name() == 'HOUSE' ? 'home' : 'domain')}">home</i>
-                            <b th:text="${type.label}">주택</b>
+                            <b th:text="${type.label}">주거 형태</b>
                             <small th:text="${type.name() == 'APARTMENT' ? '공동 출입 공간'
-                                             : (type.name() == 'HOUSE' ? '독립된 생활 공간' : '도심형 주거 공간')}">독립된 생활 공간</small>
+                                             : (type.name() == 'HOUSE' ? '독립된 생활 공간' : '도심형 주거 공간')}">주거 형태 설명</small>
                         </span>
                     </label>
                 </div>
