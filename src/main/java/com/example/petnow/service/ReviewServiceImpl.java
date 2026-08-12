@@ -11,7 +11,6 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -33,11 +32,10 @@ public class ReviewServiceImpl implements ReviewService {
                 .reservationId(request.getReservationId())
                 .content(request.getContent())
                 .rating(request.getRating())
-                .createdAt(LocalDateTime.now())
                 .build();
 
         // 이미 리뷰가 작성된 예약인지 검증
-        try{
+        try {
             reviewMapper.insertReview(review);
         } catch (DuplicateKeyException e) {
             throw new BusinessException(ReviewErrorCode.REVIEW_DUPLICATE);
