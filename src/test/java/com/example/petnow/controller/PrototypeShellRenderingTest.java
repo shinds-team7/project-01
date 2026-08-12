@@ -22,7 +22,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.List;
 
 import static org.hamcrest.Matchers.containsString;
@@ -297,10 +297,9 @@ class PrototypeShellRenderingTest {
         given(review.getPlaceId()).willReturn(1L);
         given(review.getMemberId()).willReturn(1L);
         given(review.getPlaceName()).willReturn("성수 조용한 단독주택 마당");
-        given(review.getStayInfo()).willReturn("");
         given(review.getRating()).willReturn(5);
         given(review.getContent()).willReturn("마당이 넓어서 좋았어요");
-        given(review.getCreatedAt()).willReturn(LocalDateTime.of(2026, 7, 20, 10, 0));
+        given(review.getCheckInAt()).willReturn(LocalDate.of(2026, 7, 18));
         return review;
     }
 
