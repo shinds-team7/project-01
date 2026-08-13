@@ -174,8 +174,8 @@ public class ReservationServiceImpl implements ReservationService {
 	}
 
 	@Override
-	public List<ReservationListResponse> getReservationByHost(Long hostUserId, ReservationStatus status) {
-		return reservationMapper.viewReservationListByHost(hostUserId, status);
+	public List<ReservationListResponse> getReservationByHost(Long loginUserId, ReservationStatus status) {
+		return reservationMapper.viewReservationListByHost(loginUserId, status);
 	}
 
 	private ReservationUseStatus parseUseStatus(String useStatus) {

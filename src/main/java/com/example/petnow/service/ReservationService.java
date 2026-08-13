@@ -21,5 +21,5 @@ public interface ReservationService {
 
 	void rejectReservation(Long reservationId, Long hostUserId);
 
-	List<ReservationListResponse> getReservationByHost(Long hostUserId, ReservationStatus status);
+	List<ReservationListResponse> getReservationByHost(Long loginUserId, ReservationStatus status);
 }
