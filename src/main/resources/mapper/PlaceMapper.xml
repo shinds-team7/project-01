@@ -112,4 +112,10 @@
         WHERE id = #{placeId}
         AND deleted_at IS NULL
     </select>
+
+    <update id="updateAvgRating">
+        UPDATE places
+        SET average_rating = #{avgRating}
+        WHERE id = #{placeId}
+    </update>
 </mapper>

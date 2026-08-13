@@ -4,6 +4,7 @@ import com.example.petnow.dto.response.PlaceDetailResponse;
 import com.example.petnow.dto.response.PlaceListResponse;
 import com.example.petnow.entity.Place;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
@@ -16,4 +17,6 @@ public interface PlaceMapper {
     List<PlaceListResponse> findAllPublished();
 
     PlaceDetailResponse findDetailById(Long placeId);
+
+    void updateAvgRating(@Param("placeId") Long placeId, @Param("avgRating") Double avgRating);
 }
