@@ -48,7 +48,7 @@
         <th:block th:if="${activeTab == 'places'}">
             <div class="section-head">
                 <h2 class="section-title">내 호스팅</h2>
-                <a class="section-more" th:href="@{/host/create}">+ 장소 등록</a>
+                <a class="section-more" th:href="@{/places/new}">+ 장소 등록</a>
             </div>
 
             <div class="empty" th:if="${places == null or #lists.isEmpty(places)}">
@@ -100,7 +100,7 @@
                 </div>
             </div>
 
-            <a class="btn btn-dashed" th:href="@{/host/create}">
+            <a class="btn btn-dashed" th:href="@{/places/new}">
                 <span class="ico" aria-hidden="true">add</span> 새 장소 등록하기
             </a>
         </th:block>

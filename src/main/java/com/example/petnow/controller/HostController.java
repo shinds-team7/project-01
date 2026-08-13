@@ -1,18 +1,12 @@
 package com.example.petnow.controller;
 
 import com.example.petnow.common.constant.SessionConst;
-import com.example.petnow.dto.request.PlaceCreateRequest;
-import com.example.petnow.entity.PlaceType;
 import com.example.petnow.service.HostService;
 import jakarta.servlet.http.HttpSession;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -23,48 +17,10 @@ public class HostController {
 
     private final HostService hostService;
 
-    @GetMapping("/create")
-    public String createForm(Model model, HttpSession session) {
-        Long loginUserId = (Long) session.getAttribute(SessionConst.LOGIN_USER_ID);
-        if (loginUserId == null) {
-            return "redirect:/";
-        }
-
-        model.addAttribute("placeCreateRequest", new PlaceCreateRequest());
-        addCreateFormAttributes(model);
-
-        return "host/create";
-    }
-
-    @PostMapping
-    public String create(@Valid @ModelAttribute("placeCreateRequest") PlaceCreateRequest requestDTO,
-                         BindingResult bindingResult,
-                         Model model,
-                         HttpSession session) {
-        Long loginUserId = (Long) session.getAttribute(SessionConst.LOGIN_USER_ID);
-        if (loginUserId == null) {
-            return "redirect:/";
-        }
-
-        if (bindingResult.hasErrors()) {
-            addCreateFormAttributes(model);
-            return "host/create";
-        }
-
-        hostService.createPlace(loginUserId, requestDTO);
-
-        return "redirect:/host/success";
-    }
-
-    @GetMapping("/success")
-    public String createSuccess() {
-        return "host/success";
-    }
-
-    private void addCreateFormAttributes(Model model) {
-        model.addAttribute("placeTypes", PlaceType.values());
-    }
-
+    /*
+    TODO: if 분기문에 Reservation에 대한 model값을 채워주세요
+    TODO: else if 분기문에 Review에 대한 model값을 채워주세요
+     */
     @GetMapping
     public String dashboard(@RequestParam(defaultValue = "places") String tab,
                             Model model,
@@ -79,7 +35,14 @@ public class HostController {
         }
 
         model.addAttribute("tab", tab);
-        model.addAttribute("places", hostService.getPlacesByUserId(loginUserId));
+
+        if ("booking".equals(tab)) {
+
+        } else if ("reviews".equals(tab)) {
+
+        } else {
+            model.addAttribute("places", hostService.getPlacesByUserId(loginUserId));
+        }
 
         return "host/dashboard";
     }

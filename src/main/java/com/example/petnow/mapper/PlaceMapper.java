@@ -9,6 +9,8 @@ import java.util.List;
 
 @Mapper
 public interface PlaceMapper {
+    int insert(Place place);
+
     Place findById(Long placeId);
 
     List<PlaceListResponse> findAllPublished();

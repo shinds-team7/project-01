@@ -17,13 +17,13 @@
 <body>
 <main id="main-content" class="app-main no-nav">
     <div class="topbar has-line">
-        <a class="topbar-back" th:href="@{/host}" aria-label="내 호스팅 장소로 돌아가기">
+        <a class="topbar-back" th:href="@{/host(tab='places')}" aria-label="내 호스팅 장소로 돌아가기">
             <span class="ico" aria-hidden="true">arrow_back_ios_new</span>
         </a>
         <h1>게시글 작성</h1>
     </div>
 
-    <form th:action="@{/host}" th:object="${placeCreateRequest}" method="post">
+    <form th:action="@{/places}" th:object="${placeCreateRequest}" method="post">
         <div class="screen">
             <p class="field-hint" style="margin-top:14px">정성껏 돌볼 수 있는 공간을 소개해주세요.</p>
 
