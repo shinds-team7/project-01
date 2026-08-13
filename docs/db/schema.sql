@@ -211,6 +211,7 @@ CREATE TABLE reservations (
     id               BIGINT         NOT NULL AUTO_INCREMENT,
     guest_user_id    BIGINT         NOT NULL,
     place_id         BIGINT         NOT NULL,
+    reservation_no   VARCHAR(30)    NOT NULL COMMENT '예약번호(PN-yyyyMMdd-XXXXXXXX)',
     reservation_type VARCHAR(20)    NOT NULL,
     check_in_at      DATETIME       NOT NULL,
     check_out_at     DATETIME       NOT NULL,
@@ -223,6 +224,7 @@ CREATE TABLE reservations (
     created_at       DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at       DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT PK_RESERVATIONS PRIMARY KEY (id),
+    CONSTRAINT UK_RESERVATIONS_RESERVATION_NO UNIQUE (reservation_no),
     CONSTRAINT FK_RESERVATIONS_GUEST FOREIGN KEY (guest_user_id) REFERENCES users (id)
         ON DELETE RESTRICT
         ON UPDATE CASCADE,
