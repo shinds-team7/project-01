@@ -129,6 +129,7 @@ CREATE TABLE places (
     other_options           VARCHAR(1000)  NULL,
     hourly_price            DECIMAL(12, 0) NULL,
     nightly_price           DECIMAL(12, 0) NULL,
+    average_rating          DECIMAL(3, 2)  NOT NULL DEFAULT 0.00 COMMENT '리뷰 평균 별점(리뷰 없으면 0.00)',
     status                  VARCHAR(20)    NOT NULL,
     is_visible              BOOLEAN        NOT NULL DEFAULT TRUE,
     created_at              DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,

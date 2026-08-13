@@ -33,6 +33,7 @@ public class Place {
     private String otherOptions;
     private BigDecimal hourlyPrice;
     private BigDecimal nightlyPrice;
+    private BigDecimal averageRating;
     private PlaceStatus status;
     private boolean visible;
     private LocalDateTime createdAt;
