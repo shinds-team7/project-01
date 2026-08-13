@@ -149,10 +149,18 @@ public class ReservationServiceImpl implements ReservationService {
 			return;
 		}
 
-		LocalTime checkInTime = place.getPackageCheckInTime() != null
-			? place.getPackageCheckInTime() : LocalTime.of(15, 0);
-		LocalTime checkOutTime = place.getPackageCheckOutTime() != null
-			? place.getPackageCheckOutTime() : LocalTime.of(11, 0);
+		LocalTime checkInTime = PlaceAvailabilityServiceImpl.resolveCheckInTime(place);
+		LocalTime checkOutTime = PlaceAvailabilityServiceImpl.resolveCheckOutTime(place);
+
+		/*
+		 * 격자를 벗어난 입/퇴실 시각이 저장되면 필요 슬롯 개수가 정수로 떨어지지 않아
+		 * 그 place 의 패키지 예약이 항상 거절된다. 원인이 요청이 아니라 장소 설정에 있으므로
+		 * 슬롯 부족이 아니라 시각 오류로 구분해 알린다.
+		 */
+		if (!PlaceAvailabilityServiceImpl.isOnGrid(checkInTime)
+			|| !PlaceAvailabilityServiceImpl.isOnGrid(checkOutTime)) {
+			throw new BusinessException(ReservationErrorCode.INVALID_PACKAGE_TIME);
+		}
 
 		if (!checkIn.toLocalTime().equals(checkInTime) || !checkOut.toLocalTime().equals(checkOutTime)) {
 			throw new BusinessException(ReservationErrorCode.INVALID_PACKAGE_TIME);

@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -32,11 +33,36 @@ public class PlaceAvailabilityServiceImpl implements PlaceAvailabilityService {
     private static final int SLOTS_PER_DAY = 24 / SLOT_HOURS;
     private static final int INSERT_CHUNK_SIZE = 500;
 
+    /**
+     * 패키지 입/퇴실 시각의 기본값. 15시 IN ~ 다음 날 12시 OUT = 21시간 = 슬롯 7칸.
+     * 두 값 모두 3시간 격자 경계여야 하고, 그 차이도 SLOT_HOURS 의 배수여야 한다.
+     * 격자를 벗어난 값을 쓰면 필요 슬롯 개수가 정수로 떨어지지 않아 그 place 의 패키지 예약이 항상 거절된다.
+     */
+    public static final LocalTime DEFAULT_PACKAGE_CHECK_IN_TIME = LocalTime.of(15, 0);
+    public static final LocalTime DEFAULT_PACKAGE_CHECK_OUT_TIME = LocalTime.of(12, 0);
+
+    /** 슬롯 격자 경계(00, 03, 06, 09, 12, 15, 18, 21)에 놓인 시각인지 확인한다. */
+    public static boolean isOnGrid(LocalTime time) {
+        return time.getMinute() == 0
+                && time.getSecond() == 0
+                && time.getHour() % SLOT_HOURS == 0;
+    }
+
+    public static LocalTime resolveCheckInTime(Place place) {
+        return place.getPackageCheckInTime() != null
+                ? place.getPackageCheckInTime() : DEFAULT_PACKAGE_CHECK_IN_TIME;
+    }
+
+    public static LocalTime resolveCheckOutTime(Place place) {
+        return place.getPackageCheckOutTime() != null
+                ? place.getPackageCheckOutTime() : DEFAULT_PACKAGE_CHECK_OUT_TIME;
+    }
+
     private final PlaceAvailabilityMapper placeAvailabilityMapper;
     private final PlaceMapper placeMapper;
 
     /**
-     * 지정한 날짜 범위를 1시간 격자로 연다.
+     * 지정한 날짜 범위를 3시간 격자로 연다.
      * 패키지 예약이 밤을 넘어야 하므로 운영시간 밖도 OPEN 으로 만든다.
      * 시 예약의 운영시간 제한은 조회와 예약 검증에서 처리한다.
      */
@@ -102,10 +128,21 @@ public class PlaceAvailabilityServiceImpl implements PlaceAvailabilityService {
             throw new BusinessException(PlaceErrorCode.PLACE_NOT_FOUND);
         }
 
-        LocalTime checkInTime = place.getPackageCheckInTime() != null
-                ? place.getPackageCheckInTime() : LocalTime.of(15, 0);
-        LocalTime checkOutTime = place.getPackageCheckOutTime() != null
-                ? place.getPackageCheckOutTime() : LocalTime.of(11, 0);
+        LocalTime checkInTime = resolveCheckInTime(place);
+        LocalTime checkOutTime = resolveCheckOutTime(place);
+
+        /*
+         * 입/퇴실 시각이 격자를 벗어나면 예약 자체가 성립하지 않는다.
+         * 이때 남은 시간을 버림 계산하면 OPEN 슬롯 개수와 우연히 맞아떨어져
+         * 달력은 '예약 가능' 인데 누르면 거절되는 상태가 된다. 아예 선택 불가로 내린다.
+         */
+        long stayHours = Duration.between(
+                LocalDate.EPOCH.atTime(checkInTime),
+                LocalDate.EPOCH.plusDays(1).atTime(checkOutTime)).toHours();
+        boolean alignedToGrid = isOnGrid(checkInTime)
+                && isOnGrid(checkOutTime)
+                && stayHours % SLOT_HOURS == 0;
+        int required = (int) (stayHours / SLOT_HOURS);
 
         List<PackageDayResponse> days = new ArrayList<>();
         for (int day = 1; day <= yearMonth.lengthOfMonth(); day++) {
@@ -113,12 +150,11 @@ public class PlaceAvailabilityServiceImpl implements PlaceAvailabilityService {
             LocalDateTime startAt = date.atTime(checkInTime);
             LocalDateTime endAt = date.plusDays(1).atTime(checkOutTime);
 
-            int required = (int) java.time.Duration.between(startAt, endAt).toHours() / SLOT_HOURS;
             int open = placeAvailabilityMapper.countOpenSlotsInRange(placeId, startAt, endAt);
 
             days.add(PackageDayResponse.builder()
                     .date(date)
-                    .selectable(open == required)
+                    .selectable(alignedToGrid && open == required)
                     .build());
         }
         return days;

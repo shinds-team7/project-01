@@ -64,7 +64,7 @@
                   data-supports-hourly=${place.supportsHourly},
                   data-supports-package=${place.supportsPackage},
                   data-check-in-time=${place.packageCheckInTime != null ? #temporals.format(place.packageCheckInTime,'HH:mm') : '15:00'},
-                  data-check-out-time=${place.packageCheckOutTime != null ? #temporals.format(place.packageCheckOutTime,'HH:mm') : '11:00'}"
+                  data-check-out-time=${place.packageCheckOutTime != null ? #temporals.format(place.packageCheckOutTime,'HH:mm') : '12:00'}"
          id="placeData" hidden></div>
 
     <form th:action="@{/reservation/create}" method="post" id="bookingForm">
