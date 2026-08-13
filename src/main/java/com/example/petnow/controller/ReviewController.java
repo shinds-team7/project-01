@@ -2,7 +2,9 @@ package com.example.petnow.controller;
 
 import com.example.petnow.common.constant.SessionConst;
 import com.example.petnow.dto.request.ReviewCreateRequest;
+import com.example.petnow.dto.response.ReservationDetailResponse;
 import com.example.petnow.dto.response.ReviewResponse;
+import com.example.petnow.service.ReservationService;
 import com.example.petnow.service.ReviewService;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
@@ -20,15 +22,33 @@ import java.util.List;
 public class ReviewController {
 
     private final ReviewService reviewService;
+    private final ReservationService reservationService;
 
     /**
      * 세션에서 로그인 유저 id를 꺼내오는 헬퍼.
-     * 다른 컨트롤러에서도
-     * (Long) session.getAttribute(SessionConst.LOGIN_USER_ID) 를 반복 사용하므로
-     * 공통 클래스로 빼면 좋을 듯
      */
     private Long getLoginUserId(HttpSession session) {
         return (Long) session.getAttribute(SessionConst.LOGIN_USER_ID);
+    }
+
+    /**
+     * 작성 폼 상단 요약 카드(장소명 · 체크인 날짜)를 모델에 채운다.
+     * 조회 과정에서 "본인 예약인가" 검증도 함께 이뤄진다.
+     */
+    private void addReservationSummary(Model model, Long reservationId, Long loginUserId) {
+        if (reservationId == null) {   // reservationId 자체가 검증 실패한 경우
+            return;
+        }
+
+        ReservationDetailResponse reservation =
+                reservationService.detailReservation(reservationId, loginUserId);
+        if (reservation == null) {   // 요약 카드는 없어도 작성 자체는 되게 둔다
+            return;
+        }
+
+        model.addAttribute("placeName", reservation.getPlaceName());
+        model.addAttribute("checkInAt",
+                reservation.getCheckIn() == null ? null : reservation.getCheckIn().toLocalDate());
     }
 
     /**
@@ -38,7 +58,6 @@ public class ReviewController {
      */
     @GetMapping("/new")
     public String reviewForm(@RequestParam Long reservationId, Model model,  HttpSession session) {
-        // 로그인 안 되어 있으면 "redirect:/" 리턴
         Long loginUserId = getLoginUserId(session);
         if (loginUserId == null) {
             return "redirect:/";
@@ -47,6 +66,8 @@ public class ReviewController {
         ReviewCreateRequest form = new ReviewCreateRequest();
         form.setReservationId(reservationId);
         model.addAttribute("form", form);
+
+        addReservationSummary(model, reservationId, loginUserId);
 
         return "reviews/create";     // 테스트용.
     }
@@ -59,16 +80,17 @@ public class ReviewController {
     @PostMapping
     public String createReview(@ModelAttribute("form") @Valid ReviewCreateRequest request,
                                BindingResult bindingResult,
+                               Model model,
                                HttpSession session) {
-        if (bindingResult.hasErrors()) {
-            // 검증 실패 시 다시 작성 폼으로
-            return "reviews/create";     // 테스트용.
-        }
-
-        // 로그인 안 되어 있으면 "redirect:/" 리턴
         Long loginUserId = getLoginUserId(session);
         if (loginUserId == null) {
             return "redirect:/";
+        }
+
+        if (bindingResult.hasErrors()) {
+            addReservationSummary(model, request.getReservationId(), loginUserId);
+            // 검증 실패 시 다시 작성 폼으로
+            return "reviews/create";     // 테스트용.
         }
 
         reviewService.createReview(loginUserId, request);

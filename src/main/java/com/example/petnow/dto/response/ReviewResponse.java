@@ -2,7 +2,7 @@ package com.example.petnow.dto.response;
 
 import lombok.Getter;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 
 /**
@@ -14,11 +14,10 @@ public class ReviewResponse {
 
     private Long id;
     private Long reservationId;
-    private Long memberId;          // reservation.guest_user_id
-    private Long placeId;           // reservation.place_id
-    private String placeName;       // places.name
-    private String stayInfo = "";   // 우선 빈문자열 반환
+    private Long memberId;              // reservations.guest_user_id
+    private Long placeId;               // reservations.place_id
+    private String placeName;           // places.name
+    private LocalDate checkInAt;    // reservations.check_in_at
     private String content;
     private int rating;
-    private LocalDateTime createdAt;
 }

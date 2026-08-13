@@ -13,8 +13,10 @@
     이번에 마이페이지에 입구를 만들면서 처음으로 눌리게 되므로, 링크 대신
     비활성 버튼으로 둔다. 엔드포인트가 생기면 disabled 를 떼고 form·a 로 바꾸면 된다.
 
+
   [reviews 원소가 쓰는 필드] ReviewResponse
-    id · placeId · placeName · stayInfo · rating · content · createdAt
+    id · placeId · placeName · checkInAt · rating · content
+
 */-->
 <html lang="ko" xmlns:th="http://www.thymeleaf.org"
       th:replace="~{fragments/base :: page(${placeId != null} ? '장소 리뷰' : '내 리뷰', 'my', ~{::main})}">
@@ -48,11 +50,8 @@
                         <a class="place-name" th:href="@{/places/{id}(id=${review.placeId})}"
                            th:text="${review.placeName}">성수 조용한 단독주택 마당</a>
 
-                        <small th:if="${!#strings.isEmpty(review.stayInfo)}"
-                               th:text="${review.stayInfo}">7월 18일 · 1박 · 초코</small>
-
-                        <small th:if="${review.createdAt != null}"
-                               th:text="${#temporals.format(review.createdAt, 'yyyy년 M월 d일')} + ' 작성'">2026년 7월 20일 작성</small>
+                        <small th:if="${review.checkInAt != null}"
+                               th:text="${#temporals.format(review.checkInAt, 'yyyy년 M월 d일')} + ' 이용'">2026년 7월 18일 이용</small>
 
                         <p class="rating">
                             <span class="ico" aria-hidden="true">star</span>

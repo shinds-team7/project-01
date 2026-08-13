@@ -77,7 +77,8 @@ public class MvcExceptionHandler {
 	 * <p>이들은 모두 자기 상태 코드를 알고 있는 {@link ErrorResponse} 구현체다. 그런데
 	 * {@code ExceptionHandlerExceptionResolver} 가 {@code ResponseStatusExceptionResolver} 보다
 	 * 먼저 동작하기 때문에, 이 핸들러가 먼저 삼켜 버리면 400·403·405 로 나가야 할 응답이
-	 * 전부 500 으로 바뀐다. (예: ReviewService 가 던지는 403 이 500 으로 뒤바뀐다)
+	 * 전부 500 으로 바뀐다. (예: {@code GET /reviews/new?reservationId=abc} 의 타입 변환 실패가
+	 * 400 이 아니라 500 으로 뒤바뀐다)
 	 *
 	 * <p>그래서 예외가 스스로 status 를 갖고 있으면 그 값을 존중하고, 정말 모르는 예외만 500 으로 처리한다.
 	 */

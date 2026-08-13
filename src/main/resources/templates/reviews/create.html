@@ -3,8 +3,8 @@
   리뷰 쓰기 = 프로토타입의 "REVIEW WRITE" 화면.
 
   ReviewCreateRequest 는 reservationId · rating · content 세 개뿐이다.
-  프로토타입 상단의 "장소명 / 이용 일정" 요약은 컨트롤러가 placeName·stayInfo 를
-  모델에 넣어줄 때만 보이도록 감쌌다 (지금은 form 만 내려온다).
+  프로토타입 상단의 "장소명 / 이용 일정" 요약은 컨트롤러가 placeName·checkInAt 를
+  모델에 넣어줄 때만 보이도록 감쌌다.
 
   별점은 app-flow.js 의 data-star-picker 가 hidden rating 에 값을 채운다.
 */-->
@@ -29,7 +29,8 @@
                 </div>
                 <div class="summary-copy">
                     <strong th:text="${placeName}">성수 조용한 단독주택 마당</strong>
-                    <small th:if="${!#strings.isEmpty(stayInfo)}" th:text="${stayInfo}">7월 18일 · 1박 · 초코</small>
+                    <small th:if="${checkInAt != null}"
+                           th:text="${#temporals.format(checkInAt, 'yyyy년 M월 d일')} + ' 이용'">2026년 7월 18일 이용</small>
                 </div>
             </div>
 
