@@ -23,6 +23,7 @@ import com.example.petnow.entity.Place;
 import com.example.petnow.exception.BusinessException;
 import com.example.petnow.exception.PlaceErrorCode;
 import com.example.petnow.mapper.PlaceMapper;
+import com.example.petnow.service.PetService;
 import com.example.petnow.service.ReservationService;
 
 import jakarta.servlet.http.HttpSession;
@@ -33,10 +34,13 @@ import jakarta.validation.Valid;
 public class ReservationController {
 	private final ReservationService reservationService;
 	private final PlaceMapper placeMapper;
+	private final PetService petService;
 
-	public ReservationController(ReservationService reservationService, PlaceMapper placeMapper) {
+	public ReservationController(ReservationService reservationService, PlaceMapper placeMapper,
+		PetService petService) {
 		this.reservationService = reservationService;
 		this.placeMapper = placeMapper;
+		this.petService = petService;
 	}
 
 	@PostMapping("/create")
@@ -60,7 +64,8 @@ public class ReservationController {
 			}
 
 			model.addAttribute("place", place);
-			return "booking-request";
+			model.addAttribute("pets", petService.getPetList(userId));
+			return "reservations/booking-request";
 		}
 
 		String reservationNo = reservationService.saveReservation(request, userId);
@@ -77,13 +82,19 @@ public class ReservationController {
 	}
 
 	@GetMapping("/booking-request")
-	public String bookingRequest(@RequestParam Long placeId, Model model) {
+	public String bookingRequest(@RequestParam Long placeId, HttpSession session, Model model) {
+		Long userId = (Long) session.getAttribute(SessionConst.LOGIN_USER_ID);
+		if (userId == null) {
+			return "redirect:/";
+		}
+
 		Place place = placeMapper.findById(placeId);
 		if (place == null) {
 			throw new BusinessException(PlaceErrorCode.PLACE_NOT_FOUND);
 		}
 		model.addAttribute("place", place);
-		return "booking-request";
+		model.addAttribute("pets", petService.getPetList(userId));
+		return "reservations/booking-request";
 	}
 
 	@GetMapping("/detail")

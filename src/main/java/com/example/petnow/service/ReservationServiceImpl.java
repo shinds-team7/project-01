@@ -3,6 +3,7 @@ package com.example.petnow.service;
 import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Set;
@@ -27,6 +28,7 @@ import com.example.petnow.exception.PlaceErrorCode;
 import com.example.petnow.exception.ReservationErrorCode;
 import com.example.petnow.mapper.PetMapper;
 
+import com.example.petnow.mapper.PlaceAvailabilityMapper;
 import com.example.petnow.mapper.PlaceMapper;
 import com.example.petnow.mapper.ReservationMapper;
 
@@ -38,36 +40,26 @@ public class ReservationServiceImpl implements ReservationService {
 	private final ReservationMapper reservationMapper;
 	private final PlaceMapper placeMapper;
 	private final PetMapper petMapper;
+	private final PlaceAvailabilityMapper placeAvailabilityMapper;
 
-	private static final long MIN_RESERVATION_MINUTES = 60;
+	private static final long MIN_RESERVATION_MINUTES = PlaceAvailabilityServiceImpl.SLOT_HOURS * 60L;
 
 	@Override
 	@Transactional
 	public String saveReservation(ReservationRequest request, Long userId) {
 		Place place = placeMapper.findById(request.getPlaceId());
-		if (place == null ) {
+		if (place == null) {
 			throw new BusinessException(PlaceErrorCode.PLACE_NOT_FOUND);
 		}
 
-		if (request.getCheckOut().isBefore(request.getCheckIn())
-			|| request.getCheckOut().isEqual(request.getCheckIn())) {
-			throw new BusinessException(ReservationErrorCode.INVALID_RESERVATION_PERIOD);
-		}
+		ReservationType reservationType = request.getReservationType();
+		validateTypeSupported(place, reservationType);
+		validatePeriod(request.getCheckIn(), request.getCheckOut());
+		validateTypeRule(place, reservationType, request.getCheckIn(), request.getCheckOut());
+		validateOwnPets(userId, request.getPetIds());
 
-		if (Duration.between(request.getCheckIn(), request.getCheckOut()).toMinutes() < MIN_RESERVATION_MINUTES) {
-			throw new BusinessException(ReservationErrorCode.RESERVATION_TOO_SHORT);
-		}
+		occupySlots(request.getPlaceId(), request.getCheckIn(), request.getCheckOut());
 
-		List<PetListResponse> myPets = petMapper.getPetList(userId);
-		Set<Long> myPetIds = myPets.stream()
-			.map(PetListResponse::getId)
-			.collect(Collectors.toSet());
-		if (!myPetIds.containsAll(request.getPetIds())) {
-			throw new BusinessException(ReservationErrorCode.PET_NOT_FOUND);
-		}
-
-
-		ReservationType reservationType = determineReservationType(request.getCheckIn(), request.getCheckOut());
 		String reservationNo = Reservation.createReservationNo();
 		BigDecimal totalPrice = calculateTotalPrice(place, reservationType, request.getCheckIn(), request.getCheckOut());
 
@@ -84,8 +76,100 @@ public class ReservationServiceImpl implements ReservationService {
 			.build();
 
 		reservationMapper.save(reservation);
+
+		List<Long> slotIds = placeAvailabilityMapper.findSlotIdsByRange(
+			request.getPlaceId(), request.getCheckIn(), request.getCheckOut());
+		reservationMapper.insertReservationSlots(reservation.getId(), slotIds);
+
 		reservationMapper.saveReservationPets(reservation.getId(), request.getPetIds());
 		return reservationNo;
+	}
+
+	/**
+	 * 요청 구간의 OPEN 슬롯을 한 번의 UPDATE 로 RESERVED 로 바꾼다.
+	 *
+	 * 변경된 행 수가 필요한 슬롯 개수와 다르면 예약할 수 없는 시간이 섞여 있다는 뜻이므로
+	 * 예외를 던져 트랜잭션 전체를 롤백한다. 이 검사를 빠뜨리면 일부만 점유된 채로 예약이 만들어진다.
+	 */
+	private void occupySlots(Long placeId, LocalDateTime checkIn, LocalDateTime checkOut) {
+		long hours = Duration.between(checkIn, checkOut).toHours();
+		if (hours % PlaceAvailabilityServiceImpl.SLOT_HOURS != 0) {
+			throw new BusinessException(ReservationErrorCode.SLOT_NOT_AVAILABLE);
+		}
+
+		int requiredSlots = (int) (hours / PlaceAvailabilityServiceImpl.SLOT_HOURS);
+		int reservedSlots = placeAvailabilityMapper.updateSlotsToReserved(placeId, checkIn, checkOut);
+
+		if (reservedSlots != requiredSlots) {
+			throw new BusinessException(ReservationErrorCode.SLOT_NOT_AVAILABLE);
+		}
+	}
+
+	/**
+	 * 점유했던 슬롯을 다시 OPEN 으로 되돌린다.
+	 * 취소와 거절 양쪽에서 호출해야 한다. 빠뜨리면 그 시간이 영영 막힌다.
+	 */
+	private void releaseSlots(Long reservationId) {
+		List<Long> slotIds = reservationMapper.findSlotIdsByReservationId(reservationId);
+		if (slotIds.isEmpty()) {
+			return;
+		}
+		placeAvailabilityMapper.updateSlotsToOpen(slotIds);
+		reservationMapper.deleteReservationSlotsByReservationId(reservationId);
+	}
+
+	private void validateTypeSupported(Place place, ReservationType reservationType) {
+		boolean supported = (reservationType == ReservationType.SAME_DAY && place.isSupportsHourly())
+			|| (reservationType == ReservationType.OVERNIGHT && place.isSupportsPackage());
+		if (!supported) {
+			throw new BusinessException(ReservationErrorCode.UNSUPPORTED_RESERVATION_TYPE);
+		}
+	}
+
+	private void validatePeriod(LocalDateTime checkIn, LocalDateTime checkOut) {
+		if (!checkOut.isAfter(checkIn)) {
+			throw new BusinessException(ReservationErrorCode.INVALID_RESERVATION_PERIOD);
+		}
+		if (Duration.between(checkIn, checkOut).toMinutes() < MIN_RESERVATION_MINUTES) {
+			throw new BusinessException(ReservationErrorCode.RESERVATION_TOO_SHORT);
+		}
+	}
+
+	private void validateTypeRule(Place place, ReservationType reservationType,
+		LocalDateTime checkIn, LocalDateTime checkOut) {
+
+		if (reservationType == ReservationType.SAME_DAY) {
+			/* 24시 종료는 다음 날 00시로 들어오므로 그 경우만 예외로 허용한다 */
+			boolean sameDate = checkIn.toLocalDate().equals(checkOut.toLocalDate());
+			boolean endsAtMidnight = checkOut.toLocalTime().equals(LocalTime.MIDNIGHT)
+				&& checkOut.toLocalDate().equals(checkIn.toLocalDate().plusDays(1));
+			if (!sameDate && !endsAtMidnight) {
+				throw new BusinessException(ReservationErrorCode.INVALID_RESERVATION_PERIOD);
+			}
+			return;
+		}
+
+		LocalTime checkInTime = place.getPackageCheckInTime() != null
+			? place.getPackageCheckInTime() : LocalTime.of(15, 0);
+		LocalTime checkOutTime = place.getPackageCheckOutTime() != null
+			? place.getPackageCheckOutTime() : LocalTime.of(11, 0);
+
+		if (!checkIn.toLocalTime().equals(checkInTime) || !checkOut.toLocalTime().equals(checkOutTime)) {
+			throw new BusinessException(ReservationErrorCode.INVALID_PACKAGE_TIME);
+		}
+		if (!checkOut.toLocalDate().isAfter(checkIn.toLocalDate())) {
+			throw new BusinessException(ReservationErrorCode.INVALID_RESERVATION_PERIOD);
+		}
+	}
+
+	private void validateOwnPets(Long userId, List<Long> petIds) {
+		List<PetListResponse> myPets = petMapper.getPetList(userId);
+		Set<Long> myPetIds = myPets.stream()
+			.map(PetListResponse::getId)
+			.collect(Collectors.toSet());
+		if (!myPetIds.containsAll(petIds)) {
+			throw new BusinessException(ReservationErrorCode.PET_NOT_FOUND);
+		}
 	}
 
 	@Override
@@ -125,6 +209,8 @@ public class ReservationServiceImpl implements ReservationService {
 		if (updatedRows == 0) {
 			throw new BusinessException(ReservationErrorCode.RESERVATION_UPDATE_FAILED);
 		}
+
+		releaseSlots(reservationId);
 	}
 
 	@Override
@@ -171,11 +257,13 @@ public class ReservationServiceImpl implements ReservationService {
 		if (result != 1) {
 			throw new BusinessException(ReservationErrorCode.RESERVATION_UPDATE_FAILED);
 		}
+
+		releaseSlots(reservationId);
 	}
 
 	@Override
-	public List<ReservationListResponse> getReservationByHost(Long loginUserId, ReservationStatus status) {
-		return reservationMapper.viewReservationListByHost(loginUserId, status);
+	public List<ReservationListResponse> getReservationByHost(Long hostUserId, ReservationStatus status) {
+		return reservationMapper.viewReservationListByHost(hostUserId, status);
 	}
 
 	private ReservationUseStatus parseUseStatus(String useStatus) {
@@ -189,14 +277,6 @@ public class ReservationServiceImpl implements ReservationService {
 		}
 	}
 
-	private ReservationType determineReservationType(LocalDateTime checkIn, LocalDateTime checkOut) {
-		if (checkIn.toLocalDate().equals(checkOut.toLocalDate())) {
-			return ReservationType.SAME_DAY;
-		} else {
-			return ReservationType.OVERNIGHT;
-		}
-	}
-
 	private BigDecimal calculateTotalPrice(Place place, ReservationType reservationType, LocalDateTime checkIn, LocalDateTime checkOut) {
 		BigDecimal totalPrice;
 		if (reservationType == ReservationType.SAME_DAY) {
@@ -205,14 +285,14 @@ public class ReservationServiceImpl implements ReservationService {
 				throw new BusinessException(ReservationErrorCode.HOURLY_PRICE_NOT_SET);
 			}
 			long totalHours = Duration.between(checkIn, checkOut).toHours();
-			totalPrice = place.getHourlyPrice().multiply(BigDecimal.valueOf(totalHours));
+			totalPrice = hourlyPrice.multiply(BigDecimal.valueOf(totalHours));
 		} else {
 			BigDecimal nightlyPrice = place.getNightlyPrice();
 			if (nightlyPrice == null) {
 				throw new BusinessException(ReservationErrorCode.NIGHTLY_PRICE_NOT_SET);
 			}
 			long totalDays = ChronoUnit.DAYS.between(checkIn.toLocalDate(), checkOut.toLocalDate());
-			totalPrice = place.getNightlyPrice().multiply(BigDecimal.valueOf(totalDays));
+			totalPrice = nightlyPrice.multiply(BigDecimal.valueOf(totalDays));
 		}
 		return totalPrice;
 	}

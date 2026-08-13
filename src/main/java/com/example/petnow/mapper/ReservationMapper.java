@@ -35,4 +35,10 @@ public interface ReservationMapper {
 	int approveReservation(Long reservationId);
 
 	int rejectReservation(Long reservationId);
+
+	int insertReservationSlots(@Param("reservationId") Long reservationId, @Param("slotIds") List<Long> slotIds);
+
+	List<Long> findSlotIdsByReservationId(@Param("reservationId") Long reservationId);
+
+	int deleteReservationSlotsByReservationId(@Param("reservationId") Long reservationId);
 }

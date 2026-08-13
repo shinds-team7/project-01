@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<!--/*
+  호스트 예약 일정 관리.
+  기간을 지정해 1시간 격자 슬롯을 열고, 개별 슬롯을 BLOCKED 로 막을 수 있다.
+  RESERVED 슬롯은 이미 예약이 잡힌 것이라 막을 수 없다 (서버에서도 조건으로 걸러진다).
+*/-->
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/base :: page('예약 일정 관리', 'none', ~{::main})}">
+<body>
+<main id="main-content" class="app-main no-nav">
+    <div class="topbar">
+        <a class="topbar-back" th:href="@{/host}" aria-label="뒤로 가기">
+            <span class="ico" aria-hidden="true">arrow_back_ios_new</span>
+        </a>
+        <h1>예약 일정 관리</h1>
+    </div>
+
+    <style>
+        .slot-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:12px; }
+        .slot-cell { border-radius:10px; border:1.5px solid #e2e2e2; background:#fff;
+            padding:10px 4px; text-align:center; font-size:13px; }
+        .slot-cell.blocked { background:#f3f3f3; color:#bbb; border-color:#eee; }
+        .slot-cell.reserved { background:#111; color:#fff; border-color:#111; }
+        .slot-cell button { margin-top:6px; width:100%; border:none; border-radius:6px;
+            font-size:11px; padding:4px 0; cursor:pointer; background:#eee; }
+        .slot-cell.reserved small { font-size:11px; opacity:.8; }
+        .row { display:flex; gap:8px; align-items:flex-end; }
+        .row > div { flex:1; }
+    </style>
+
+    <div class="screen">
+        <div class="summary-row">
+            <div class="media"><span class="ico" aria-hidden="true">weekend</span></div>
+            <div class="summary-copy">
+                <strong th:text="${place.name}">장소명</strong>
+                <small>
+                    <span th:if="${place.supportsHourly}">시 예약</span>
+                    <span th:if="${place.supportsHourly and place.supportsPackage}"> · </span>
+                    <span th:if="${place.supportsPackage}">패키지 예약</span>
+                </small>
+            </div>
+        </div>
+
+        <h2 class="section-title">일정 열기</h2>
+        <p style="font-size:13px;color:#999">
+            지정한 기간을 1시간 단위로 엽니다. 이미 열린 시간은 그대로 유지됩니다.
+        </p>
+        <form th:action="@{/host/places/{id}/availability(id=${place.id})}" method="post">
+            <div class="row">
+                <div>
+                    <label for="fromDate"><small>시작일</small></label>
+                    <input class="control" type="date" id="fromDate" name="fromDate"
+                           th:value="${targetDate}" required>
+                </div>
+                <div>
+                    <label for="toDate"><small>종료일</small></label>
+                    <input class="control" type="date" id="toDate" name="toDate"
+                           th:value="${targetDate.plusDays(6)}" required>
+                </div>
+            </div>
+            <button class="btn btn-dark" type="submit" style="margin-top:10px;width:100%">
+                이 기간 열기
+            </button>
+        </form>
+
+        <div class="section-head" style="margin-top:22px">
+            <h2 class="section-title">
+                <span th:text="${targetDate}">2026-08-13</span> 슬롯
+            </h2>
+        </div>
+        <form method="get" th:action="@{/host/places/{id}/availability(id=${place.id})}">
+            <input class="control" type="date" name="date" th:value="${targetDate}"
+                   onchange="this.form.submit()">
+        </form>
+
+        <div class="slot-grid" th:if="${!#lists.isEmpty(slots)}">
+            <div th:each="slot : ${slots}"
+                 th:class="'slot-cell' + (${slot.status == 'BLOCKED'} ? ' blocked' : '')
+                           + (${slot.status == 'RESERVED'} ? ' reserved' : '')">
+                <div th:text="${#temporals.format(slot.startAt,'HH:mm')}">09:00</div>
+
+                <small th:if="${slot.status == 'RESERVED'}">예약됨</small>
+
+                <form th:if="${slot.status != 'RESERVED'}" method="post"
+                      th:action="@{/host/places/{id}/availability/status(id=${place.id})}">
+                    <input type="hidden" name="slotId" th:value="${slot.slotId}">
+                    <input type="hidden" name="date" th:value="${targetDate}">
+                    <input type="hidden" name="status"
+                           th:value="${slot.status == 'OPEN'} ? 'BLOCKED' : 'OPEN'">
+                    <button type="submit"
+                            th:text="${slot.status == 'OPEN'} ? '막기' : '열기'">막기</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="notice" th:if="${#lists.isEmpty(slots)}">
+            <span class="ico" aria-hidden="true">event_busy</span>
+            <span>이 날짜에 열린 슬롯이 없습니다. 위에서 기간을 열어주세요.</span>
+        </div>
+    </div>
+</main>
+</body>
+</html>

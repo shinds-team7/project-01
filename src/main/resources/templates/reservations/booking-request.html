@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<!--/*
+  예약 요청 — 스페이스클라우드 방식의 탭투탭 선택 화면.
+
+  1단계  유형 선택 (시 예약 / 패키지 예약)
+  2단계  시 예약  -> 날짜 선택 후 시간 슬롯을 탭투탭으로 시작~끝 지정
+         패키지   -> 달력에서 탭투탭으로 체크인~체크아웃 날짜 지정
+  3단계  반려동물 선택 + 메모
+
+  슬롯 데이터는 GET /places/{id}/slots, /places/{id}/package-days 에서 받는다.
+  화면의 검증은 편의일 뿐이고, 실제 판정은 서버의 슬롯 점유(UPDATE ... WHERE status='OPEN')가 한다.
+*/-->
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/base :: page('예약 요청', 'none', ~{::main})}">
+<body>
+<main id="main-content" class="app-main no-nav has-cta">
+    <div class="topbar">
+        <a class="topbar-back" th:href="@{/places/{id}(id=${place.id})}" aria-label="뒤로 가기">
+            <span class="ico" aria-hidden="true">arrow_back_ios_new</span>
+        </a>
+        <h1>예약 요청</h1>
+    </div>
+
+    <style>
+        .seg { display:flex; gap:8px; margin:16px 0; }
+        .seg button { flex:1; padding:14px 8px; border-radius:12px; border:1.5px solid #ddd;
+            background:#fff; font-size:15px; font-weight:600; cursor:pointer; color:#666; }
+        .seg button.on { border-color:#111; background:#111; color:#fff; }
+        .seg button:disabled { opacity:.4; cursor:not-allowed; }
+
+        .slot-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:12px; }
+        .slot { padding:12px 4px; border-radius:10px; border:1.5px solid #e2e2e2; background:#fff;
+            font-size:13px; text-align:center; cursor:pointer; user-select:none; }
+        .slot.taken { background:#f3f3f3; color:#bbb; text-decoration:line-through; cursor:not-allowed;
+            border-color:#eee; }
+        .slot.edge { background:#111; color:#fff; border-color:#111; font-weight:700; }
+        .slot.mid  { background:#e8e8ff; border-color:#c9c9ff; color:#333; }
+
+        .cal { display:grid; grid-template-columns:repeat(7,1fr); gap:6px; margin-top:12px; }
+        .cal .dow { text-align:center; font-size:12px; color:#999; padding:4px 0; }
+        .day { aspect-ratio:1; display:flex; align-items:center; justify-content:center;
+            border-radius:10px; border:1.5px solid #e2e2e2; font-size:14px; cursor:pointer; background:#fff; }
+        .day.blank { border:none; cursor:default; }
+        .day.taken { background:#f3f3f3; color:#c4c4c4; cursor:not-allowed; border-color:#eee; }
+        .day.edge { background:#111; color:#fff; border-color:#111; font-weight:700; }
+        .day.mid  { background:#e8e8ff; border-color:#c9c9ff; }
+
+        .cal-head { display:flex; align-items:center; justify-content:space-between; margin-top:12px; }
+        .cal-head button { border:1px solid #ddd; background:#fff; border-radius:8px;
+            width:34px; height:34px; cursor:pointer; font-size:16px; }
+
+        .pick-summary { margin-top:14px; padding:14px; border-radius:12px; background:#f7f7f9;
+            font-size:14px; line-height:1.6; }
+        .pick-summary strong { display:block; font-size:15px; }
+        .pick-summary .muted { color:#999; }
+        .legend { display:flex; gap:14px; margin-top:10px; font-size:12px; color:#888; }
+        .legend i { display:inline-block; width:10px; height:10px; border-radius:3px;
+            margin-right:4px; vertical-align:middle; }
+    </style>
+
+    <div th:attr="data-place-id=${place.id},
+                  data-hourly-price=${place.hourlyPrice != null ? place.hourlyPrice : 0},
+                  data-nightly-price=${place.nightlyPrice != null ? place.nightlyPrice : 0},
+                  data-supports-hourly=${place.supportsHourly},
+                  data-supports-package=${place.supportsPackage},
+                  data-check-in-time=${place.packageCheckInTime != null ? #temporals.format(place.packageCheckInTime,'HH:mm') : '15:00'},
+                  data-check-out-time=${place.packageCheckOutTime != null ? #temporals.format(place.packageCheckOutTime,'HH:mm') : '11:00'}"
+         id="placeData" hidden></div>
+
+    <form th:action="@{/reservation/create}" method="post" id="bookingForm">
+        <input type="hidden" name="placeId" th:value="${place.id}">
+        <input type="hidden" name="reservationType" id="reservationType" value="SAME_DAY">
+        <input type="hidden" name="checkIn" id="checkIn">
+        <input type="hidden" name="checkOut" id="checkOut">
+
+        <div class="screen">
+            <div th:if="${reservationRequest != null}" th:object="${reservationRequest}">
+                <div class="notice notice-danger" role="alert" th:if="${#fields.hasAnyErrors()}">
+                    <span class="ico" aria-hidden="true">error</span>
+                    <span th:each="err : ${#fields.allErrors()}" th:text="${err}">입력값을 확인해주세요.</span>
+                </div>
+            </div>
+
+            <div class="summary-row">
+                <div class="media"><span class="ico" aria-hidden="true">weekend</span></div>
+                <div class="summary-copy">
+                    <span class="badge badge-warn" th:if="${place.placeType != null}"
+                          th:text="${place.placeType.label}">단독주택</span>
+                    <strong th:text="${place.name}">성수 조용한 단독주택 마당</strong>
+                    <small th:text="${place.hostUserNickname}">김도윤 호스트</small>
+                </div>
+            </div>
+
+            <h2 class="section-title">어떻게 이용하시나요?</h2>
+            <div class="seg">
+                <button type="button" id="btnHourly" class="on"
+                        th:disabled="${!place.supportsHourly}">시 예약</button>
+                <button type="button" id="btnPackage"
+                        th:disabled="${!place.supportsPackage}">패키지 예약</button>
+            </div>
+
+            <section id="panelHourly">
+                <h2 class="section-title">날짜</h2>
+                <input class="control" type="date" id="hourlyDate">
+                <h2 class="section-title" style="margin-top:16px">시간 선택</h2>
+                <p class="muted" style="font-size:13px;color:#999">
+                    00시부터 24시까지 3시간 단위로 예약할 수 있어요.
+                    시작 구간을 누르고, 종료 구간을 한 번 더 누르세요.
+                </p>
+                <div class="slot-grid" id="slotGrid"></div>
+                <div class="legend">
+                    <span><i style="background:#fff;border:1.5px solid #e2e2e2"></i>예약 가능</span>
+                    <span><i style="background:#111"></i>선택</span>
+                    <span><i style="background:#f3f3f3"></i>예약 불가</span>
+                </div>
+            </section>
+
+            <section id="panelPackage" hidden>
+                <div class="cal-head">
+                    <button type="button" id="prevMonth">‹</button>
+                    <strong id="monthLabel"></strong>
+                    <button type="button" id="nextMonth">›</button>
+                </div>
+                <p class="muted" style="font-size:13px;color:#999;margin-top:8px">
+                    체크인 날짜를 누르고, 체크아웃 날짜를 한 번 더 누르세요.
+                </p>
+                <div class="cal" id="calGrid"></div>
+                <div class="legend">
+                    <span><i style="background:#fff;border:1.5px solid #e2e2e2"></i>예약 가능</span>
+                    <span><i style="background:#111"></i>선택</span>
+                    <span><i style="background:#f3f3f3"></i>예약 불가</span>
+                </div>
+            </section>
+
+            <div class="pick-summary" id="pickSummary">
+                <strong class="muted">아직 선택된 시간이 없어요</strong>
+            </div>
+
+            <div class="section-head">
+                <h2 class="section-title">반려견 프로필</h2>
+                <a class="section-more" th:href="@{/mypage}">변경하기</a>
+            </div>
+
+            <div class="pet-picks" th:if="${pets != null and !#lists.isEmpty(pets)}">
+                <label class="pet-pick" th:each="pet : ${pets}">
+                    <input type="checkbox" name="petIds" th:value="${pet.id}">
+                    <span class="person-row">
+                        <span class="avatar"><span class="ico" aria-hidden="true">pets</span></span>
+                        <span class="person-copy">
+                            <strong th:text="${pet.name}">초코</strong>
+                            <small th:text="${pet.size != null ? pet.size.label : ''} + (${pet.weight != null} ? ' · ' + ${pet.weight} + 'kg' : '')">소형 · 6kg</small>
+                        </span>
+                        <span class="ico is-check" aria-hidden="true">check_circle</span>
+                    </span>
+                </label>
+            </div>
+
+            <div class="notice" th:unless="${pets != null and !#lists.isEmpty(pets)}">
+                <span class="ico" aria-hidden="true">pets</span>
+                <span>맡길 반려동물을 먼저 등록해주세요. <a th:href="@{/pet/new}">반려동물 등록하기</a></span>
+            </div>
+
+            <h2 class="section-title">호스트에게 요청 메시지</h2>
+            <textarea class="control" name="memo" rows="4"
+                      placeholder="분리불안이 조금 있어요. 자주 확인 부탁드립니다 🐾"
+                      th:text="${reservationRequest?.memo}"></textarea>
+        </div>
+
+        <div class="cta-bar no-nav">
+            <div class="cta-copy">
+                <p class="cta-price" id="ctaPrice">시간을 선택해주세요</p>
+                <small class="cta-note" id="ctaNote">시 예약은 시간당 요금으로 계산돼요</small>
+            </div>
+            <button class="btn btn-dark" type="submit" id="submitBtn" disabled>예약 요청하기</button>
+        </div>
+    </form>
+
+    <script th:inline="none">
+    (function () {
+        const data = document.getElementById('placeData').dataset;
+        const placeId = data.placeId;
+        const hourlyPrice = Number(data.hourlyPrice);
+        const nightlyPrice = Number(data.nightlyPrice);
+        const pkgCheckIn = data.checkInTime;
+        const pkgCheckOut = data.checkOutTime;
+
+        let mode = data.supportsHourly === 'true' ? 'SAME_DAY' : 'OVERNIGHT';
+        let slots = [];
+        let hourStart = null, hourEnd = null;
+        let days = [];
+        let dayStart = null, dayEnd = null;
+        let cursor = new Date();
+
+        const $ = (id) => document.getElementById(id);
+        const pad = (n) => String(n).padStart(2, '0');
+        const ymd = (d) => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+        const won = (n) => n.toLocaleString('ko-KR') + '원';
+        const hhmm = (iso) => iso.substring(11, 16);
+        /* 21~24시 칸의 종료는 다음 날 00:00 으로 들어오므로 24:00 으로 보여준다 */
+        const endLabel = (iso) => hhmm(iso) === '00:00' ? '24:00' : hhmm(iso);
+        const slotLabel = (s) => hhmm(s.startAt) + '~' + endLabel(s.endAt);
+
+        function setMode(next) {
+            mode = next;
+            $('reservationType').value = next;
+            $('btnHourly').classList.toggle('on', next === 'SAME_DAY');
+            $('btnPackage').classList.toggle('on', next === 'OVERNIGHT');
+            $('panelHourly').hidden = next !== 'SAME_DAY';
+            $('panelPackage').hidden = next !== 'OVERNIGHT';
+            $('ctaNote').textContent = next === 'SAME_DAY'
+                ? '시 예약은 시간당 요금으로 계산돼요'
+                : '패키지 예약은 1박당 요금으로 계산돼요';
+            resetPick();
+        }
+
+        function resetPick() {
+            hourStart = hourEnd = dayStart = dayEnd = null;
+            $('checkIn').value = '';
+            $('checkOut').value = '';
+            $('submitBtn').disabled = true;
+            $('ctaPrice').textContent = mode === 'SAME_DAY' ? '시간을 선택해주세요' : '날짜를 선택해주세요';
+            $('pickSummary').innerHTML = '<strong class="muted">아직 선택된 시간이 없어요</strong>';
+            renderSlots();
+            renderCal();
+        }
+
+        /* ---------- 시 예약 ---------- */
+
+        async function loadSlots() {
+            const date = $('hourlyDate').value;
+            if (!date) return;
+            const res = await fetch('/places/' + placeId + '/slots?date=' + date);
+            slots = await res.json();
+            hourStart = hourEnd = null;
+            renderSlots();
+        }
+
+        function renderSlots() {
+            const grid = $('slotGrid');
+            if (!grid) return;
+            grid.innerHTML = '';
+            if (!slots.length) {
+                grid.innerHTML = '<p style="grid-column:1/-1;color:#999;font-size:13px">' +
+                    '열린 시간이 없습니다. 호스트가 일정을 열어야 예약할 수 있어요.</p>';
+                return;
+            }
+            slots.forEach((s, i) => {
+                const el = document.createElement('div');
+                el.className = 'slot';
+                el.textContent = slotLabel(s);
+                if (s.status !== 'OPEN') {
+                    el.classList.add('taken');
+                } else if (hourStart !== null && (i === hourStart || i === hourEnd)) {
+                    el.classList.add('edge');
+                } else if (hourStart !== null && hourEnd !== null && i > hourStart && i < hourEnd) {
+                    el.classList.add('mid');
+                }
+                if (s.status === 'OPEN') {
+                    el.addEventListener('click', () => pickSlot(i));
+                }
+                grid.appendChild(el);
+            });
+        }
+
+        function pickSlot(i) {
+            if (hourStart === null || hourEnd !== null || i <= hourStart) {
+                hourStart = i;
+                hourEnd = null;
+            } else {
+                /* 사이에 예약된 칸이나 끊긴 시간이 있으면 선택을 무효로 한다 */
+                for (let k = hourStart; k <= i; k++) {
+                    if (slots[k].status !== 'OPEN') { hourStart = i; hourEnd = null; renderSlots(); return; }
+                    if (k > hourStart && slots[k].startAt !== slots[k - 1].endAt) {
+                        hourStart = i; hourEnd = null; renderSlots(); return;
+                    }
+                }
+                hourEnd = i;
+            }
+            renderSlots();
+            applyHourly();
+        }
+
+        function applyHourly() {
+            if (hourStart === null || hourEnd === null) {
+                $('submitBtn').disabled = true;
+                return;
+            }
+            const from = slots[hourStart].startAt;
+            const to = slots[hourEnd].endAt;
+            const hours = (new Date(to) - new Date(from)) / 3600000;
+            $('checkIn').value = from.substring(0, 16);
+            $('checkOut').value = to.substring(0, 16);
+            $('submitBtn').disabled = false;
+            $('ctaPrice').textContent = won(hours * hourlyPrice);
+            $('pickSummary').innerHTML =
+                '<strong>' + from.substring(0, 10) + '</strong>' +
+                hhmm(from) + ' → ' + endLabel(to) + ' · 총 ' + hours + '시간';
+        }
+
+        /* ---------- 패키지 예약 ---------- */
+
+        async function loadDays() {
+            const ym = cursor.getFullYear() + '-' + pad(cursor.getMonth() + 1);
+            $('monthLabel').textContent = cursor.getFullYear() + '년 ' + (cursor.getMonth() + 1) + '월';
+            const res = await fetch('/places/' + placeId + '/package-days?yearMonth=' + ym);
+            days = await res.json();
+            renderCal();
+        }
+
+        function renderCal() {
+            const grid = $('calGrid');
+            if (!grid || !days.length) return;
+            grid.innerHTML = '';
+            ['일', '월', '화', '수', '목', '금', '토'].forEach(d => {
+                const h = document.createElement('div');
+                h.className = 'dow';
+                h.textContent = d;
+                grid.appendChild(h);
+            });
+            const first = new Date(days[0].date).getDay();
+            for (let i = 0; i < first; i++) {
+                const b = document.createElement('div');
+                b.className = 'day blank';
+                grid.appendChild(b);
+            }
+            days.forEach((d, i) => {
+                const el = document.createElement('div');
+                el.className = 'day';
+                el.textContent = Number(d.date.substring(8, 10));
+                if (!d.selectable) {
+                    el.classList.add('taken');
+                } else if (d.date === dayStart || d.date === dayEnd) {
+                    el.classList.add('edge');
+                } else if (dayStart && dayEnd && d.date > dayStart && d.date < dayEnd) {
+                    el.classList.add('mid');
+                }
+                if (d.selectable || d.date === dayEnd) {
+                    el.addEventListener('click', () => pickDay(i));
+                }
+                grid.appendChild(el);
+            });
+        }
+
+        function pickDay(i) {
+            const date = days[i].date;
+            if (!dayStart || dayEnd || date <= dayStart) {
+                dayStart = date;
+                dayEnd = null;
+            } else {
+                /* 체크아웃 전날까지의 모든 밤이 비어 있어야 한다 */
+                for (let k = 0; k < days.length; k++) {
+                    if (days[k].date >= dayStart && days[k].date < date && !days[k].selectable) {
+                        dayStart = date; dayEnd = null; renderCal(); return;
+                    }
+                }
+                dayEnd = date;
+            }
+            renderCal();
+            applyPackage();
+        }
+
+        function applyPackage() {
+            if (!dayStart || !dayEnd) {
+                $('submitBtn').disabled = true;
+                return;
+            }
+            const nights = Math.round((new Date(dayEnd) - new Date(dayStart)) / 86400000);
+            $('checkIn').value = dayStart + 'T' + pkgCheckIn;
+            $('checkOut').value = dayEnd + 'T' + pkgCheckOut;
+            $('submitBtn').disabled = false;
+            $('ctaPrice').textContent = won(nights * nightlyPrice);
+            $('pickSummary').innerHTML =
+                '<strong>' + nights + '박 ' + (nights + 1) + '일</strong>' +
+                dayStart + ' ' + pkgCheckIn + ' 입실 → ' + dayEnd + ' ' + pkgCheckOut + ' 퇴실';
+        }
+
+        /* ---------- 초기화 ---------- */
+
+        $('btnHourly').addEventListener('click', () => { setMode('SAME_DAY'); loadSlots(); });
+        $('btnPackage').addEventListener('click', () => { setMode('OVERNIGHT'); loadDays(); });
+        $('hourlyDate').addEventListener('change', loadSlots);
+        $('prevMonth').addEventListener('click', () => {
+            cursor = new Date(cursor.getFullYear(), cursor.getMonth() - 1, 1);
+            dayStart = dayEnd = null;
+            loadDays();
+        });
+        $('nextMonth').addEventListener('click', () => {
+            cursor = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1);
+            dayStart = dayEnd = null;
+            loadDays();
+        });
+
+        $('hourlyDate').value = ymd(new Date());
+        setMode(mode);
+        if (mode === 'SAME_DAY') { loadSlots(); } else { loadDays(); }
+    })();
+    </script>
+</main>
+</body>
+</html>

@@ -130,6 +130,10 @@ CREATE TABLE places (
     hourly_price            DECIMAL(12, 0) NULL,
     nightly_price           DECIMAL(12, 0) NULL,
     average_rating          DECIMAL(3, 2)  NOT NULL DEFAULT 0.00 COMMENT '리뷰 평균 별점(리뷰 없으면 0.00)',
+    supports_hourly         BOOLEAN        NOT NULL DEFAULT TRUE COMMENT '시 예약 지원 여부',
+    supports_package        BOOLEAN        NOT NULL DEFAULT FALSE COMMENT '패키지 예약 지원 여부',
+    package_check_in_time   TIME           NULL COMMENT '패키지 입실 시각(3시간 격자 경계)',
+    package_check_out_time  TIME           NULL COMMENT '패키지 퇴실 시각(3시간 격자 경계)',
     status                  VARCHAR(20)    NOT NULL,
     is_visible              BOOLEAN        NOT NULL DEFAULT TRUE,
     created_at              DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -175,18 +179,22 @@ CREATE TABLE place_addresses (
         ON UPDATE CASCADE
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
+-- 예약 재고의 최소 단위. 하루 00시부터 3시간 격자로 8칸이 생성된다.
+-- 시 예약과 패키지 예약이 같은 격자를 공유하므로 두 유형의 교차 차단이 자동으로 성립한다.
 CREATE TABLE place_availability (
-    id              BIGINT   NOT NULL AUTO_INCREMENT,
-    place_id        BIGINT   NOT NULL,
-    start_at        DATETIME NOT NULL,
-    end_at          DATETIME NOT NULL,
-    is_available    BOOLEAN  NOT NULL DEFAULT TRUE,
-    created_at      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    id              BIGINT      NOT NULL AUTO_INCREMENT,
+    place_id        BIGINT      NOT NULL,
+    start_at        DATETIME    NOT NULL,
+    end_at          DATETIME    NOT NULL,
+    status          VARCHAR(20) NOT NULL DEFAULT 'OPEN' COMMENT '슬롯 상태(OPEN/BLOCKED/RESERVED)',
+    created_at      DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at      DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT PK_PLACE_AVAILABILITY PRIMARY KEY (id),
+    CONSTRAINT UK_PLACE_AVAILABILITY_SLOT UNIQUE (place_id, start_at),
     CONSTRAINT FK_PLACE_AVAILABILITY_PLACE FOREIGN KEY (place_id) REFERENCES places (id)
         ON DELETE CASCADE
-        ON UPDATE CASCADE
+        ON UPDATE CASCADE,
+    INDEX IX_PLACE_AVAILABILITY_LOOKUP (place_id, start_at, status)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 CREATE TABLE bookmarks (
@@ -244,6 +252,24 @@ CREATE TABLE reservation_pets (
     CONSTRAINT FK_RESERVATION_PETS_PET FOREIGN KEY (pet_id) REFERENCES pets (id)
         ON DELETE RESTRICT
         ON UPDATE CASCADE
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+
+-- 예약이 점유한 슬롯. 취소 시 어떤 슬롯을 OPEN 으로 되돌릴지 알려준다.
+-- availability_id 의 UNIQUE 가 '슬롯 하나는 예약 하나에만' 을 DB 차원에서 강제한다.
+CREATE TABLE reservation_slots (
+    id              BIGINT   NOT NULL AUTO_INCREMENT,
+    reservation_id  BIGINT   NOT NULL,
+    availability_id BIGINT   NOT NULL,
+    created_at      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT PK_RESERVATION_SLOTS PRIMARY KEY (id),
+    CONSTRAINT UK_RESERVATION_SLOTS_AVAILABILITY UNIQUE (availability_id),
+    CONSTRAINT FK_RESERVATION_SLOTS_RESERVATION FOREIGN KEY (reservation_id) REFERENCES reservations (id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE,
+    CONSTRAINT FK_RESERVATION_SLOTS_AVAILABILITY FOREIGN KEY (availability_id) REFERENCES place_availability (id)
+        ON DELETE RESTRICT
+        ON UPDATE CASCADE,
+    INDEX IX_RESERVATION_SLOTS_RESERVATION (reservation_id)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------

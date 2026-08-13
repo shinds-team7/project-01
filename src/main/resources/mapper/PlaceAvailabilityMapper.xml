@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.petnow.mapper.PlaceAvailabilityMapper">
+
+    <!--
+        uk_place_availability_slot (place_id, start_at) 이 중복을 막아주므로
+        INSERT IGNORE 로 두면 같은 기간을 여러 번 생성해도 안전하다.
+    -->
+    <insert id="insertSlots">
+        INSERT IGNORE INTO place_availability (place_id, start_at, end_at, status)
+        VALUES
+        <foreach collection="slots" item="slot" separator=",">
+            (#{slot.placeId}, #{slot.startAt}, #{slot.endAt}, #{slot.status})
+        </foreach>
+    </insert>
+
+    <!--
+        예약 점유의 핵심.
+
+        이 한 문장이 세 가지를 동시에 해결한다.
+          - 호스트가 열지 않은 시간 : 슬롯이 없거나 BLOCKED -> 변경 행 수 미달
+          - 이미 예약된 시간       : status != 'OPEN'      -> 변경 행 수 미달
+          - 동시 요청              : UPDATE 의 행 잠금으로 한쪽만 성공
+
+        SELECT 로 빈자리를 확인한 뒤 INSERT 하는 방식은 두 요청이 동시에
+        '비어있다' 를 읽어 둘 다 통과하는 경쟁 조건이 생긴다.
+    -->
+    <update id="updateSlotsToReserved">
+        UPDATE place_availability
+        SET status = 'RESERVED'
+        WHERE place_id = #{placeId}
+        AND status = 'OPEN'
+        AND start_at &gt;= #{startAt}
+        AND end_at &lt;= #{endAt}
+    </update>
+
+    <update id="updateSlotsToOpen">
+        UPDATE place_availability
+        SET status = 'OPEN'
+        WHERE id IN
+        <foreach collection="slotIds" item="slotId" open="(" close=")" separator=",">
+            #{slotId}
+        </foreach>
+    </update>
+
+    <!--
+        RESERVED 슬롯은 호스트가 막을 수 없다.
+        이미 잡힌 예약이 조용히 사라지기 때문에 status = 'OPEN' 조건이 반드시 필요하다.
+    -->
+    <update id="updateSlotStatus">
+        UPDATE place_availability
+        SET status = #{status}
+        WHERE id = #{slotId}
+        AND status &lt;&gt; 'RESERVED'
+    </update>
+
+    <select id="findSlotIdsByRange" resultType="java.lang.Long">
+        SELECT id
+        FROM place_availability
+        WHERE place_id = #{placeId}
+        AND start_at &gt;= #{startAt}
+        AND end_at &lt;= #{endAt}
+        ORDER BY start_at
+    </select>
+
+    <select id="findSlotsByPlaceAndPeriod"
+            resultType="com.example.petnow.dto.response.PlaceSlotResponse">
+        SELECT
+        id AS slotId,
+        start_at AS startAt,
+        end_at AS endAt,
+        status AS status
+        FROM place_availability
+        WHERE place_id = #{placeId}
+        AND start_at &gt;= #{fromAt}
+        AND start_at &lt; #{toAt}
+        ORDER BY start_at
+    </select>
+
+    <select id="countOpenSlotsInRange" resultType="int">
+        SELECT COUNT(*)
+        FROM place_availability
+        WHERE place_id = #{placeId}
+        AND status = 'OPEN'
+        AND start_at &gt;= #{startAt}
+        AND end_at &lt;= #{endAt}
+    </select>
+
+    <select id="findLastSlotEndAt" resultType="java.time.LocalDateTime">
+        SELECT MAX(end_at)
+        FROM place_availability
+        WHERE place_id = #{placeId}
+    </select>
+</mapper>

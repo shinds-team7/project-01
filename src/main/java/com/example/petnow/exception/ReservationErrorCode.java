@@ -17,6 +17,9 @@ public enum ReservationErrorCode implements ErrorCode {
 	RESERVATION_NOT_FOUND(HttpStatus.NOT_FOUND, "RESERVATION_NOT_FOUND", "해당 예약을 찾을 수 없습니다."),
 	HOURLY_PRICE_NOT_SET(HttpStatus.BAD_REQUEST, "HOURLY_PRICE_NOT_SET", "시간당 가격이 설정되어 있지 않습니다."),
 	NIGHTLY_PRICE_NOT_SET(HttpStatus.BAD_REQUEST, "NIGHTLY_PRICE_NOT_SET", "1박당 가격이 설정되어 있지 않습니다."),
+	SLOT_NOT_AVAILABLE(HttpStatus.BAD_REQUEST, "SLOT_NOT_AVAILABLE", "선택한 시간은 예약할 수 없습니다."),
+	UNSUPPORTED_RESERVATION_TYPE(HttpStatus.BAD_REQUEST, "UNSUPPORTED_RESERVATION_TYPE", "이 장소가 지원하지 않는 예약 유형입니다."),
+	INVALID_PACKAGE_TIME(HttpStatus.BAD_REQUEST, "INVALID_PACKAGE_TIME", "패키지 예약의 입실/퇴실 시각이 올바르지 않습니다."),
 	RESERVATION_ACCESS_DENIED(HttpStatus.FORBIDDEN, "RESERVATION_ACCESS_DENIED", "예약에 접근할 수 없습니다.");
 
 	private final HttpStatus status;

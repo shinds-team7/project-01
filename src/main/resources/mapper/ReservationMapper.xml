@@ -146,4 +146,27 @@
         SET status='CANCELED', responded_at=CURRENT_TIMESTAMP
         WHERE id = #{reservationId} AND status='PENDING'
     </update>
+
+    <insert id="insertReservationSlots">
+        INSERT INTO reservation_slots (reservation_id, availability_id)
+        VALUES
+        <foreach collection="slotIds" item="slotId" separator=",">
+            (#{reservationId}, #{slotId})
+        </foreach>
+    </insert>
+
+    <select id="findSlotIdsByReservationId" resultType="java.lang.Long">
+        SELECT availability_id
+        FROM reservation_slots
+        WHERE reservation_id = #{reservationId}
+    </select>
+
+    <!--
+        취소 시 매핑을 지워야 그 슬롯을 다시 예약할 수 있다.
+        uk_reservation_slots_availability 때문에 남겨두면 영영 재예약이 막힌다.
+    -->
+    <delete id="deleteReservationSlotsByReservationId">
+        DELETE FROM reservation_slots
+        WHERE reservation_id = #{reservationId}
+    </delete>
 </mapper>
