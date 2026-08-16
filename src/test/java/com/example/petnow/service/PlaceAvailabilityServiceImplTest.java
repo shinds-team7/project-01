@@ -67,6 +67,27 @@ class PlaceAvailabilityServiceImplTest {
     }
 
     @Test
+    void rejectsSlotCreationLongerThanNinetyDays() {
+        given(placeMapper.findById(1L)).willReturn(ownedPlace());
+
+        assertThatThrownBy(() -> service.createSlots(
+                7L, 1L, LocalDate.of(2026, 1, 1), LocalDate.of(2026, 4, 1)))
+                .isInstanceOf(BusinessException.class);
+    }
+
+    @Test
+    void allowsSlotCreationForExactlyNinetyDays() {
+        given(placeMapper.findById(1L)).willReturn(ownedPlace());
+        given(availabilityMapper.insertSlots(anyList()))
+                .willAnswer(invocation -> ((List<?>) invocation.getArgument(0)).size());
+
+        int count = service.createSlots(
+                7L, 1L, LocalDate.of(2026, 1, 1), LocalDate.of(2026, 3, 31));
+
+        assertThat(count).isEqualTo(90 * 8);
+    }
+
+    @Test
     void packageDayIsSelectableOnlyWhenAllSevenSlotsAreOpen() {
         Place place = ownedPlace();
         given(placeMapper.findById(1L)).willReturn(place);
