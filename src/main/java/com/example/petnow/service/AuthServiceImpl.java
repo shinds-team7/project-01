@@ -26,7 +26,7 @@ public class AuthServiceImpl implements AuthService {
      *
      * <p>이메일 중복을 두 겹으로 막는다. 사전 검사만으로는 부족하다. 두 요청이 나란히
      * "없음"을 확인하고 둘 다 INSERT 하는 창이 남기 때문이다. 그 경합에서 뚫린 요청은
-     * UNIQUE 제약(V12)에 걸려 {@link DuplicateKeyException} 으로 오는데, 그대로 두면
+     * UNIQUE 제약(V13)에 걸려 {@link DuplicateKeyException} 으로 오는데, 그대로 두면
      * 사용자에게 500 이 나가므로 여기서 같은 예외로 바꿔 준다.
      *
      * <p>사전 검사를 없애고 제약에만 맡기지 않는 이유는, 흔한 경우(그냥 이미 가입된
