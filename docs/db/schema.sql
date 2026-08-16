@@ -130,6 +130,10 @@ CREATE TABLE places (
     hourly_price            DECIMAL(12, 0) NULL,
     nightly_price           DECIMAL(12, 0) NULL,
     average_rating          DECIMAL(3, 2)  NOT NULL DEFAULT 0.00 COMMENT '리뷰 평균 별점(리뷰 없으면 0.00)',
+    supports_hourly         BOOLEAN        NOT NULL DEFAULT TRUE COMMENT '시 예약 지원 여부',
+    supports_package        BOOLEAN        NOT NULL DEFAULT FALSE COMMENT '패키지 예약 지원 여부',
+    package_check_in_time   TIME           NULL COMMENT '패키지 입실 시각(3시간 격자 경계)',
+    package_check_out_time  TIME           NULL COMMENT '패키지 퇴실 시각(3시간 격자 경계)',
     status                  VARCHAR(20)    NOT NULL,
     is_visible              BOOLEAN        NOT NULL DEFAULT TRUE,
     created_at              DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -180,14 +184,18 @@ CREATE TABLE place_availability (
     place_id        BIGINT   NOT NULL,
     start_at        DATETIME NOT NULL,
     end_at          DATETIME NOT NULL,
-    is_available    BOOLEAN  NOT NULL DEFAULT TRUE,
+    status          VARCHAR(20) NOT NULL DEFAULT 'OPEN',
     created_at      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT PK_PLACE_AVAILABILITY PRIMARY KEY (id),
+    CONSTRAINT UK_PLACE_AVAILABILITY_SLOT UNIQUE (place_id, start_at),
     CONSTRAINT FK_PLACE_AVAILABILITY_PLACE FOREIGN KEY (place_id) REFERENCES places (id)
         ON DELETE CASCADE
         ON UPDATE CASCADE
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+
+CREATE INDEX IX_PLACE_AVAILABILITY_LOOKUP
+    ON place_availability (place_id, start_at, status);
 
 CREATE TABLE bookmarks (
     id          BIGINT   NOT NULL AUTO_INCREMENT,

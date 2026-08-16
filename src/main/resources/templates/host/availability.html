@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/base :: page('예약 가능 시간 관리', 'none', ~{::main})}">
+<body>
+<main id="main-content" class="app-main no-nav">
+    <div class="topbar">
+        <a class="topbar-back" th:href="@{/host(tab='places')}" aria-label="뒤로 가기">
+            <span class="ico" aria-hidden="true">arrow_back_ios_new</span>
+        </a>
+        <h1>예약 가능 시간 관리</h1>
+    </div>
+
+    <style>
+        .slot-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:12px; }
+        .slot-cell { border-radius:10px; border:1.5px solid #e2e2e2; background:#fff; padding:10px 4px; text-align:center; font-size:13px; }
+        .slot-cell.blocked { background:#f3f3f3; color:#999; border-color:#eee; }
+        .slot-cell.reserved { background:#111; color:#fff; border-color:#111; }
+        .slot-cell button { margin-top:6px; width:100%; border:none; border-radius:6px; font-size:11px; padding:4px 0; cursor:pointer; background:#eee; }
+        .slot-cell.reserved small { font-size:11px; opacity:.8; }
+        .date-row { display:flex; gap:8px; align-items:flex-end; }
+        .date-row > div { flex:1; }
+    </style>
+
+    <div class="screen">
+        <div class="summary-row">
+            <div class="media"><span class="ico" aria-hidden="true">weekend</span></div>
+            <div class="summary-copy">
+                <strong th:text="${place.name}">장소명</strong>
+                <small>
+                    <span th:if="${place.supportsHourly}">시 예약</span>
+                    <span th:if="${place.supportsHourly and place.supportsPackage}"> · </span>
+                    <span th:if="${place.supportsPackage}">패키지 예약</span>
+                </small>
+            </div>
+        </div>
+
+        <h2 class="section-title">예약 운영 정책</h2>
+        <form th:action="@{/host/places/{id}/availability/policy(id=${place.id})}"
+              th:object="${policyRequest}" method="post">
+            <input type="hidden" name="date" th:value="${targetDate}">
+            <div class="option-grid">
+                <label>
+                    <input type="checkbox" th:field="*{supportsHourly}">
+                    <span>시 예약 지원</span>
+                </label>
+                <label>
+                    <input id="supportsPackage" type="checkbox" th:field="*{supportsPackage}">
+                    <span>패키지 예약 지원</span>
+                </label>
+            </div>
+
+            <div id="packageTimeFields" class="date-row" style="margin-top:10px">
+                <div>
+                    <label for="packageCheckInTime"><small>패키지 입실 시각</small></label>
+                    <select class="control" id="packageCheckInTime" th:field="*{packageCheckInTime}">
+                        <option value="">기본 15:00</option>
+                        <option th:each="hour : ${#numbers.sequence(0, 21, 3)}"
+                                th:value="${#numbers.formatInteger(hour, 2) + ':00'}"
+                                th:text="${#numbers.formatInteger(hour, 2) + ':00'}">15:00</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="packageCheckOutTime"><small>패키지 퇴실 시각</small></label>
+                    <select class="control" id="packageCheckOutTime" th:field="*{packageCheckOutTime}">
+                        <option value="">기본 12:00</option>
+                        <option th:each="hour : ${#numbers.sequence(0, 21, 3)}"
+                                th:value="${#numbers.formatInteger(hour, 2) + ':00'}"
+                                th:text="${#numbers.formatInteger(hour, 2) + ':00'}">12:00</option>
+                    </select>
+                </div>
+            </div>
+            <p class="field-hint">입·퇴실 시각은 3시간 격자에서 선택합니다.</p>
+            <button class="btn btn-dark btn-block" type="submit">운영 정책 저장</button>
+        </form>
+
+        <h2 class="section-title">예약 슬롯 생성</h2>
+        <p class="field-hint">지정한 기간을 하루 8개의 3시간 슬롯으로 생성합니다. 중복 슬롯은 만들지 않습니다.</p>
+        <form th:action="@{/host/places/{id}/availability(id=${place.id})}" method="post">
+            <div class="date-row">
+                <div>
+                    <label for="fromDate"><small>시작일</small></label>
+                    <input class="control" type="date" id="fromDate" name="fromDate" th:value="${slotFromDate}" required>
+                </div>
+                <div>
+                    <label for="toDate"><small>종료일</small></label>
+                    <input class="control" type="date" id="toDate" name="toDate" th:value="${slotToDate}" required>
+                </div>
+            </div>
+            <button class="btn btn-dark btn-block" type="submit" style="margin-top:10px">이 기간 슬롯 생성</button>
+        </form>
+
+        <h2 class="section-title" style="margin-top:22px">일별 슬롯</h2>
+        <form method="get" th:action="@{/host/places/{id}/availability(id=${place.id})}">
+            <input class="control" type="date" name="date" th:value="${targetDate}" onchange="this.form.submit()">
+        </form>
+
+        <div class="slot-grid" th:if="${!#lists.isEmpty(slots)}">
+            <div th:each="slot : ${slots}"
+                 th:class="'slot-cell' + (${slot.status == 'BLOCKED'} ? ' blocked' : '') + (${slot.status == 'RESERVED'} ? ' reserved' : '')">
+                <strong>
+                    <span th:text="${#temporals.format(slot.startAt, 'HH:mm')}">00:00</span>–<span th:text="${#temporals.format(slot.endAt, 'HH:mm')}">03:00</span>
+                </strong>
+                <small th:if="${slot.status == 'RESERVED'}">예약됨</small>
+                <form th:if="${slot.status != 'RESERVED'}" method="post"
+                      th:action="@{/host/places/{id}/availability/status(id=${place.id})}">
+                    <input type="hidden" name="slotId" th:value="${slot.slotId}">
+                    <input type="hidden" name="date" th:value="${targetDate}">
+                    <input type="hidden" name="status" th:value="${slot.status == 'OPEN' ? 'BLOCKED' : 'OPEN'}">
+                    <button type="submit" th:text="${slot.status == 'OPEN' ? '막기' : '열기'}">막기</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="notice" th:if="${#lists.isEmpty(slots)}">
+            <span class="ico" aria-hidden="true">event_busy</span>
+            <span>이 날짜에 생성된 슬롯이 없습니다.</span>
+        </div>
+
+        <div class="notice" th:if="${!#lists.isEmpty(slots)}" style="margin-top:20px">
+            <span class="ico" aria-hidden="true">check_circle</span>
+            <span>변경한 예약 정책과 예약 가능 시간은 바로 저장됩니다.</span>
+        </div>
+        <a class="btn btn-primary btn-block"
+           th:href="@{/host(tab='places')}"
+           style="margin-top:12px">설정 완료</a>
+    </div>
+    <script>
+        (() => {
+            const supportsPackage = document.querySelector('#supportsPackage');
+            const packageTimeFields = document.querySelector('#packageTimeFields');
+            if (!supportsPackage || !packageTimeFields) return;
+
+            const selects = packageTimeFields.querySelectorAll('select');
+            const updatePackageFields = () => {
+                packageTimeFields.hidden = !supportsPackage.checked;
+                selects.forEach(select => select.disabled = !supportsPackage.checked);
+            };
+            supportsPackage.addEventListener('change', updatePackageFields);
+            updatePackageFields();
+        })();
+    </script>
+</main>
+</body>
+</html>
