@@ -31,7 +31,9 @@ build/
 !**/src/main/**/build/
 !**/src/test/**/build/
 
-# local-only config (팀원별 로컬 DB 접속 정보, 커밋 금지)
+# 로컬 전용 설정 (팀원별 DB 계정이 들어가므로 커밋 금지)
+# 경로 없이 적으면 어느 깊이에 있든 걸린다. src/main/resources/ 아래도 여기서 함께 처리된다.
+# 생성 방법은 docs/LOCAL_SETUP.md 참고
 application-local.yaml
 application-local.yml
 application-local.properties
@@ -77,10 +79,3 @@ out/
 # LocalFileStorage 가 local 프로필에서 이미지를 저장하는 디렉터리.
 # 경로는 application.yaml 의 app.storage.local.directory 로 바꿀 수 있다.
 /uploads/
-
-### 로컬 전용 설정 (커밋 금지) ###
-# 개인 DB 계정이 들어가므로 Git에 올리지 않는다.
-# 생성 방법은 docs/LOCAL_SETUP.md 참고
-src/main/resources/application-local.yaml
-src/main/resources/application-local.yml
-.env
