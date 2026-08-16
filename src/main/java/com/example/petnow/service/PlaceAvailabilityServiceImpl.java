@@ -20,6 +20,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.YearMonth;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,6 +34,7 @@ public class PlaceAvailabilityServiceImpl implements PlaceAvailabilityService {
 
     private static final int SLOTS_PER_DAY = 24 / SLOT_HOURS;
     private static final int INSERT_CHUNK_SIZE = 500;
+    private static final int MAX_SLOT_PERIOD_DAYS = 90;
 
     private final PlaceAvailabilityMapper placeAvailabilityMapper;
     private final PlaceMapper placeMapper;
@@ -41,7 +43,8 @@ public class PlaceAvailabilityServiceImpl implements PlaceAvailabilityService {
     @Transactional
     public int createSlots(Long hostUserId, Long placeId, LocalDate fromDate, LocalDate toDate) {
         validateOwner(hostUserId, placeId);
-        if (fromDate == null || toDate == null || fromDate.isAfter(toDate)) {
+        if (fromDate == null || toDate == null || fromDate.isAfter(toDate)
+                || ChronoUnit.DAYS.between(fromDate, toDate) + 1 > MAX_SLOT_PERIOD_DAYS) {
             throw new BusinessException(PlaceErrorCode.PLACE_AVAILABILITY_PERIOD_INVALID);
         }
 
