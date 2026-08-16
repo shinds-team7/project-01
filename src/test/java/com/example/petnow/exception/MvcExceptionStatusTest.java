@@ -51,31 +51,52 @@ class MvcExceptionStatusTest {
 	PetService petService;
 
 	@Test
-	@DisplayName("서비스가 던진 ResponseStatusException(403)은 403으로 나간다")
+	@DisplayName("서비스가 던진 ResponseStatusException(403)은 403 과 한국어 문구로 나간다")
 	void responseStatusException_keepsItsOwnStatus() throws Exception {
 		when(placeService.getPlaceDetail(anyLong(), any()))
 			.thenThrow(new ResponseStatusException(HttpStatus.FORBIDDEN, "권한 없음"));
 
 		mockMvc.perform(get("/places/1"))
 			.andExpect(status().isForbidden())
-			.andExpect(view().name("error"));
+			.andExpect(view().name("error"))
+			// 문구는 예외가 들고 온 reason 이 아니라 상태 코드로 정한다. 사용자에게 보여 줄 문장을
+			// 직접 정해야 한다면 ResponseStatusException 이 아니라 BusinessException 을 쓴다.
+			.andExpect(model().attribute("message", ClientErrorMessages.of(HttpStatus.FORBIDDEN)));
 	}
 
 	@Test
-	@DisplayName("PathVariable 타입 변환 실패는 400으로 나간다")
+	@DisplayName("PathVariable 타입 변환 실패는 400 과 한국어 문구로 나간다")
 	void typeMismatch_is400() throws Exception {
 		// GET /pet/detail/{petId} 의 petId 는 Long 이라 "abc" 는 변환에 실패한다.
 		// MethodArgumentTypeMismatchException 은 자기 상태(400)를 아는 ErrorResponse 다.
 		mockMvc.perform(get("/pet/detail/abc"))
 			.andExpect(status().isBadRequest())
-			.andExpect(view().name("error"));
+			.andExpect(view().name("error"))
+			// 예전에는 여기에 reason phrase 인 "Bad Request" 가 그대로 나갔다.
+			.andExpect(model().attribute("message", CommonErrorCode.VALIDATION_ERROR.getDefaultMessage()));
 	}
 
 	@Test
-	@DisplayName("지원하지 않는 HTTP 메서드는 405로 나간다")
+	@DisplayName("지원하지 않는 HTTP 메서드는 405 와 한국어 문구로 나간다")
 	void methodNotSupported_is405() throws Exception {
 		mockMvc.perform(post("/places/1"))
-			.andExpect(status().isMethodNotAllowed());
+			.andExpect(status().isMethodNotAllowed())
+			// 예전에는 "Method Not Allowed" 가 그대로 나갔다.
+			.andExpect(model().attribute("message", ClientErrorMessages.of(HttpStatus.METHOD_NOT_ALLOWED)));
+	}
+
+	@Test
+	@DisplayName("매핑에 없는 4xx 는 기본 문구로 떨어진다 — 영어가 새어 나가지 않는다")
+	void unmappedClientError_usesDefaultMessage() throws Exception {
+		// 409 는 ClientErrorMessages 의 표에 없다. reason phrase("Conflict")가 아니라
+		// 기본 문구로 나가야 새 상태 코드가 생겨도 영어가 노출되지 않는다.
+		when(placeService.getPlaceDetail(anyLong(), any()))
+			.thenThrow(new ResponseStatusException(HttpStatus.CONFLICT));
+
+		mockMvc.perform(get("/places/1"))
+			.andExpect(status().isConflict())
+			.andExpect(view().name("error"))
+			.andExpect(model().attribute("message", ClientErrorMessages.DEFAULT_MESSAGE));
 	}
 
 	@Test
@@ -92,8 +113,8 @@ class MvcExceptionStatusTest {
 	@Test
 	@DisplayName("업로드 용량 초과는 413 과 한국어 안내 문구로 나간다")
 	void maxUploadSizeExceeded_is413WithGuideMessage() throws Exception {
-		// MaxUploadSizeExceededException 은 스스로 413 을 알고 있어 fallback 에 맡겨도 상태 코드는 맞다.
-		// 다만 fallback 은 4xx 에서 영어 reason phrase("Content Too Large")를 내보내므로 전용 핸들러가 필요하다.
+		// MaxUploadSizeExceededException 은 스스로 413 을 알고 있어 fallback 이 그대로 받는다.
+		// 전용 @ExceptionHandler 없이 ClientErrorMessages 의 413 매핑만으로 안내 문구가 나가야 한다.
 		mockMvc.perform(get("/probe/mvc/upload-too-large"))
 			.andExpect(status().is(HttpStatus.CONTENT_TOO_LARGE.value()))
 			.andExpect(view().name("error"))
