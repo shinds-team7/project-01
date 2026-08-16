@@ -20,6 +20,17 @@
 
     </insert>
 
+    <!--  가입 전 이메일 중복 검사. 탈퇴한 회원도 세어야 UNIQUE 제약과 판정이 어긋나지 않는다.  -->
+    <select id="existsByEmail" resultType="boolean">
+
+        SELECT EXISTS (
+            SELECT 1
+            FROM users
+            WHERE email = #{email}
+        )
+
+    </select>
+
     <select id="findByEmail" resultType="com.example.petnow.entity.User">
 
         SELECT id, email, nickname, password
