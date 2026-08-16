@@ -35,7 +35,7 @@ public class PlaceSlotController {
     @ResponseBody
     public List<PackageDayResponse> packageDays(
             @PathVariable Long placeId,
-            @RequestParam String yearMonth) {
-        return placeAvailabilityService.getPackageDays(placeId, YearMonth.parse(yearMonth));
+            @RequestParam @DateTimeFormat(pattern = "yyyy-MM") YearMonth yearMonth) {
+        return placeAvailabilityService.getPackageDays(placeId, yearMonth);
     }
 }
