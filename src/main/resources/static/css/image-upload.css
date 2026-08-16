@@ -1,0 +1,162 @@
+/*
+ * 이미지 선택 · 미리보기 공통 스타일 (#234)
+ * 마크업 규격과 동작은 static/js/image-upload.js 주석을 본다.
+ * 색·반경·그림자는 app.css 의 토큰을 그대로 쓴다.
+ */
+
+.image-upload {
+    margin-top: 8px;
+}
+
+/* 파일 input 은 감추되 포커스는 받을 수 있게 남겨둔다 (display:none 이면 못 받는다) */
+.image-upload-input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+}
+
+.image-upload-trigger {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    width: 100%;
+    padding: 22px 16px;
+    border: 1.5px dashed var(--line);
+    border-radius: var(--r-md);
+    background: var(--line-soft);
+    color: var(--ink-soft);
+    text-align: center;
+    cursor: pointer;
+}
+
+.image-upload-trigger:hover {
+    border-color: var(--green);
+    background: var(--green-soft);
+    color: var(--green-on-soft);
+}
+
+.image-upload-trigger .ico {
+    font-size: 26px;
+    color: var(--muted);
+}
+
+.image-upload-trigger:hover .ico {
+    color: var(--green-on-soft);
+}
+
+.image-upload-trigger b {
+    font-size: 14px;
+    font-weight: 800;
+}
+
+.image-upload-trigger small {
+    font-size: 12.5px;
+    color: var(--muted);
+}
+
+.image-upload-trigger:hover small {
+    color: inherit;
+}
+
+/* 키보드로 input 에 들어오면 라벨에 포커스 링을 그린다 */
+.image-upload-input:focus-visible ~ .image-upload-trigger {
+    outline: 2px solid var(--green);
+    outline-offset: 2px;
+}
+
+/* 최대 장수를 채우면 더 고를 수 없다는 걸 보여준다.
+   한 장짜리는 채워도 눌러서 갈아끼울 수 있어야 하므로 제외한다 */
+.image-upload.is-full:not(.is-single) .image-upload-trigger {
+    opacity: 0.45;
+    pointer-events: none;
+}
+
+.image-upload.has-error .image-upload-trigger {
+    border-color: var(--danger);
+}
+
+.image-upload-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
+    gap: 10px;
+    margin: 10px 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.image-upload.is-empty .image-upload-list {
+    margin: 0;
+}
+
+.image-upload-item {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    border-radius: var(--r-sm);
+    overflow: hidden;
+    background: var(--line-soft);
+}
+
+.image-upload-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.image-upload-remove {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    padding: 0;
+    border: none;
+    border-radius: var(--r-pill);
+    background: rgba(17, 17, 17, 0.62);
+    color: #fff;
+    cursor: pointer;
+}
+
+.image-upload-remove:hover {
+    background: var(--danger);
+}
+
+.image-upload-remove .ico {
+    font-size: 17px;
+}
+
+.image-upload-error {
+    margin: 7px 0 0;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--danger);
+}
+
+/* 문구가 없을 때 자리를 차지하지 않도록 접는다 */
+.image-upload-error:empty {
+    display: none;
+}
+
+/* 한 장만 받는 화면(프로필·대표 사진)은 정사각 한 칸으로 보여준다.
+   is-single 은 data-max-files 를 보고 스크립트가 붙인다 */
+.image-upload.is-single .image-upload-list {
+    grid-template-columns: 112px;
+}
+
+@media (min-width: 1024px) {
+    .image-upload-list {
+        grid-template-columns: repeat(auto-fill, minmax(108px, 1fr));
+    }
+}
