@@ -20,6 +20,7 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
@@ -32,7 +33,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  *   <li>뷰 이름만 반환해 에러 페이지가 HTTP 200 으로 나가는 것</li>
  * </ol>
  */
-@WebMvcTest(controllers = {PlaceController.class, PetController.class})
+@WebMvcTest(controllers = {
+	PlaceController.class,
+	PetController.class,
+	ExceptionScopeTestControllers.MvcProbeController.class
+})
 @Import(MvcExceptionHandler.class)
 class MvcExceptionStatusTest {
 
@@ -82,6 +87,17 @@ class MvcExceptionStatusTest {
 		mockMvc.perform(get("/places/999"))
 			.andExpect(status().isNotFound())
 			.andExpect(view().name("error"));
+	}
+
+	@Test
+	@DisplayName("업로드 용량 초과는 413 과 한국어 안내 문구로 나간다")
+	void maxUploadSizeExceeded_is413WithGuideMessage() throws Exception {
+		// MaxUploadSizeExceededException 은 스스로 413 을 알고 있어 fallback 에 맡겨도 상태 코드는 맞다.
+		// 다만 fallback 은 4xx 에서 영어 reason phrase("Content Too Large")를 내보내므로 전용 핸들러가 필요하다.
+		mockMvc.perform(get("/probe/mvc/upload-too-large"))
+			.andExpect(status().is(HttpStatus.CONTENT_TOO_LARGE.value()))
+			.andExpect(view().name("error"))
+			.andExpect(model().attribute("message", ImageErrorCode.IMAGE_TOO_LARGE.getDefaultMessage()));
 	}
 
 	@Test

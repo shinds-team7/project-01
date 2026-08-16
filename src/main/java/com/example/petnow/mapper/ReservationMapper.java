@@ -23,7 +23,7 @@ public interface ReservationMapper {
 		@Param("afterUse") Boolean afterUse
 	);
 
-	List<ReservationListResponse> viewReservationListByHost(@Param("hostUserId") Long hostUserId,
+	List<ReservationListResponse> viewReservationListByHost(@Param("loginUserId") Long loginUserId,
 		@Param("status")ReservationStatus status);
 
 	ReservationDetailResponse detailReservation(Long reservationId);

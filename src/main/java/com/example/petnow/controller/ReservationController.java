@@ -20,7 +20,6 @@ import com.example.petnow.dto.request.ReservationRequest;
 import com.example.petnow.dto.response.ReservationDetailResponse;
 import com.example.petnow.dto.response.ReservationListResponse;
 import com.example.petnow.entity.Place;
-import com.example.petnow.entity.ReservationStatus;
 import com.example.petnow.exception.BusinessException;
 import com.example.petnow.exception.PlaceErrorCode;
 import com.example.petnow.mapper.PlaceMapper;
@@ -131,7 +130,7 @@ public class ReservationController {
 		}
 
 		reservationService.approveReservation(reservationId, hostUserId);
-		return "redirect:/reservation/host/dashboard";
+		return "redirect:/host?tab=booking";
 	}
 
 	@PostMapping("/{reservationId}/reject")
@@ -142,17 +141,6 @@ public class ReservationController {
 		}
 
 		reservationService.rejectReservation(reservationId, hostUserId);
-		return "redirect:/reservation/host/dashboard";
-	}
-
-	@GetMapping("/host/dashboard")
-	public String dashBoard(HttpSession session, Model model) {
-		Long hostUserId = (Long) session.getAttribute(SessionConst.LOGIN_USER_ID);
-		if (hostUserId == null) {
-			return "redirect:/";
-		}
-
-		model.addAttribute("reservations", reservationService.getReservationByHost(hostUserId, ReservationStatus.PENDING));
-		return "host/dashboard";
+		return "redirect:/host?tab=booking";
 	}
 }
