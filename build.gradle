@@ -37,6 +37,8 @@ dependencies {
     runtimeOnly 'org.flywaydb:flyway-mysql'
     testCompileOnly 'org.projectlombok:lombok'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    // test 프로파일 전용 인메모리 DB. 로컬 MariaDB 없이도 컨텍스트가 뜨게 한다.
+    testRuntimeOnly 'com.h2database:h2'
     testAnnotationProcessor 'org.projectlombok:lombok'
     testImplementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter-test:4.0.1'
     implementation 'org.springframework.security:spring-security-crypto'
