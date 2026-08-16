@@ -1,16 +1,19 @@
 package com.example.petnow.controller;
 
 import com.example.petnow.common.constant.SessionConst;
+import com.example.petnow.dto.response.PetListResponse;
 import com.example.petnow.dto.response.PlaceDetailResponse;
 import com.example.petnow.dto.response.PlaceListResponse;
 import com.example.petnow.dto.response.ReservationDetailResponse;
 import com.example.petnow.dto.response.ReviewResponse;
+import com.example.petnow.entity.Pet;
 import com.example.petnow.entity.Place;
 import com.example.petnow.entity.PlaceStatus;
 import com.example.petnow.entity.PlaceType;
 import com.example.petnow.mapper.PlaceMapper;
 import com.example.petnow.service.AuthService;
 import com.example.petnow.service.HostService;
+import com.example.petnow.service.PetService;
 import com.example.petnow.service.PlaceService;
 import com.example.petnow.service.ReservationService;
 import com.example.petnow.service.ReviewService;
@@ -32,7 +35,9 @@ import static org.hamcrest.Matchers.not;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
@@ -63,6 +68,10 @@ class PrototypeShellRenderingTest {
     /** ReservationController 가 예약 폼용으로 직접 들고 있는 의존성이다. */
     @MockitoBean
     private PlaceMapper placeMapper;
+
+    /** 예약 요청 폼이 고를 반려동물 목록을 여기서 받는다 (#187). */
+    @MockitoBean
+    private PetService petService;
 
     @MockitoBean
     private HostService hostService;
@@ -124,7 +133,7 @@ class PrototypeShellRenderingTest {
     void bookingRequestRendersRealForm() throws Exception {
         given(placeMapper.findById(1L)).willReturn(placeEntity());
 
-        mockMvc.perform(get("/reservation/booking-request").param("placeId", "1"))
+        mockMvc.perform(get("/reservation/booking-request").param("placeId", "1").session(loggedIn()))
                 .andExpect(status().isOk())
                 .andExpect(view().name("booking-request"))
                 .andExpect(content().string(containsString("/css/app.css")))
@@ -138,13 +147,56 @@ class PrototypeShellRenderingTest {
     }
 
     @Test
-    @DisplayName("반려동물 목록이 모델에 없으면 등록 안내가 대신 나온다")
+    @DisplayName("등록한 반려동물이 없으면 등록 안내가 대신 나온다")
     void bookingRequestGuidesPetRegistration() throws Exception {
         given(placeMapper.findById(1L)).willReturn(placeEntity());
+        given(petService.getPetList(1L)).willReturn(List.of());
 
-        mockMvc.perform(get("/reservation/booking-request").param("placeId", "1"))
+        mockMvc.perform(get("/reservation/booking-request").param("placeId", "1").session(loggedIn()))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("맡길 반려동물을 먼저 등록해주세요")));
+    }
+
+    @Test
+    @DisplayName("예약 요청 화면에 로그인 사용자의 반려동물이 체크박스로 내려온다")
+    void bookingRequestRendersPetCheckboxes() throws Exception {
+        given(placeMapper.findById(1L)).willReturn(placeEntity());
+        given(petService.getPetList(1L)).willReturn(List.of(pet()));
+
+        mockMvc.perform(get("/reservation/booking-request").param("placeId", "1").session(loggedIn()))
+                .andExpect(status().isOk())
+                // petIds 는 @NotEmpty 다. 이 체크박스가 없으면 무엇을 눌러도 예약이 성사되지 않는다.
+                .andExpect(content().string(containsString("name=\"petIds\"")))
+                .andExpect(content().string(containsString("value=\"7\"")))
+                .andExpect(content().string(containsString("초코")))
+                .andExpect(content().string(not(containsString("맡길 반려동물을 먼저 등록해주세요"))));
+    }
+
+    @Test
+    @DisplayName("비로그인 사용자는 예약 요청 화면에 들어가기 전에 홈으로 보내진다")
+    void bookingRequestRedirectsAnonymousUser() throws Exception {
+        // 제출 시점에 튕기면 날짜·메모를 다 채운 뒤 입력이 통째로 날아간다.
+        mockMvc.perform(get("/reservation/booking-request").param("placeId", "1"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/"));
+    }
+
+    @Test
+    @DisplayName("검증 실패로 폼이 되돌아와도 반려동물 목록이 남아 있다")
+    void bookingRequestKeepsPetsOnValidationFailure() throws Exception {
+        given(placeMapper.findById(1L)).willReturn(placeEntity());
+        given(petService.getPetList(1L)).willReturn(List.of(pet()));
+
+        // petIds 를 비워 보내 @NotEmpty 를 일부러 터뜨린다.
+        mockMvc.perform(post("/reservation/create").session(loggedIn())
+                        .param("placeId", "1")
+                        .param("checkIn", "2026-08-20T15:00")
+                        .param("checkOut", "2026-08-20T19:00"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("booking-request"))
+                // place 만 다시 담던 시절에는 고를 대상이 사라진 폼이 돌아왔다.
+                .andExpect(content().string(containsString("name=\"petIds\"")))
+                .andExpect(content().string(containsString("초코")));
     }
 
     // ────────────────────────── 호스트 ──────────────────────────
@@ -316,6 +368,16 @@ class PrototypeShellRenderingTest {
         given(review.getContent()).willReturn("마당이 넓어서 좋았어요");
         given(review.getCheckInAt()).willReturn(LocalDate.of(2026, 7, 18));
         return review;
+    }
+
+    /** 예약 요청 폼의 반려동물 체크박스에 쓰이는 목록 항목. */
+    private PetListResponse pet() {
+        return PetListResponse.builder()
+                .id(7L)
+                .name("초코")
+                .size(Pet.Size.SMALL)
+                .weight(6.0)
+                .build();
     }
 
     private MockHttpSession loggedIn() {
