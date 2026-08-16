@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.time.LocalTime;
 
 @Getter
 @Setter
@@ -31,6 +32,10 @@ public class PlaceDetailResponse {
     private String otherOptions;
     private BigDecimal hourlyPrice;
     private BigDecimal nightlyPrice;
+    private boolean supportsHourly;
+    private boolean supportsPackage;
+    private LocalTime packageCheckInTime;
+    private LocalTime packageCheckOutTime;
     private PlaceStatus status;
     private boolean visible;
 }
