@@ -224,9 +224,76 @@ src/main/resources/static/
 
 ---
 
-## 9. Git
+## 9. 이미지 업로드
 
-### 9.1 브랜치
+이미지 저장은 `common/storage` 의 `FileStorage` 하나로만 한다. **도메인 코드에 S3 나 저장 경로 문자열이 나오면 안 된다.**
+구현체는 프로필이 고른다 — 운영은 `S3FileStorage`, 로컬은 `LocalFileStorage`.
+
+### 9.1 허용 형식과 용량
+
+| 항목 | 값 |
+|------|-----|
+| 형식 | `jpg` `jpeg` `png` `webp` |
+| 한 장 크기 | 5MB (`spring.servlet.multipart.max-file-size`) |
+| 요청 전체 | 30MB |
+| 최대 장수 | 프로필 1 · 반려동물 1 · 장소 10 · 리뷰 5 |
+
+- SVG 는 `<script>` 를 품을 수 있어 막는다. GIF 는 쓸 일이 없는데 용량만 크므로 막는다.
+- 검사는 **확장자 + Content-Type + 매직바이트** 세 가지를 모두 본다. 앞의 둘은 보내는 쪽이 위조할 수 있다.
+- 정책을 바꿀 때 고치는 파일은 두 개뿐이다. 장수·경로는 `ImageCategory`, 허용 형식은 `ImageType`.
+
+### 9.2 폼과 요청 DTO
+
+- `<form>` 에 **`enctype="multipart/form-data"` 를 반드시 넣는다.** 빠뜨리면 파일이 아니라 파일명 문자열만 넘어온다.
+- 요청 DTO 필드는 `MultipartFile` 로 받고 이름은 **한 장이면 `image`, 여러 장이면 `images`** 로 통일한다.
+  HTML `<input>` 의 `name` 도 같은 이름으로 맞춘다.
+- **DTO 에 저장 로직이나 URL 조립 코드를 두지 않는다.** DTO 는 파일을 들고만 있는다. (§3)
+
+### 9.3 서비스 호출 순서
+
+```java
+@Transactional
+public void createPet(Long userId, PetCreateRequest request) {
+    Pet pet = Pet.builder()/* ... */.build();
+    petMapper.insertPet(pet);
+
+    MultipartFile image = request.getImage();
+    if (image != null && !image.isEmpty()) {
+        String imageUrl = fileStorage.uploadImage(image, ImageCategory.PET);
+        petPhotoMapper.insertPhoto(PetPhoto.builder()
+                .petId(pet.getId())
+                .imageUrl(imageUrl)
+                .sortOrder(0)
+                .build());
+    }
+}
+```
+
+1. 도메인 행을 **먼저** INSERT 한다. 이미지 테이블이 PK 를 필요로 한다.
+2. `fileStorage.uploadImage(...)` 로 URL 을 받는다. 형식·용량 검사는 이 안에서 이미 끝난다. **도메인에서 다시 검사하지 않는다.**
+3. 받은 URL 을 `image_url` 컬럼에 넣는다. **전체 URL 을 저장한다.** key 만 저장하지 않는다.
+
+여러 장은 `uploadImages(files, category)` 를 쓴다. 최대 장수 검사가 여기 들어 있으므로 도메인에서 개수를 세지 않는다.
+
+업로드 도중 예외가 나면 DB 는 롤백되고 S3 에는 파일이 남는다. **이 고아 객체를 지우는 보정 코드를 만들지 않는다.**
+S3 라이프사이클이 정리한다. 보정 로직이 오히려 멀쩡한 파일을 지우는 사고를 낸다.
+
+### 9.4 수정 · 삭제
+
+- **교체 순서를 지킨다.** 새 이미지 업로드 → 행 UPDATE → 예전 URL 로 `deleteImage`. 순서를 뒤집으면 실패했을 때 되돌릴 이미지가 없다.
+- 행을 지울 때 `deleteImage` 도 같이 부른다. 안 부르면 버킷에 계속 쌓인다.
+- `deleteImage` 는 트랜잭션 안에서 부르면 **커밋 이후**에 실제로 지운다. 도메인에서 따로 미루지 않는다.
+
+### 9.5 로컬 개발
+
+로컬 프로필은 `uploads/` 디렉터리에 저장하고 `/uploads/**` 로 열어 준다. **AWS 자격증명 없이 업로드 기능을 전부 개발하고 테스트할 수 있다.**
+경로는 `app.storage.local.directory` 로 바꾼다. `uploads/` 는 `.gitignore` 에 들어 있다.
+
+---
+
+## 10. Git
+
+### 10.1 브랜치
 
 `feat/{이슈번호}-{기능}` — 예: `feat/6-user-signup`
 
@@ -234,7 +301,7 @@ src/main/resources/static/
 - **`#` 를 쓰지 않는다.** 셸에서 주석 문자로 해석돼 `git push` 가 조용히 실패한다.
 - `-clean`, `-v2` 같은 접미사를 붙이지 않는다.
 
-### 9.2 커밋
+### 10.2 커밋
 
 `{타입}: {한글 설명}`
 
@@ -251,7 +318,7 @@ test: 회원가입 서비스 테스트 추가
 - 설명은 한글로 쓴다.
 - 임시 파일 / 테스트 결과물을 커밋하지 않는다.
 
-### 9.3 PR
+### 10.3 PR
 
 - **제목:** `[Feat] 회원가입 기능 구현` — 대괄호 안 타입은 첫 글자만 대문자
   (`[Feat]` `[Fix]` `[Refactor]` `[Test]` `[Docs]` `[Chore]`)
@@ -270,7 +337,7 @@ Closes #6
 
 ---
 
-## 10. 커밋 전 셀프 체크리스트
+## 11. 커밋 전 셀프 체크리스트
 
 **Git**
 - [ ] 브랜치 이름이 `feat/{이슈번호}-{기능}` 인가? (`#` 없음)
@@ -301,6 +368,12 @@ Closes #6
 - [ ] DTO ↔ Entity 변환이 `ServiceImpl` 안에 있는가?
 - [ ] Entity 가 `BaseEntity` 를 상속하고 `createdAt`/`updatedAt` 을 직접 선언하지 않는가?
 - [ ] Entity 에 `@Data` 를 쓰지 않았는가?
+
+**이미지 업로드 (해당하면)**
+- [ ] `<form>` 에 `enctype="multipart/form-data"` 가 있는가?
+- [ ] 저장·삭제를 `FileStorage` 로만 했는가? (도메인에 S3·경로 문자열 없음)
+- [ ] 행 INSERT → 업로드 → URL 저장 순서인가? 저장한 값이 전체 URL 인가?
+- [ ] 행을 지우는 곳에서 `deleteImage` 도 불렀는가?
 
 **마무리**
 - [ ] 사용하지 않는 import 를 지웠는가? (IntelliJ: `Ctrl+Alt+O`)
