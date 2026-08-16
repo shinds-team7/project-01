@@ -3,6 +3,29 @@ spring:
     name: petNow
   profiles:
     active: local
+  servlet:
+    multipart:
+      # 한 장 5MB. 초과하면 MaxUploadSizeExceededException 이 나고 MvcExceptionHandler 가 안내 문구로 바꿔 준다.
+      max-file-size: 5MB
+      # 요청 전체 한도. 장소 10장을 전부 5MB 로 채우면 이 값에 먼저 걸린다.
+      # 실제 사진이 그렇게 크지 않아 30MB 로 두되, 걸리는 사례가 나오면 여기부터 올린다.
+      max-request-size: 30MB
+
+app:
+  storage:
+    local:
+      # local 프로필에서 이미지를 저장할 디렉터리. Git 에 올라가지 않는다.
+      directory: ${LOCAL_UPLOAD_DIR:uploads}
+      url-prefix: /uploads
+
+cloud:
+  aws:
+    s3:
+      # prod 프로필에서만 쓴다. 값은 배포 환경의 환경변수로 주입한다.
+      bucket: ${AWS_S3_BUCKET:}
+      region: ${AWS_S3_REGION:ap-northeast-2}
+      # 비워 두면 https://{bucket}.s3.{region}.amazonaws.com 을 쓴다. CloudFront 로 옮기면 이 값만 바꾼다.
+      base-url: ${AWS_S3_BASE_URL:}
 
 mybatis:
   mapper-locations: classpath:mapper/*.xml

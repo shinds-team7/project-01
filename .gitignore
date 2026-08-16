@@ -73,6 +73,11 @@ out/
 ### VS Code ###
 .vscode/
 
+### 로컬 업로드 이미지 (커밋 금지) ###
+# LocalFileStorage 가 local 프로필에서 이미지를 저장하는 디렉터리.
+# 경로는 application.yaml 의 app.storage.local.directory 로 바꿀 수 있다.
+/uploads/
+
 ### 로컬 전용 설정 (커밋 금지) ###
 # 개인 DB 계정이 들어가므로 Git에 올리지 않는다.
 # 생성 방법은 docs/LOCAL_SETUP.md 참고

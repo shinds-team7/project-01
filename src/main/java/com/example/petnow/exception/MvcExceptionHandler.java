@@ -1,25 +1,18 @@
 package com.example.petnow.exception;
 
 import org.springframework.beans.TypeMismatchException;
+import org.springframework.core.Ordered;
 import org.springframework.core.annotation.AnnotatedElementUtils;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.BindException;
 import org.springframework.web.ErrorResponse;
-import org.springframework.core.Ordered;
-import org.springframework.core.annotation.Order;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.servlet.ModelAndView;
-
-import com.example.petnow.common.controller.HomeController;
-import com.example.petnow.controller.PetController;
-import com.example.petnow.controller.HostController;
-import com.example.petnow.controller.PlaceController;
-import com.example.petnow.controller.AuthController;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.servlet.ModelAndView;
 
 import lombok.extern.slf4j.Slf4j;
@@ -64,6 +57,20 @@ public class MvcExceptionHandler {
 			.orElse(CommonErrorCode.VALIDATION_ERROR.getDefaultMessage());
 
 		return errorView(CommonErrorCode.VALIDATION_ERROR.getStatus(), message);
+	}
+
+	/**
+	 * 업로드 용량 초과({@code spring.servlet.multipart.max-file-size}).
+	 *
+	 * <p>이 예외는 {@link ErrorResponse} 를 구현하므로 아래 fallback 에 맡겨도 상태 코드는 413 으로 맞는다.
+	 * 다만 fallback 은 4xx 에서 {@code status.getReasonPhrase()} 를 쓰기 때문에 화면에
+	 * "Content Too Large" 라는 영어 문구가 그대로 나간다. 5MB 초과는 사용자가 흔히 하는 실수이므로
+	 * 무엇이 잘못됐고 얼마까지 되는지 한국어로 알려 준다.
+	 */
+	@ExceptionHandler(MaxUploadSizeExceededException.class)
+	public ModelAndView handleMaxUploadSize(MaxUploadSizeExceededException e) {
+		log.warn("업로드 용량 초과: maxUploadSize={}", e.getMaxUploadSize());
+		return errorView(ImageErrorCode.IMAGE_TOO_LARGE.getStatus(), ImageErrorCode.IMAGE_TOO_LARGE.getDefaultMessage());
 	}
 
 	/**
