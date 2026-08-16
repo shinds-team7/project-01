@@ -235,12 +235,19 @@ src/main/resources/static/
 |------|-----|
 | 형식 | `jpg` `jpeg` `png` `webp` |
 | 한 장 크기 | 5MB (`spring.servlet.multipart.max-file-size`) |
-| 요청 전체 | 30MB |
+| 요청 전체 | 55MB (`spring.servlet.multipart.max-request-size`) |
 | 최대 장수 | 프로필 1 · 반려동물 1 · 장소 10 · 리뷰 5 |
 
 - SVG 는 `<script>` 를 품을 수 있어 막는다. GIF 는 쓸 일이 없는데 용량만 크므로 막는다.
 - 검사는 **확장자 + Content-Type + 매직바이트** 세 가지를 모두 본다. 앞의 둘은 보내는 쪽이 위조할 수 있다.
 - 정책을 바꿀 때 고치는 파일은 두 개뿐이다. 장수·경로는 `ImageCategory`, 허용 형식은 `ImageType`.
+- **요청 전체 한도는 `최대 장수 × 한 장 크기` 보다 커야 한다.** 작으면 각 장이 전부 규격 안인데도
+  요청이 통째로 거부되고, 두 초과가 같은 예외로 오기 때문에 화면에는 "한 장에 5MB" 라는
+  엉뚱한 문구가 나간다. 그래서 `ImageCategory` 의 장수를 늘리면 `max-request-size` 와
+  `server.tomcat.max-swallow-size` 도 같이 올린다. (#240)
+- `max-swallow-size` 를 `max-request-size` 와 같이 두는 이유는, 한도를 넘겨 거부된 요청의 남은
+  바디를 Tomcat 이 삼키지 못하면 커넥션을 끊어 버려 사용자가 413 안내 화면 대신 브라우저의
+  연결 오류를 보기 때문이다. 기본값은 2MB 라 큰 업로드에서는 거의 항상 모자란다.
 
 ### 9.2 폼과 요청 DTO
 

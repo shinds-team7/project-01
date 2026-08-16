@@ -7,9 +7,20 @@ spring:
     multipart:
       # 한 장 5MB. 초과하면 MaxUploadSizeExceededException 이 나고 MvcExceptionHandler 가 안내 문구로 바꿔 준다.
       max-file-size: 5MB
-      # 요청 전체 한도. 장소 10장을 전부 5MB 로 채우면 이 값에 먼저 걸린다.
-      # 실제 사진이 그렇게 크지 않아 30MB 로 두되, 걸리는 사례가 나오면 여기부터 올린다.
-      max-request-size: 30MB
+      # 요청 전체 한도. ImageCategory 의 최대 장수 × max-file-size 를 담을 수 있어야 한다.
+      # 가장 큰 PLACE 가 10장이므로 10 × 5MB = 50MB, 여기에 텍스트 필드와 boundary 오버헤드를
+      # 더해 55MB 로 둔다. 30MB 였을 때는 각 장이 전부 5MB 이하인데도 요청이 통째로 거부되는
+      # 구간(30~50MB)이 있었다. (#240)
+      # ImageCategory 의 장수를 늘리면 이 값도 같이 올린다.
+      max-request-size: 55MB
+
+server:
+  tomcat:
+    # 요청을 거부한 뒤 남은 요청 바디를 삼키는 한도. 기본값 2MB 로 두면 50MB 짜리 업로드가
+    # 거부될 때 남은 바이트를 삼키지 못해 Tomcat 이 커넥션을 끊는다. 그러면 사용자는 우리가
+    # 만든 413 안내 화면 대신 브라우저의 연결 오류를 보게 된다.
+    # 무제한(-1)은 악의적인 대용량 요청에 자원을 그대로 내주므로 max-request-size 에 맞춘다.
+    max-swallow-size: 55MB
 
 app:
   storage:
