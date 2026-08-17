@@ -28,7 +28,7 @@
  *
  * data-max-files     최대 장수 (기본 1)
  * data-max-size-mb   장당 최대 용량 MB (기본 5)
- * data-max-total-mb  한 번에 보낼 수 있는 전체 용량 MB (기본 30)
+ * data-max-total-mb  한 번에 보낼 수 있는 전체 용량 MB (기본 55)
  *
  * ── 기준값은 서버를 따라간다 ─────────────────────────────────────────
  * 화면에 직접 숫자를 정하지 말고 서버 정책을 그대로 옮긴다.
@@ -36,10 +36,12 @@
  *   data-max-files    common/storage/ImageCategory 의 maxCount
  *                     USER 1 · PET 1 · PLACE 10 · REVIEW 5
  *   data-max-size-mb  application.yaml 의 spring.servlet.multipart.max-file-size (5MB)
- *   data-max-total-mb application.yaml 의 max-request-size (30MB)
+ *   data-max-total-mb application.yaml 의 max-request-size (55MB)
  *
- * 장소는 10장 × 5MB = 50MB 라 장수보다 전체 용량 30MB 에 먼저 걸린다. 서버에서
- * 413 을 받고 나서야 알게 되면 늦으니 고르는 시점에 미리 걸러 준다.
+ * 55MB 는 가장 장수가 많은 장소(10장 × 5MB = 50MB)에 텍스트 필드와 boundary 오버헤드를
+ * 더한 값이다. 예전에 30MB 였을 때는 각 장이 전부 규격 안인데도 요청이 통째로 거부되는
+ * 구간이 있었다 (#240). 그래도 총량 검사는 계속 필요하다 — 한도가 무엇이든 서버에서
+ * 413 을 받고 나서야 알게 되면 늦으므로 고르는 시점에 미리 걸러 준다.
  * 서버 쪽 값이 바뀌면 여기 넘기는 값도 같이 고친다.
  *
  * [data-image-upload-guide] 요소에는 "JPG · PNG · WEBP · 장당 5MB 이하 · 최대 5장"
@@ -60,7 +62,7 @@
     const TYPE_GUIDE = "JPG · PNG · WEBP";
     const DEFAULT_MAX_FILES = 1;
     const DEFAULT_MAX_SIZE_MB = 5;
-    const DEFAULT_MAX_TOTAL_MB = 30;
+    const DEFAULT_MAX_TOTAL_MB = 55;
 
     // input.files 는 직접 못 고친다. DataTransfer 로 FileList 를 새로 만들어 넣는다.
     const supportsDataTransfer = typeof DataTransfer === "function";
@@ -172,7 +174,7 @@
             const replacing = maxFiles === 1;
             const withinCount = kept.slice(0, Math.max(0, replacing ? 1 : maxFiles - selected.length));
 
-            // 장수를 지켜도 요청 전체 용량에 걸릴 수 있다 (장소 10장 × 5MB > 30MB).
+            // 장수를 지켜도 요청 전체 용량에 걸릴 수 있다.
             // 서버에서 413 을 받기 전에 여기서 먼저 잘라낸다.
             const added = [];
             const overTotal = [];
