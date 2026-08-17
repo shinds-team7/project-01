@@ -67,16 +67,15 @@ public class ReservationServiceImpl implements ReservationService {
 		}
 
 
-		ReservationType reservationType = determineReservationType(request.getCheckIn(), request.getCheckOut());
 		String reservationNo = Reservation.createReservationNo();
-		BigDecimal totalPrice = calculateTotalPrice(place, reservationType, request.getCheckIn(), request.getCheckOut());
+		BigDecimal totalPrice = calculateTotalPrice(place, request.getReservationType(), request.getCheckIn(), request.getCheckOut());
 
 		Reservation reservation = Reservation.builder()
 			.placeId(request.getPlaceId())
 			.userId(userId)
 			.memo(request.getMemo())
 			.totalPrice(totalPrice)
-			.reservationType(reservationType)
+			.reservationType(request.getReservationType())
 			.checkIn(request.getCheckIn())
 			.checkOut(request.getCheckOut())
 			.status(ReservationStatus.PENDING)
@@ -186,14 +185,6 @@ public class ReservationServiceImpl implements ReservationService {
 			return ReservationUseStatus.valueOf(useStatus.toUpperCase());
 		} catch (IllegalArgumentException e) {
 			return null;
-		}
-	}
-
-	private ReservationType determineReservationType(LocalDateTime checkIn, LocalDateTime checkOut) {
-		if (checkIn.toLocalDate().equals(checkOut.toLocalDate())) {
-			return ReservationType.SAME_DAY;
-		} else {
-			return ReservationType.OVERNIGHT;
 		}
 	}
 
