@@ -36,8 +36,7 @@ public class ReservationController {
 	private final PlaceMapper placeMapper;
 	private final PetService petService;
 
-	public ReservationController(ReservationService reservationService, PlaceMapper placeMapper,
-		PetService petService) {
+	public ReservationController(ReservationService reservationService, PlaceMapper placeMapper, PetService petService) {
 		this.reservationService = reservationService;
 		this.placeMapper = placeMapper;
 		this.petService = petService;
@@ -58,9 +57,13 @@ public class ReservationController {
 				throw new BusinessException(PlaceErrorCode.PLACE_NOT_FOUND);
 			}
 
-			// place 만 다시 담으면 되돌아온 폼에서 반려동물 목록이 사라져,
-			// 사용자는 petIds 검증 에러를 보면서도 고를 대상이 없는 상태가 된다.
-			fillBookingRequestForm(placeId, userId, model);
+			Place place = placeMapper.findById(placeId);
+			if (place == null) {
+				throw new BusinessException(PlaceErrorCode.PLACE_NOT_FOUND);
+			}
+
+			model.addAttribute("petIds", petService.getPetList(userId));
+			model.addAttribute("place", place);
 			return "booking-request";
 		}
 
@@ -79,8 +82,6 @@ public class ReservationController {
 
 	@GetMapping("/booking-request")
 	public String bookingRequest(@RequestParam Long placeId, HttpSession session, Model model) {
-		// 비로그인 사용자를 여기서 막는다. 제출 시점(create)에 튕기면 날짜·메모를 다 채운 뒤
-		// 입력이 통째로 날아간다.
 		Long userId = (Long) session.getAttribute(SessionConst.LOGIN_USER_ID);
 		if (userId == null) {
 			return "redirect:/";
@@ -104,7 +105,8 @@ public class ReservationController {
 		}
 
 		model.addAttribute("place", place);
-		model.addAttribute("pets", petService.getPetList(userId));
+		model.addAttribute("petIds", petService.getPetList(userId));
+
 	}
 
 	@GetMapping("/detail")
