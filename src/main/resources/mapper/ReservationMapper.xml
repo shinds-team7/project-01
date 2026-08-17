@@ -146,4 +146,12 @@
         SET status='CANCELED', responded_at=CURRENT_TIMESTAMP
         WHERE id = #{reservationId} AND status='PENDING'
     </update>
+
+    <insert id="saveReservationSlots">
+        INSERT INTO reservation_slots (reservation_id, availability_id)
+        VALUES
+        <foreach collection="slotIds" item="slotId" separator=",">
+            (#{reservationId}, #{slotId})
+        </foreach>
+    </insert>
 </mapper>
