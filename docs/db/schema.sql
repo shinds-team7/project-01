@@ -49,7 +49,10 @@ CREATE TABLE users (
     created_at        DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at        DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     deleted_at        DATETIME     NULL,
-    CONSTRAINT PK_USERS PRIMARY KEY (id)
+    CONSTRAINT PK_USERS PRIMARY KEY (id),
+    -- 소셜 전용 계정은 email 이 NULL 이다. MySQL/MariaDB 의 UNIQUE 는 NULL 을
+    -- 중복으로 보지 않으므로 그런 계정이 여럿이어도 문제가 없다.
+    CONSTRAINT UK_USERS_EMAIL UNIQUE (email)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------
