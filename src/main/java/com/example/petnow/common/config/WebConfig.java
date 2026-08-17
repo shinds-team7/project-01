@@ -1,7 +1,9 @@
 package com.example.petnow.common.config;
 
+import com.example.petnow.common.interceptor.LoginCheckInterceptor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
@@ -14,5 +16,24 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @RequiredArgsConstructor
 public class WebConfig implements WebMvcConfigurer {
 
+    private final LoginCheckInterceptor loginCheckInterceptor;
 
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(loginCheckInterceptor)
+                .addPathPatterns(
+                        "/mypage/**",
+                        "/my/**",
+                        "/pet/**",
+                        "/host/**",
+                        "/reviews/**",
+                        "/reservation/**"
+                )
+                .excludePathPatterns(
+                        "/",
+                        "/home",
+                        "/places/**",
+                        "/auth/**"
+                );
+    }
 }
