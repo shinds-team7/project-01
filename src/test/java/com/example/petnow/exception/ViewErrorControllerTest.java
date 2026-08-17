@@ -81,4 +81,37 @@ class ViewErrorControllerTest {
 			.isNotEmpty()
 			.doesNotContain(CommonErrorCode.INTERNAL_ERROR.getDefaultMessage());
 	}
+
+	@Test
+	@DisplayName("404 화면에 영어 reason phrase 가 아니라 한국어 안내 문구가 나간다")
+	void notFoundShowsKoreanMessage() throws Exception {
+		MockHttpServletResponse response = mockMvc.perform(get("/error")
+				.requestAttr(RequestDispatcher.ERROR_STATUS_CODE, 404)
+				.requestAttr(RequestDispatcher.ERROR_REQUEST_URI, "/places/does-not-exist")
+				.accept(MediaType.TEXT_HTML))
+			.andReturn()
+			.getResponse();
+
+		assertThat(response.getContentAsString())
+			.contains(ClientErrorMessages.of(HttpStatus.NOT_FOUND))
+			.doesNotContain(HttpStatus.NOT_FOUND.getReasonPhrase());
+	}
+
+	@Test
+	@DisplayName("/api/** 의 4xx JSON 메시지도 한국어로 나간다")
+	void apiClientErrorMessageIsKorean() throws Exception {
+		MockHttpServletResponse response = mockMvc.perform(get("/error")
+				.requestAttr(RequestDispatcher.ERROR_STATUS_CODE, 404)
+				.requestAttr(RequestDispatcher.ERROR_REQUEST_URI, "/api/frontend/does-not-exist")
+				.accept(MediaType.ALL))
+			.andReturn()
+			.getResponse();
+
+		assertThat(response.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
+		assertThat(response.getContentType()).startsWith(MediaType.APPLICATION_JSON_VALUE);
+		assertThat(response.getContentAsString())
+			// code 는 상태 이름(NOT_FOUND)을 그대로 쓰므로 영어가 맞다. 사람이 읽는 message 만 한국어다.
+			.contains(HttpStatus.NOT_FOUND.name())
+			.contains(ClientErrorMessages.of(HttpStatus.NOT_FOUND));
+	}
 }
