@@ -3,6 +3,8 @@ package com.example.petnow.dto.request;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import com.example.petnow.entity.ReservationType;
+
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -31,5 +33,8 @@ public class ReservationRequest {
 
 	@NotNull
 	private LocalDateTime checkOut;
+
+	@NotNull
+	private ReservationType reservationType;
 
 }
