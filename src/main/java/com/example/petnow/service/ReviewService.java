@@ -14,6 +14,4 @@ public interface ReviewService {
 
     // 특정 장소의 리뷰 목록 조회
     List<ReviewResponse> getReviewsByPlace(Long placeId);
-
-
 }

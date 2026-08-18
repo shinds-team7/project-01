@@ -63,21 +63,4 @@
         ORDER BY r.created_at DESC
     </select>
 
-    <select id="findPlaceIdByReservationId" resultType="Long">
-        SELECT place_id
-        FROM reservations
-        WHERE id = #{reservationId}
-    </select>
-
-    <!-- 리뷰의 평균 별점 계산 -->
-    <select id="selectAvgRatingByPlaceId" resultType="Double">
-        SELECT AVG(r.rating)
-        FROM reviews r
-        JOIN reservations res
-            ON r.reservation_id = res.id
-        WHERE res.place_id = #{placeId}
-            AND r.deleted_at IS NULL
-    </select>
-
-</mapper>
 </mapper>

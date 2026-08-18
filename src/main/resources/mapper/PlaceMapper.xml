@@ -121,13 +121,6 @@
         WHERE id = #{placeId}
         AND deleted_at IS NULL
     </select>
-
-    <update id="updateAvgRating">
-        UPDATE places
-        SET average_rating = #{avgRating}
-        WHERE id = #{placeId}
-    </update>
-      
     <update id="updateOperatingPolicy">
         UPDATE places
         SET supports_hourly = #{supportsHourly},
@@ -137,8 +130,4 @@
         WHERE id = #{placeId}
         AND deleted_at IS NULL
     </update>
-
-    <select id="lockPlaceForUpdate" resultType="Long">
-        SELECT id FROM places WHERE id = #{placeId} FOR UPDATE
-    </select>
 </mapper>
