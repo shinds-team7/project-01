@@ -1,6 +1,7 @@
 package com.example.petnow.service;
 
 import com.example.petnow.dto.request.ReviewCreateRequest;
+import com.example.petnow.dto.request.ReviewUpdateRequest;
 import com.example.petnow.dto.response.ReviewResponse;
 import com.example.petnow.entity.Review;
 import com.example.petnow.exception.BusinessException;
@@ -30,8 +31,6 @@ public class ReviewServiceImpl implements ReviewService {
             throw new BusinessException(ReviewErrorCode.REVIEW_FORBIDDEN);
         }
 
-        Long placeId = reviewMapper.findPlaceIdByReservationId(request.getReservationId());
-
         Review review = Review.builder()
                 .reservationId(request.getReservationId())
                 .content(request.getContent())
@@ -46,6 +45,7 @@ public class ReviewServiceImpl implements ReviewService {
         }
 
         // 장소 테이블의 평균 별점 갱신
+        Long placeId = reviewMapper.findPlaceIdByReservationId(request.getReservationId());
         placeMapper.updateAvgRating(placeId);
 
         return review.getId();
@@ -59,5 +59,38 @@ public class ReviewServiceImpl implements ReviewService {
     // 특정 장소의 리뷰 목록 조회
     public List<ReviewResponse> getReviewsByPlace(Long placeId) {
         return reviewMapper.findReviewsByPlaceId(placeId);
+    }
+
+    // 리뷰 단건 조회 (수정 폼 화면 용)
+    public ReviewResponse getReview(Long reviewId, Long memberId) {
+        ReviewResponse response = reviewMapper.findResponseById(reviewId)
+            .orElseThrow(() -> new BusinessException(ReviewErrorCode.REVIEW_NOT_FOUND));
+
+        int count = reviewMapper.countReviewOwnedByMember(reviewId, memberId);
+        if (count == 0) {
+            throw new BusinessException(ReviewErrorCode.REVIEW_FORBIDDEN);
+        }
+
+        return response;
+    }
+
+    // 리뷰 수정
+    @Transactional
+    public void updateReview(Long memberId, Long reviewId, ReviewUpdateRequest request) {
+        // 리뷰 존재 여부 확인
+        if (reviewMapper.countReviewById(reviewId) == 0) {
+            throw new BusinessException(ReviewErrorCode.REVIEW_NOT_FOUND);
+        }
+
+        // 본인이 작성한 리뷰인지 검증
+        int count = reviewMapper.countReviewOwnedByMember(reviewId, memberId);
+        if (count == 0) {
+            throw new BusinessException(ReviewErrorCode.REVIEW_FORBIDDEN);
+        }
+
+        reviewMapper.updateReview(reviewId, request.getRating(), request.getContent());
+
+        Long placeId = reviewMapper.findPlaceIdByReviewId(reviewId);
+        placeMapper.updateAvgRating(placeId);
     }
 }
