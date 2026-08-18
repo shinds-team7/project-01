@@ -5,7 +5,6 @@ import com.example.petnow.dto.response.ReviewResponse;
 import com.example.petnow.entity.Review;
 import com.example.petnow.exception.BusinessException;
 import com.example.petnow.exception.ReviewErrorCode;
-import com.example.petnow.mapper.PlaceMapper;
 import com.example.petnow.mapper.ReviewMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DuplicateKeyException;
@@ -19,7 +18,6 @@ import java.util.List;
 public class ReviewServiceImpl implements ReviewService {
 
     private final ReviewMapper reviewMapper;
-    private final PlaceMapper placeMapper;
 
     // 리뷰 작성
     @Transactional
@@ -29,10 +27,6 @@ public class ReviewServiceImpl implements ReviewService {
         if (count == 0) {
             throw new BusinessException(ReviewErrorCode.REVIEW_FORBIDDEN);
         }
-
-        // 리뷰가 속한 장소 조회 후 해당 place 잠금
-        Long placeId = reviewMapper.findPlaceIdByReservationId(request.getReservationId());
-        placeMapper.lockPlaceForUpdate(placeId);
 
         Review review = Review.builder()
                 .reservationId(request.getReservationId())
@@ -46,12 +40,6 @@ public class ReviewServiceImpl implements ReviewService {
         } catch (DuplicateKeyException e) {
             throw new BusinessException(ReviewErrorCode.REVIEW_DUPLICATE);
         }
-
-        // 평균 별점 계산
-        Double avgRating = reviewMapper.selectAvgRatingByPlaceId(placeId);
-
-        // 장소 테이블의 평균 별점 갱신
-        placeMapper.updateAvgRating(placeId, avgRating);
 
         return review.getId();
     }
