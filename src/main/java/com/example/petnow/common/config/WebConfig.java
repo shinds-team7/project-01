@@ -35,14 +35,12 @@ public class WebConfig implements WebMvcConfigurer {
      * 반대로 목록에 없는 경로에 {@code @LoginUser} 를 붙이면 401 로 떨어지니,
      * 새 화면을 만들 때는 둘을 항상 같이 손봐야 한다.
      *
-     * <p>적어 두는 예외 두 가지.
-     * <ul>
-     *   <li>{@code /auth/**} 는 애초에 목록에 없다. 로그인·회원가입은 물론 앞으로 붙을
-     *       카카오 콜백까지 비로그인 상태로 들어와야 하므로 계속 열려 있어야 한다.</li>
-     *   <li>{@code POST /places}(장소 등록)는 공개 목록인 {@code GET /places} 와 주소가 같아
-     *       경로 패턴으로 가를 수 없다. 그래서 {@code PlaceController} 안에서 직접 막는다.
-     *       진입점인 {@code /places/new} 는 여기서 막으므로 실사용 흐름은 로그인 화면을 거친다.</li>
-     * </ul>
+     * <p>{@code /auth/**} 는 애초에 목록에 없다. 로그인·회원가입은 물론 앞으로 붙을
+     * 카카오 콜백까지 비로그인 상태로 들어와야 하므로 계속 열려 있어야 한다.
+     *
+     * <p>{@code /places} 는 공개 목록·상세와 호스트용 등록 흐름이 한 컨트롤러에 섞여 있어
+     * 등록 쪽 세 주소만 골라 막는다. 그래서 등록 제출이 {@code POST /places} 가 아니라
+     * {@code /places/create} 다. 자세한 이유는 {@code PlaceController#create} 에 적어 뒀다.
      */
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
@@ -54,7 +52,10 @@ public class WebConfig implements WebMvcConfigurer {
                 "/host/**",
                 "/reviews/**",
                 "/reservation/**",
-                "/places/new"
+                // 장소 등록 흐름(폼 · 제출 · 완료). 공개 목록 GET /places 와 상세는 열어 둔다.
+                "/places/new",
+                "/places/create",
+                "/places/success"
             )
             // 장소별 리뷰 목록은 로그인 없이 볼 수 있어야 한다.
             .excludePathPatterns("/reviews/place/**");

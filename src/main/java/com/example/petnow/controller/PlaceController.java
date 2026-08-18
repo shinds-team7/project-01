@@ -1,5 +1,6 @@
 package com.example.petnow.controller;
 
+import com.example.petnow.common.argument.LoginUser;
 import com.example.petnow.common.constant.SessionConst;
 import com.example.petnow.dto.request.PlaceCreateRequest;
 import com.example.petnow.entity.PlaceType;
@@ -23,7 +24,6 @@ public class PlaceController {
 
     private final PlaceService placeService;
 
-    // 등록 폼 진입은 인터셉터(WebConfig 의 "/places/new")가 막는다.
     @GetMapping("/new")
     public String createForm(Model model) {
         model.addAttribute("placeCreateRequest", new PlaceCreateRequest());
@@ -32,18 +32,20 @@ public class PlaceController {
         return "places/create";
     }
 
-    @PostMapping
-    public String create(@Valid @ModelAttribute("placeCreateRequest") PlaceCreateRequest request,
+    /**
+     * 등록 제출.
+     *
+     * <p>주소가 {@code POST /places} 가 아니라 {@code /places/create} 인 이유가 있다.
+     * 전자는 공개 목록인 {@code GET /places} 와 주소가 같아 인터셉터의 경로 패턴으로
+     * 둘을 가를 수 없고, 그러면 이 매핑만 세션을 직접 확인하는 예외가 된다.
+     * 주소를 나눠 두면 로그인 판단이 {@code WebConfig} 한곳에 그대로 남는다.
+     * ({@code PetController} 의 {@code /pet/new} · {@code /pet/create} 와 같은 모양이다)
+     */
+    @PostMapping("/create")
+    public String create(@LoginUser Long loginUserId,
+                         @Valid @ModelAttribute("placeCreateRequest") PlaceCreateRequest request,
                          BindingResult bindingResult,
-                         Model model,
-                         HttpSession session) {
-        // 이 매핑만 세션을 직접 본다. 주소가 공개 목록인 GET /places 와 같아 인터셉터의
-        // 경로 패턴으로는 둘을 가를 수 없기 때문이다. (진입점 /places/new 는 인터셉터가 막는다)
-        Long loginUserId = (Long) session.getAttribute(SessionConst.LOGIN_USER_ID);
-        if (loginUserId == null) {
-            return "redirect:/auth/login";
-        }
-
+                         Model model) {
         if (bindingResult.hasErrors()) {
             addCreateFormAttributes(model);
             return "places/create";
