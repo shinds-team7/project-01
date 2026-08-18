@@ -23,13 +23,9 @@ public class PlaceController {
 
     private final PlaceService placeService;
 
+    // 등록 폼 진입은 인터셉터(WebConfig 의 "/places/new")가 막는다.
     @GetMapping("/new")
-    public String createForm(Model model, HttpSession session) {
-        Long loginUserId = (Long) session.getAttribute(SessionConst.LOGIN_USER_ID);
-        if (loginUserId == null) {
-            return "redirect:/";
-        }
-
+    public String createForm(Model model) {
         model.addAttribute("placeCreateRequest", new PlaceCreateRequest());
         addCreateFormAttributes(model);
 
@@ -41,9 +37,11 @@ public class PlaceController {
                          BindingResult bindingResult,
                          Model model,
                          HttpSession session) {
+        // 이 매핑만 세션을 직접 본다. 주소가 공개 목록인 GET /places 와 같아 인터셉터의
+        // 경로 패턴으로는 둘을 가를 수 없기 때문이다. (진입점 /places/new 는 인터셉터가 막는다)
         Long loginUserId = (Long) session.getAttribute(SessionConst.LOGIN_USER_ID);
         if (loginUserId == null) {
-            return "redirect:/";
+            return "redirect:/auth/login";
         }
 
         if (bindingResult.hasErrors()) {
