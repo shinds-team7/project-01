@@ -91,6 +91,9 @@ public class ReservationServiceImpl implements ReservationService {
 		if (request.getReservationType() == ReservationType.SAME_DAY && !((checkInDate.isEqual(checkOutDate)) || (checkOutDate.isEqual(checkInDate.plusDays(1)) && request.getCheckOut().toLocalTime().equals(LocalTime.MIDNIGHT)))) {
 			throw new BusinessException(ReservationErrorCode.INVALID_RESERVATION_PERIOD);
 		}
+		if (request.getReservationType() == ReservationType.SAME_DAY && (!isSlotBoundary(request.getCheckIn()) || !isSlotBoundary(request.getCheckOut()))) {
+			throw new BusinessException(ReservationErrorCode.INVALID_RESERVATION_PERIOD);
+		}
 		if (request.getReservationType() == ReservationType.OVERNIGHT) {
 			LocalTime expectedCheckIn = place.getPackageCheckInTime();
 			if (expectedCheckIn == null) {
@@ -164,7 +167,9 @@ public class ReservationServiceImpl implements ReservationService {
         }
 
         for (Long slotId : slotIds) {
-            placeAvailabilityMapper.updateSlotStatus(request.getPlaceId(), slotId, SlotStatus.RESERVED);
+            if (placeAvailabilityMapper.updateSlotStatus(request.getPlaceId(), slotId, SlotStatus.RESERVED) != 1) {
+                throw new BusinessException(ReservationErrorCode.SLOT_ALREADY_TAKEN);
+            }
         }
 
 		reservationMapper.saveReservationPets(reservation.getId(), request.getPetIds());
@@ -204,9 +209,7 @@ public class ReservationServiceImpl implements ReservationService {
 			throw new BusinessException(AuthErrorCode.FORBIDDEN);
 		}
 
-        List<Long> slotIds = reservationMapper.findSlotIdsByReservationId(reservationId);
-        placeAvailabilityMapper.updateSlotsToOpen(slotIds);
-        reservationMapper.deleteReservationSlotsByReservationId(reservationId);
+        releaseSlots(reservationId);
 
 		int updatedRows = reservationMapper.cancelReservation(reservationId);
 		if (updatedRows == 0) {
@@ -254,9 +257,7 @@ public class ReservationServiceImpl implements ReservationService {
 			throw new BusinessException(ReservationErrorCode.INVALID_RESERVATION_STATUS);
 		}
 
-        List<Long> slotIds = reservationMapper.findSlotIdsByReservationId(reservationId);
-        placeAvailabilityMapper.updateSlotsToOpen(slotIds);
-        reservationMapper.deleteReservationSlotsByReservationId(reservationId);
+        releaseSlots(reservationId);
 
 		int result = reservationMapper.rejectReservation(reservationId);
 		if (result != 1) {
@@ -286,6 +287,9 @@ public class ReservationServiceImpl implements ReservationService {
         if (place == null) {
             throw new BusinessException(PlaceErrorCode.PLACE_NOT_FOUND);
         }
+        if (!place.isSupportsHourly()) {
+            throw new BusinessException(ReservationErrorCode.UNSUPPORTED_RESERVATION_TYPE);
+        }
 
         // 날짜 필터 없이 들어온 사용자(예: 내 주변 → 장소 상세 → 요청)는 어떤 날짜에 슬롯이 열려
         // 있는지 모른다. 고를 수 있는 날짜를 항상 함께 내려서 화면이 불가 날짜를 막게 한다.
@@ -298,7 +302,12 @@ public class ReservationServiceImpl implements ReservationService {
                 .days(days)
                 .build();
         }
-        LocalDate localDate = LocalDate.parse(date);
+        LocalDate localDate;
+        try {
+            localDate = LocalDate.parse(date);
+        } catch (RuntimeException e) {
+            throw new BusinessException(ReservationErrorCode.INVALID_RESERVATION_PERIOD);
+        }
         LocalDateTime fromAt = localDate.atStartOfDay();
         LocalDateTime toAt = localDate.plusDays(1).atStartOfDay();
         List<PlaceSlotResponse> slots = placeAvailabilityMapper.findSlotsByPlaceAndPeriod(placeId, fromAt, toAt);
@@ -335,6 +344,9 @@ public class ReservationServiceImpl implements ReservationService {
         Place place = placeMapper.findById(placeId);
         if (place == null) {
             throw new BusinessException(PlaceErrorCode.PLACE_NOT_FOUND);
+        }
+        if (!place.isSupportsPackage()) {
+            throw new BusinessException(ReservationErrorCode.UNSUPPORTED_RESERVATION_TYPE);
         }
 
         return ReservationStepResponse.builder()
@@ -380,6 +392,20 @@ public class ReservationServiceImpl implements ReservationService {
             .filter(s -> s.getSlotId().equals(slotId))
             .findFirst()
             .orElseThrow(() -> new BusinessException(ReservationErrorCode.SLOT_NOT_AVAILABLE));
+    }
+
+    private boolean isSlotBoundary(LocalDateTime dateTime) {
+        return dateTime.getMinute() == 0 && dateTime.getSecond() == 0
+            && dateTime.getNano() == 0 && dateTime.getHour() % SLOT_HOURS == 0;
+    }
+
+    private void releaseSlots(Long reservationId) {
+        List<Long> slotIds = reservationMapper.findSlotIdsByReservationId(reservationId);
+        if (slotIds.isEmpty()) {
+            return;
+        }
+        placeAvailabilityMapper.updateSlotsToOpen(slotIds);
+        reservationMapper.deleteReservationSlotsByReservationId(reservationId);
     }
 
     private ReservationStepResponse validateAndBuildRange(Place place, List<PlaceSlotResponse> slots, List<PackageDayResponse> days, PlaceSlotResponse startSlot, PlaceSlotResponse endSlot, String date) {

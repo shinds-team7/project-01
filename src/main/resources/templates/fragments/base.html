@@ -25,6 +25,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#22a45c">
     <title th:text="${title} + ' | Pet NOW'">Pet NOW</title>
+    <meta name="description" content="믿을 수 있는 우리 동네 펫시터, Pet NOW">
+    <link rel="canonical" th:href="${openGraphUrl}">
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="ko_KR">
+    <meta property="og:site_name" content="Pet NOW">
+    <meta property="og:title" content="Pet NOW" th:content="${title} + ' | Pet NOW'">
+    <meta property="og:description" content="믿을 수 있는 우리 동네 펫시터, Pet NOW">
+    <meta property="og:url" th:content="${openGraphUrl}">
+    <meta property="og:image" th:content="${openGraphImageUrl}">
+    <meta property="og:image:type" content="image/png">
+    <meta property="og:image:width" content="1536">
+    <meta property="og:image:height" content="1024">
+    <meta property="og:image:alt" content="Pet NOW 초록색 발바닥 로고">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Pet NOW" th:content="${title} + ' | Pet NOW'">
+    <meta name="twitter:description" content="믿을 수 있는 우리 동네 펫시터, Pet NOW">
+    <meta name="twitter:image" th:content="${openGraphImageUrl}">
     <link rel="icon" th:href="@{/favicon.svg}" type="image/svg+xml">
     <link rel="preconnect" href="https://cdn.jsdelivr.net">
     <link rel="preconnect" href="https://fonts.googleapis.com">

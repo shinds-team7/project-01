@@ -13,6 +13,11 @@ spring:
     baseline-on-migrate: ${FLYWAY_BASELINE_ON_MIGRATE:false}
     baseline-version: ${FLYWAY_BASELINE_VERSION:4}
 
+app:
+  # 배포 도메인. HTTPS 로 뜨는 실제 주소를 크롤러에 그대로 내보내야 한다.
+  # nginx 뒤에 있어서 요청만 보면 http://127.0.0.1:8080 으로 보이므로 자동 추론에 맡길 수 없다.
+  public-url: ${APP_PUBLIC_URL:https://petnow.duckdns.org}
+
 logging:
   level:
     root: warn

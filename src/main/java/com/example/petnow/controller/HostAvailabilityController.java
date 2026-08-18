@@ -1,6 +1,6 @@
 package com.example.petnow.controller;
 
-import com.example.petnow.common.constant.SessionConst;
+import com.example.petnow.common.argument.LoginUser;
 import com.example.petnow.dto.request.PlaceOperatingPolicyUpdateRequest;
 import com.example.petnow.dto.response.PlaceSlotPeriodResponse;
 import com.example.petnow.entity.Place;
@@ -9,7 +9,6 @@ import com.example.petnow.exception.BusinessException;
 import com.example.petnow.exception.PlaceErrorCode;
 import com.example.petnow.mapper.PlaceMapper;
 import com.example.petnow.service.PlaceAvailabilityService;
-import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
@@ -32,16 +31,11 @@ public class HostAvailabilityController {
     private final PlaceMapper placeMapper;
 
     @GetMapping
-    public String availability(@PathVariable Long placeId,
+    public String availability(@LoginUser Long hostUserId,
+                               @PathVariable Long placeId,
                                @RequestParam(required = false)
                                @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
-                               HttpSession session,
                                Model model) {
-        Long hostUserId = getLoginUserId(session);
-        if (hostUserId == null) {
-            return "redirect:/";
-        }
-
         Place place = findOwnedPlace(hostUserId, placeId);
         LocalDate targetDate = date == null ? LocalDate.now() : date;
         model.addAttribute("place", place);
@@ -57,45 +51,33 @@ public class HostAvailabilityController {
     }
 
     @PostMapping
-    public String createSlots(@PathVariable Long placeId,
+    public String createSlots(@LoginUser Long hostUserId,
+                              @PathVariable Long placeId,
                               @RequestParam
                               @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
                               @RequestParam
-                              @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate,
-                              HttpSession session) {
-        Long hostUserId = getLoginUserId(session);
-        if (hostUserId == null) {
-            return "redirect:/";
-        }
+                              @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate) {
         placeAvailabilityService.createSlots(hostUserId, placeId, fromDate, toDate);
         return redirectToAvailability(placeId, fromDate);
     }
 
     @PostMapping("/status")
-    public String changeStatus(@PathVariable Long placeId,
+    public String changeStatus(@LoginUser Long hostUserId,
+                               @PathVariable Long placeId,
                                @RequestParam Long slotId,
                                @RequestParam SlotStatus status,
                                @RequestParam
-                               @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
-                               HttpSession session) {
-        Long hostUserId = getLoginUserId(session);
-        if (hostUserId == null) {
-            return "redirect:/";
-        }
+                               @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
         placeAvailabilityService.changeSlotStatus(hostUserId, placeId, slotId, status);
         return redirectToAvailability(placeId, date);
     }
 
     @PostMapping("/policy")
-    public String updatePolicy(@PathVariable Long placeId,
+    public String updatePolicy(@LoginUser Long hostUserId,
+                               @PathVariable Long placeId,
                                @ModelAttribute PlaceOperatingPolicyUpdateRequest request,
                                @RequestParam
-                               @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
-                               HttpSession session) {
-        Long hostUserId = getLoginUserId(session);
-        if (hostUserId == null) {
-            return "redirect:/";
-        }
+                               @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
         placeAvailabilityService.updateOperatingPolicy(hostUserId, placeId, request);
         return redirectToAvailability(placeId, date);
     }
@@ -118,10 +100,6 @@ public class HostAvailabilityController {
             throw new BusinessException(PlaceErrorCode.PLACE_ACCESS_DENIED);
         }
         return place;
-    }
-
-    private Long getLoginUserId(HttpSession session) {
-        return (Long) session.getAttribute(SessionConst.LOGIN_USER_ID);
     }
 
     private String redirectToAvailability(Long placeId, LocalDate date) {

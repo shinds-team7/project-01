@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import com.example.petnow.common.constant.SessionConst;
+import com.example.petnow.common.argument.LoginUser;
 import com.example.petnow.dto.request.ReservationCancelRequest;
 import com.example.petnow.dto.request.ReservationRequest;
 
@@ -24,11 +24,11 @@ import com.example.petnow.dto.response.ReservationStepResponse;
 import com.example.petnow.entity.Place;
 import com.example.petnow.exception.BusinessException;
 import com.example.petnow.exception.PlaceErrorCode;
+import com.example.petnow.exception.ReservationErrorCode;
 import com.example.petnow.mapper.PlaceMapper;
 import com.example.petnow.service.PetService;
 import com.example.petnow.service.ReservationService;
 
-import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 
 @Controller
@@ -45,13 +45,8 @@ public class ReservationController {
     }
 
 	@PostMapping("/create")
-	public String saveReservation(@Valid @ModelAttribute ReservationRequest request,
-		BindingResult bindingResult, HttpSession session, Model model, RedirectAttributes redirectAttributes) {
-
-		Long userId = (Long) session.getAttribute(SessionConst.LOGIN_USER_ID);
-		if (userId == null) {
-			return "redirect:/";
-		}
+	public String saveReservation(@LoginUser Long userId, @Valid @ModelAttribute ReservationRequest request,
+		BindingResult bindingResult, Model model, RedirectAttributes redirectAttributes) {
 
         if (bindingResult.hasErrors()) {
             Long placeId = request.getPlaceId();
@@ -88,18 +83,14 @@ public class ReservationController {
 	}
 
 	@GetMapping("/booking-request")
-	public String bookingRequest(@RequestParam Long placeId,
+	public String bookingRequest(@LoginUser Long userId, @RequestParam Long placeId,
             @RequestParam(required = false) String type,
             @RequestParam(required = false) String date,
             @RequestParam(required = false) Long start,
             @RequestParam(required = false) Long end,
             @RequestParam(required = false) String startDate,
             @RequestParam(required = false) String endDate,
-            HttpSession session, Model model) {
-		Long userId = (Long) session.getAttribute(SessionConst.LOGIN_USER_ID);
-		if (userId == null) {
-			return "redirect:/";
-		}
+            Model model) {
 
         fillBookingRequestForm(placeId, userId, model);
 
@@ -108,11 +99,13 @@ public class ReservationController {
             return "booking-request";
         }
 
-        ReservationStepResponse result;
-        if ("SAME_DAY".equals(type)) {
-            result = reservationService.resolveHourly(placeId, date, start, end);
-        } else {
-            result = reservationService.resolvePackage(placeId, startDate, endDate);
+		ReservationStepResponse result;
+		if ("SAME_DAY".equals(type)) {
+			result = reservationService.resolveHourly(placeId, date, start, end);
+		} else if ("OVERNIGHT".equals(type)) {
+			result = reservationService.resolvePackage(placeId, startDate, endDate);
+		} else {
+			throw new BusinessException(ReservationErrorCode.UNSUPPORTED_RESERVATION_TYPE);
         }
 
         fillStep(result, model);
@@ -162,59 +155,37 @@ public class ReservationController {
 	}
 
 	@GetMapping("/detail")
-	public String detailReservation(@RequestParam Long reservationId, HttpSession session, Model model) {
-		Long userId = (Long) session.getAttribute(SessionConst.LOGIN_USER_ID);
-		if (userId == null) {
-			return "redirect:/";
-		}
+	public String detailReservation(@LoginUser Long userId, @RequestParam Long reservationId, Model model) {
 		ReservationDetailResponse reservation = reservationService.detailReservation(reservationId, userId);
 		model.addAttribute("reservation", reservation);
 		return "reservations/reservationDetail";
 	}
 
 	@GetMapping("/list")
-	public String getReservationList(@RequestParam(required = false) String useStatus, HttpSession session, Model model) {
-		Long userId = (Long) session.getAttribute(SessionConst.LOGIN_USER_ID);
-		if (userId == null) {
-			return "redirect:/";
-		}
+	public String getReservationList(@LoginUser Long userId, @RequestParam(required = false) String useStatus, Model model) {
 		List<ReservationListResponse> responseList = reservationService.getReservationList(userId, useStatus);
 		model.addAttribute("reservations", responseList);
 		return "reservations/reservationList";
 	}
 
 	@PostMapping("/cancel")
-	public String cancel(@Valid @ModelAttribute ReservationCancelRequest request, HttpSession session, BindingResult bindingResult) {
+	public String cancel(@LoginUser Long userId, @Valid @ModelAttribute ReservationCancelRequest request, BindingResult bindingResult) {
 		if (bindingResult.hasErrors()) {
 			return "reservations/reservationList";
 		}
 
-		Long userId = (Long)session.getAttribute(SessionConst.LOGIN_USER_ID);
-		if (userId == null) {
-			return "redirect:/";
-		}
 		reservationService.cancelReservation(request.getReservationId(), userId);
 		return "redirect:/reservation/list";
 	}
 
 	@PostMapping("/{reservationId}/approve")
-	public String approve(@PathVariable Long reservationId, HttpSession session) {
-		Long hostUserId = (Long) session.getAttribute(SessionConst.LOGIN_USER_ID);
-		if (hostUserId == null) {
-			return "redirect:/";
-		}
-
+	public String approve(@LoginUser Long hostUserId, @PathVariable Long reservationId) {
 		reservationService.approveReservation(reservationId, hostUserId);
 		return "redirect:/host?tab=booking";
 	}
 
 	@PostMapping("/{reservationId}/reject")
-	public String reject(@PathVariable Long reservationId, HttpSession session) {
-		Long hostUserId = (Long) session.getAttribute(SessionConst.LOGIN_USER_ID);
-		if (hostUserId == null) {
-			return "redirect:/";
-		}
-
+	public String reject(@LoginUser Long hostUserId, @PathVariable Long reservationId) {
 		reservationService.rejectReservation(reservationId, hostUserId);
 		return "redirect:/host?tab=booking";
 	}

@@ -273,7 +273,7 @@ class PrototypeShellRenderingTest {
         // 제출 시점에 튕기면 날짜·메모를 다 채운 뒤 입력이 통째로 날아간다.
         mockMvc.perform(get("/reservation/booking-request").param("placeId", "1"))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/"));
+                .andExpect(redirectedUrl("/auth/login"));
     }
 
     @Test
@@ -329,7 +329,7 @@ class PrototypeShellRenderingTest {
     @Test
     @DisplayName("장소 등록 완료가 앱 셸로 그려진다")
     void hostSuccessRendersWithAppShell() throws Exception {
-        mockMvc.perform(get("/places/success"))
+        mockMvc.perform(get("/places/success").session(loggedIn()))
                 .andExpect(status().isOk())
                 .andExpect(view().name("places/success"))
                 .andExpect(content().string(containsString("/css/app.css")))

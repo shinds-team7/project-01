@@ -1,12 +1,12 @@
 package com.example.petnow.controller;
 
-import com.example.petnow.common.constant.SessionConst;
+import com.example.petnow.common.argument.LoginUser;
 import com.example.petnow.dto.request.ReviewCreateRequest;
+import com.example.petnow.dto.request.ReviewUpdateRequest;
 import com.example.petnow.dto.response.ReservationDetailResponse;
 import com.example.petnow.dto.response.ReviewResponse;
 import com.example.petnow.service.ReservationService;
 import com.example.petnow.service.ReviewService;
-import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
@@ -28,13 +28,6 @@ public class ReviewController {
 
     private final ReviewService reviewService;
     private final ReservationService reservationService;
-
-    /**
-     * 세션에서 로그인 유저 id를 꺼내오는 헬퍼.
-     */
-    private Long getLoginUserId(HttpSession session) {
-        return (Long) session.getAttribute(SessionConst.LOGIN_USER_ID);
-    }
 
     /**
      * 작성 폼 상단 요약 카드(장소명 · 체크인 날짜)를 모델에 채운다.
@@ -62,11 +55,7 @@ public class ReviewController {
      * -> templates/reviews/form.html
      */
     @GetMapping("/new")
-    public String reviewForm(@RequestParam Long reservationId, Model model,  HttpSession session) {
-        Long loginUserId = getLoginUserId(session);
-        if (loginUserId == null) {
-            return "redirect:/";
-        }
+    public String reviewForm(@RequestParam Long reservationId, Model model, @LoginUser Long loginUserId) {
 
         ReviewCreateRequest form = new ReviewCreateRequest();
         form.setReservationId(reservationId);
@@ -83,14 +72,10 @@ public class ReviewController {
      * 성공 시 내 리뷰 목록 페이지로 redirect
      */
     @PostMapping
-    public String createReview(@ModelAttribute("form") @Valid ReviewCreateRequest request,
+    public String createReview(@LoginUser Long loginUserId,
+                               @ModelAttribute("form") @Valid ReviewCreateRequest request,
                                BindingResult bindingResult,
-                               Model model,
-                               HttpSession session) {
-        Long loginUserId = getLoginUserId(session);
-        if (loginUserId == null) {
-            return "redirect:/";
-        }
+                               Model model) {
 
         if (bindingResult.hasErrors()) {
             addReservationSummary(model, request.getReservationId(), loginUserId);
@@ -109,11 +94,7 @@ public class ReviewController {
      * -> templates/review/my-list.html
      */
     @GetMapping("/my")
-    public String myReviews(Model model, HttpSession session) {
-        Long loginUserId = getLoginUserId(session);
-        if (loginUserId == null) {
-            return "redirect:/";
-        }
+    public String myReviews(Model model, @LoginUser Long loginUserId) {
 
         List<ReviewResponse> reviews = reviewService.getMyReviews(loginUserId);
         model.addAttribute("reviews", reviews);
@@ -133,4 +114,55 @@ public class ReviewController {
         model.addAttribute("reviews", reviews);
         return "reviews/list";     // 테스트용. 장소별 리뷰 목록으로 바꿔야함
     }
+
+    /**
+     * 리뷰 수정 폼 화면
+     * GET /reviews/{id}/edit
+     * -> templates/reviews/edit.html
+     */
+    // TO-BE
+    @GetMapping("/{reviewId}/edit")
+    public String editForm(@PathVariable Long reviewId, Model model, @LoginUser Long loginUserId) {
+
+        ReviewResponse review = reviewService.getReview(loginUserId, reviewId);
+
+        // 폼 바인딩용 객체를 기존 값으로 채워서 넘긴다 (create 화면과 동일하게 "form")
+        ReviewUpdateRequest form = new ReviewUpdateRequest();
+        form.setRating(review.getRating());
+        form.setContent(review.getContent());
+        model.addAttribute("form", form);
+
+        // 상단 요약 카드용 (create 화면과 같은 키를 쓴다)
+        model.addAttribute("reviewId", reviewId);
+        model.addAttribute("placeName", review.getPlaceName());
+        model.addAttribute("checkInAt", review.getCheckInAt());
+
+        return "reviews/edit";
+    }
+
+    /**
+     * 리뷰 수정 처리
+     * POST /reviews/{id}
+     * 성공 시 내 리뷰 목록 페이지로 redirect
+     */
+    @PostMapping("/{reviewId}")
+    public String updateReview(@PathVariable Long reviewId,
+                               @ModelAttribute("form") @Valid ReviewUpdateRequest request,
+                               BindingResult bindingResult,
+                               Model model,
+                               @LoginUser Long loginUserId) {
+
+        if (bindingResult.hasErrors()) {
+            ReviewResponse review = reviewService.getReview(loginUserId, reviewId);
+            model.addAttribute("reviewId", reviewId);
+            model.addAttribute("placeName", review.getPlaceName());
+            model.addAttribute("checkInAt", review.getCheckInAt());
+            return "reviews/edit";     // 테스트용.
+        }
+
+        reviewService.updateReview(loginUserId, reviewId, request);
+
+        return "redirect:/reviews/my";     // 테스트용.
+    }
+
 }

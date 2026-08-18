@@ -29,7 +29,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  *
  * <p>셸이 빠지면 화면이 스타일 없는 맨 HTML 로 나오므로 app.css 링크 유무로 잡는다.
  */
-@WebMvcTest(HomeController.class)
+@WebMvcTest(value = HomeController.class, properties = "app.public-url=https://petnow.example")
 class HomeShellRenderingTest {
 
     @Autowired
@@ -47,6 +47,19 @@ class HomeShellRenderingTest {
                 .andExpect(content().string(containsString("/css/app.css")))
                 .andExpect(content().string(containsString("class=\"app-nav\"")))
                 .andExpect(content().string(containsString("우리 동네 <em>펫시터</em>")));
+    }
+
+    @Test
+    @DisplayName("홈이 카카오톡 링크 미리보기용 Open Graph 정보를 절대 URL로 제공한다")
+    void homeRendersOpenGraphMetadata() throws Exception {
+        mockMvc.perform(get("/home"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString(
+                        "property=\"og:image\" content=\"https://petnow.example/images/paw.png\"")))
+                .andExpect(content().string(containsString(
+                        "property=\"og:url\" content=\"https://petnow.example/home\"")))
+                .andExpect(content().string(containsString(
+                        "property=\"og:title\" content=\"홈 | Pet NOW\"")));
     }
 
     @Test

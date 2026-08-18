@@ -30,7 +30,7 @@
       파일을 보내려면 enctype 이 반드시 multipart/form-data 여야 한다.
       빠뜨리면 파일이 아니라 파일명 문자열만 넘어간다 (docs/CONVENTIONS.md §9.2).
     */-->
-    <form th:action="@{/places}" th:object="${placeCreateRequest}" method="post"
+    <form th:action="@{/places/create}" th:object="${placeCreateRequest}" method="post"
           enctype="multipart/form-data">
         <div class="screen">
             <p class="field-hint" style="margin-top:14px">정성껏 돌볼 수 있는 공간을 소개해주세요.</p>
