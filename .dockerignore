@@ -1,0 +1,22 @@
+# 이미지에는 build/libs 의 jar 하나만 들어가면 된다.
+.git
+.gradle
+.github
+docs
+src
+gradle
+gradlew
+gradlew.bat
+build.gradle
+settings.gradle
+build/classes
+build/resources
+build/tmp
+build/reports
+build/test-results
+.env
+.env.example
+docker-compose.yml
+docker-compose.prod.yml
+docker-compose.override.yml
+README.md
