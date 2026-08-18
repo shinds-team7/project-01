@@ -1,6 +1,7 @@
 package com.example.petnow.service;
 
 import com.example.petnow.dto.request.ReviewCreateRequest;
+import com.example.petnow.dto.request.ReviewUpdateRequest;
 import com.example.petnow.dto.response.ReviewResponse;
 
 import java.util.List;
@@ -14,4 +15,11 @@ public interface ReviewService {
 
     // 특정 장소의 리뷰 목록 조회
     List<ReviewResponse> getReviewsByPlace(Long placeId);
+
+    // 리뷰 단건 조회
+    ReviewResponse getReview(Long memberId, Long reviewId);
+
+    // 리뷰 수정
+    void updateReview(Long memberId, Long reviewId, ReviewUpdateRequest request);
+
 }
