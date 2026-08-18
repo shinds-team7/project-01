@@ -11,6 +11,16 @@
     </div>
 
     <div class="screen">
+        <div class="notice notice-green" role="status" th:if="${profileUpdated}">
+            <span class="ico" aria-hidden="true">check_circle</span>
+            <span>내 정보가 수정됐어요.</span>
+        </div>
+
+        <div class="notice notice-green" role="status" th:if="${passwordUpdated}">
+            <span class="ico" aria-hidden="true">check_circle</span>
+            <span>비밀번호가 변경됐어요.</span>
+        </div>
+
         <section class="card card-raised my-account-profile" aria-labelledby="profile-title">
             <!--/*
               프로필 이미지가 있으면 보여주고, 없으면 지금까지처럼 닉네임 첫 글자를 쓴다.
@@ -54,6 +64,10 @@
         */-->
         <a class="btn btn-ghost btn-block" th:href="@{/my/profile/edit}" style="margin-top:14px">
             <span class="ico" aria-hidden="true">edit</span> 내 정보 수정
+        </a>
+
+        <a class="btn btn-ghost btn-block" th:href="@{/my/password}" style="margin-top:10px">
+            <span class="ico" aria-hidden="true">lock</span> 비밀번호 변경
         </a>
 
         <div class="notice notice-green">

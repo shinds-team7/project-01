@@ -40,8 +40,14 @@
       파일을 보내려면 enctype 이 반드시 multipart/form-data 여야 한다.
       빠뜨리면 파일이 아니라 파일명 문자열만 넘어간다 (docs/CONVENTIONS.md §9.2).
     */-->
-    <form th:action="@{/my/profile/edit}" method="post" enctype="multipart/form-data">
+    <form th:action="@{/my/profile/edit}" method="post" enctype="multipart/form-data"
+          th:object="${profileEditRequest}" novalidate>
         <div class="screen">
+            <div class="notice notice-danger" role="alert" th:if="${#fields.hasErrors('global')}">
+                <span class="ico" aria-hidden="true">error</span>
+                <span th:each="err : ${#fields.errors('global')}" th:text="${err}">내 정보를 수정하지 못했습니다.</span>
+            </div>
+
             <!--/*
               프로필 이미지 1장 (ImageCategory.USER 의 maxCount).
 
@@ -78,15 +84,24 @@
 
             <div class="field">
                 <label class="field-label" for="nickname">닉네임 <span class="req">필수</span></label>
-                <input class="control" id="nickname" name="nickname" type="text"
-                       th:value="${profile.nickname}" maxlength="20" autocomplete="nickname" required>
+                <div class="field-inline">
+                    <input class="control" id="nickname" type="text" th:field="*{nickname}"
+                           th:errorclass="has-error" maxlength="20" autocomplete="nickname"
+                           aria-describedby="nickname-error nickname-check-result"
+                           th:aria-invalid="${#fields.hasErrors('nickname')}" required>
+                    <button class="btn btn-ghost" type="button" data-nickname-check>중복 확인</button>
+                </div>
+                <p class="field-error" id="nickname-error" th:errors="*{nickname}"></p>
+                <p class="field-hint" id="nickname-check-result" data-nickname-check-result
+                   role="status" aria-live="polite" hidden></p>
             </div>
 
             <div class="field">
                 <label class="field-label" for="phone">전화번호</label>
-                <input class="control" id="phone" name="phone" type="tel"
-                       th:value="${profile.phone}" maxlength="20" autocomplete="tel"
-                       placeholder="010-0000-0000">
+                <input class="control" id="phone" type="tel" th:field="*{phone}" th:errorclass="has-error"
+                       maxlength="20" autocomplete="tel" placeholder="010-0000-0000"
+                       aria-describedby="phone-error" th:aria-invalid="${#fields.hasErrors('phone')}">
+                <p class="field-error" id="phone-error" th:errors="*{phone}"></p>
             </div>
 
             <!--/* 이메일은 로그인 아이디라 여기서 바꾸지 않는다. 값만 보여준다. */-->
@@ -109,6 +124,7 @@
       스타일시트는 base.html 이 이미 걸어 두었다.
     */-->
     <script th:src="@{/js/image-upload.js}"></script>
+    <script th:src="@{/js/profile.js}"></script>
 </main>
 </body>
 </html>
