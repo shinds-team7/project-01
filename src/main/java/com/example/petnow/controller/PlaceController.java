@@ -1,11 +1,11 @@
 package com.example.petnow.controller;
 
 import com.example.petnow.common.argument.LoginUser;
-import com.example.petnow.common.constant.SessionConst;
+import com.example.petnow.common.session.LoginSession;
 import com.example.petnow.dto.request.PlaceCreateRequest;
 import com.example.petnow.entity.PlaceType;
 import com.example.petnow.service.PlaceService;
-import jakarta.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
@@ -68,9 +68,13 @@ public class PlaceController {
         return "places/list";
     }
 
+    /**
+     * 공개 상세. 로그인 여부에 따라 다르게 그리지만 비로그인도 볼 수 있어야 해서
+     * {@code @LoginUser}(없으면 401) 가 아니라 "있으면 쓰고 없으면 null" 로 받는다.
+     */
     @GetMapping("/{placeId:\\d+}")
-    public String detail(@PathVariable Long placeId, Model model, HttpSession session) {
-        Long loginUserId = (Long) session.getAttribute(SessionConst.LOGIN_USER_ID);
+    public String detail(@PathVariable Long placeId, Model model, HttpServletRequest request) {
+        Long loginUserId = LoginSession.currentUserId(request);
 
         model.addAttribute("place", placeService.getPlaceDetail(placeId, loginUserId));
 

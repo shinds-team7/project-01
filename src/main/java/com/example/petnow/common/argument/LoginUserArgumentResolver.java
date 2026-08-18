@@ -1,10 +1,9 @@
 package com.example.petnow.common.argument;
 
-import com.example.petnow.common.constant.SessionConst;
+import com.example.petnow.common.session.LoginSession;
 import com.example.petnow.exception.AuthErrorCode;
 import com.example.petnow.exception.BusinessException;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
 import org.springframework.core.MethodParameter;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.support.WebDataBinderFactory;
@@ -47,9 +46,7 @@ public class LoginUserArgumentResolver implements HandlerMethodArgumentResolver 
         HttpServletRequest request =
             webRequest.getNativeRequest(HttpServletRequest.class);
 
-        HttpSession session = request == null ? null : request.getSession(false);
-
-        Object loginUserId = session == null ? null : session.getAttribute(SessionConst.LOGIN_USER_ID);
+        Long loginUserId = request == null ? null : LoginSession.currentUserId(request);
 
         if (loginUserId == null) {
             throw new BusinessException(AuthErrorCode.UNAUTHORIZED);

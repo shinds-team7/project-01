@@ -1,6 +1,5 @@
 package com.example.petnow.controller;
 
-import com.example.petnow.common.constant.SessionConst;
 import com.example.petnow.common.session.LoginRedirect;
 import com.example.petnow.common.session.LoginSession;
 import com.example.petnow.dto.request.UserLoginRequest;
@@ -45,9 +44,9 @@ public class AuthController {
      */
     @GetMapping("/login")
     public String loginForm(@ModelAttribute UserLoginRequest userLoginRequest,
-                            HttpSession session) {
+                            HttpServletRequest request) {
         // 이미 로그인한 사람에게 폼을 다시 보여 주면 뒤로 가기로 폼에 갇히는 흐름이 생긴다.
-        if (isLoggedIn(session)) {
+        if (LoginSession.isLoggedIn(request)) {
             return "redirect:" + LoginRedirect.DEFAULT_URI;
         }
 
@@ -56,8 +55,8 @@ public class AuthController {
 
     @GetMapping("/signup")
     public String signupForm(@ModelAttribute UserSignupRequest userSignupRequest,
-                             HttpSession session) {
-        if (isLoggedIn(session)) {
+                             HttpServletRequest request) {
+        if (LoginSession.isLoggedIn(request)) {
             return "redirect:" + LoginRedirect.DEFAULT_URI;
         }
 
@@ -127,12 +126,14 @@ public class AuthController {
      * 남의 세션을 끊을 수 있다. 상태를 바꾸는 요청이라 링크가 아니라 폼으로 보낸다.
      */
     @PostMapping("/logout")
-    public String logout(HttpSession session) {
-        LoginSession.clear(session);
-        return "redirect:/home";
-    }
+    public String logout(HttpServletRequest request) {
+        HttpSession session = request.getSession(false);
 
-    private boolean isLoggedIn(HttpSession session) {
-        return session.getAttribute(SessionConst.LOGIN_USER_ID) != null;
+        // 이미 세션이 없으면(만료·중복 로그아웃) 버릴 것도 없다. 새로 만들어 지울 이유는 더 없다.
+        if (session != null) {
+            LoginSession.clear(session);
+        }
+
+        return "redirect:/home";
     }
 }

@@ -1,10 +1,9 @@
 package com.example.petnow.common.interceptor;
 
-import com.example.petnow.common.constant.SessionConst;
 import com.example.petnow.common.session.LoginRedirect;
+import com.example.petnow.common.session.LoginSession;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
@@ -23,7 +22,7 @@ public class LoginCheckInterceptor implements HandlerInterceptor {
                              HttpServletResponse response,
                              Object handler) throws Exception {
 
-        if (isLoggedIn(request)) {
+        if (LoginSession.isLoggedIn(request)) {
             return true;
         }
 
@@ -32,11 +31,5 @@ public class LoginCheckInterceptor implements HandlerInterceptor {
 
         response.sendRedirect("/auth/login");
         return false;
-    }
-
-    private boolean isLoggedIn(HttpServletRequest request) {
-        HttpSession session = request.getSession(false);
-
-        return session != null && session.getAttribute(SessionConst.LOGIN_USER_ID) != null;
     }
 }
