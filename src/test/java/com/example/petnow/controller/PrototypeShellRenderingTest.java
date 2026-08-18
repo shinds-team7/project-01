@@ -1,15 +1,19 @@
 package com.example.petnow.controller;
 
 import com.example.petnow.common.constant.SessionConst;
+import com.example.petnow.dto.response.PackageDayResponse;
 import com.example.petnow.dto.response.PetListResponse;
 import com.example.petnow.dto.response.PlaceDetailResponse;
 import com.example.petnow.dto.response.PlaceListResponse;
+import com.example.petnow.dto.response.PlaceSlotResponse;
 import com.example.petnow.dto.response.ReservationDetailResponse;
+import com.example.petnow.dto.response.ReservationStepResponse;
 import com.example.petnow.dto.response.ReviewResponse;
 import com.example.petnow.entity.Pet;
 import com.example.petnow.entity.Place;
 import com.example.petnow.entity.PlaceStatus;
 import com.example.petnow.entity.PlaceType;
+import com.example.petnow.entity.ReservationType;
 import com.example.petnow.mapper.PlaceMapper;
 import com.example.petnow.service.AuthService;
 import com.example.petnow.service.HostService;
@@ -32,6 +36,8 @@ import java.util.List;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -129,21 +135,119 @@ class PrototypeShellRenderingTest {
     // ────────────────────────── 예약 ──────────────────────────
 
     @Test
-    @DisplayName("예약 요청이 매핑 없는 결제 링크 대신 POST /reservation/create 폼으로 그려진다")
-    void bookingRequestRendersRealForm() throws Exception {
+    @DisplayName("예약 요청 1단계는 장소가 여는 예약 유형만 보여준다")
+    void bookingRequestRendersTypeStep() throws Exception {
         given(placeMapper.findById(1L)).willReturn(placeEntity());
 
         mockMvc.perform(get("/reservation/booking-request").param("placeId", "1").session(loggedIn()))
                 .andExpect(status().isOk())
-                .andExpect(view().name("booking-request"))
+                .andExpect(view().name("reservations/booking-request"))
                 .andExpect(content().string(containsString("/css/app.css")))
+                .andExpect(content().string(containsString("예약 유형을 선택해주세요")))
+                .andExpect(content().string(containsString("시 예약")))
+                // placeEntity 는 패키지를 열지 않았다. 열지 않은 유형은 아예 나오지 않아야 한다.
+                .andExpect(content().string(not(containsString("패키지 예약"))))
+                // 이식 전에는 매핑이 없는 /places/{id}/payment 로 보내 404 였다.
+                .andExpect(content().string(not(containsString("/places/1/payment"))));
+    }
+
+    @Test
+    @DisplayName("날짜 필터 없이 들어와도 예약 불가한 날짜는 링크가 아닌 잠긴 칸으로 그려진다")
+    void bookingRequestDisablesUnavailableDates() throws Exception {
+        given(placeMapper.findById(1L)).willReturn(placeEntity());
+        given(reservationService.resolveHourly(eq(1L), any(), any(), any()))
+                .willReturn(ReservationStepResponse.builder()
+                        .step("hourly-date")
+                        .days(List.of(day(3, true), day(4, false)))
+                        .build());
+
+        mockMvc.perform(get("/reservation/booking-request").session(loggedIn())
+                        .param("placeId", "1")
+                        .param("type", "SAME_DAY"))
+                .andExpect(status().isOk())
+                // 고를 수 있는 날짜만 슬롯 화면으로 가는 링크가 된다.
+                .andExpect(content().string(containsString("date=" + LocalDate.now().plusDays(3))))
+                .andExpect(content().string(not(containsString("date=" + LocalDate.now().plusDays(4)))))
+                .andExpect(content().string(containsString("pick-cell is-disabled")));
+    }
+
+    @Test
+    @DisplayName("시간대 화면은 예약 불가한 슬롯을 잠그고, 두 칸을 골라도 자동으로 넘어가지 않는다")
+    void bookingRequestDisablesUnavailableSlots() throws Exception {
+        given(placeMapper.findById(1L)).willReturn(placeEntity());
+        given(reservationService.resolveHourly(eq(1L), any(), any(), any()))
+                .willReturn(ReservationStepResponse.builder()
+                        .step("hourly-slot")
+                        .selectedDate(LocalDate.now().plusDays(3).toString())
+                        .days(List.of(day(3, true)))
+                        .slots(List.of(slot(10L, 9, "OPEN"), slot(11L, 12, "RESERVED")))
+                        .build());
+
+        mockMvc.perform(get("/reservation/booking-request").session(loggedIn())
+                        .param("placeId", "1")
+                        .param("type", "SAME_DAY")
+                        .param("date", LocalDate.now().plusDays(3).toString()))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("09:00~12:00")))
+                .andExpect(content().string(containsString("data-pick-selectable=\"true\"")))
+                // 선택 로직이 읽는 값들. 하나라도 비면 스크립트가 범위를 계산하지 못한다.
+                .andExpect(content().string(containsString("data-pick-value=\"10\"")))
+                .andExpect(content().string(containsString("data-pick-start=\"" + LocalDate.now().plusDays(3) + "T09:00\"")))
+                .andExpect(content().string(containsString("data-pick-end=\"" + LocalDate.now().plusDays(3) + "T12:00\"")))
+                // 이미 잡힌 슬롯은 눌리지 않는다.
+                .andExpect(content().string(containsString("data-pick-selectable=\"false\"")))
+                .andExpect(content().string(containsString("예약 마감")))
+                // 선택은 화면 안에서만 이뤄지고, 하단 CTA 를 눌러야 다음 단계로 간다.
+                .andExpect(content().string(containsString("data-pick-submit disabled")))
+                .andExpect(content().string(containsString("/js/booking-slot.js")));
+    }
+
+    @Test
+    @DisplayName("패키지 날짜 화면도 예약 불가한 날짜를 잠그고 CTA 를 눌러야 넘어간다")
+    void bookingRequestDisablesUnavailablePackageDays() throws Exception {
+        given(placeMapper.findById(1L)).willReturn(placeEntity());
+        given(reservationService.resolvePackage(eq(1L), any(), any()))
+                .willReturn(ReservationStepResponse.builder()
+                        .step("package-day")
+                        .days(List.of(day(3, true), day(4, false)))
+                        .build());
+
+        mockMvc.perform(get("/reservation/booking-request").session(loggedIn())
+                        .param("placeId", "1")
+                        .param("type", "OVERNIGHT"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("data-pick-selectable=\"true\"")))
+                .andExpect(content().string(containsString("data-pick-selectable=\"false\"")))
+                .andExpect(content().string(containsString("name=\"startDate\"")))
+                .andExpect(content().string(containsString("name=\"endDate\"")))
+                .andExpect(content().string(containsString("data-pick-submit disabled")));
+    }
+
+    @Test
+    @DisplayName("확인 단계에는 반려동물 체크박스와 토스 결제창 목업이 함께 그려진다")
+    void bookingRequestConfirmStepRendersPaymentMock() throws Exception {
+        given(placeMapper.findById(1L)).willReturn(placeEntity());
+        given(petService.getPetList(1L)).willReturn(List.of(pet()));
+        given(reservationService.resolveHourly(eq(1L), any(), any(), any())).willReturn(confirmStep());
+
+        mockMvc.perform(get("/reservation/booking-request").session(loggedIn())
+                        .param("placeId", "1")
+                        .param("type", "SAME_DAY")
+                        .param("date", LocalDate.now().plusDays(3).toString())
+                        .param("start", "10")
+                        .param("end", "11"))
+                .andExpect(status().isOk())
                 .andExpect(content().string(containsString("action=\"/reservation/create\"")))
                 .andExpect(content().string(containsString("name=\"checkIn\"")))
                 .andExpect(content().string(containsString("name=\"checkOut\"")))
                 .andExpect(content().string(containsString("name=\"memo\"")))
-                // 이식 전에는 매핑이 없는 /places/{id}/payment 로 보내 404 였다.
-                // 셸이나 스크립트에 다른 /payment 가 생겨도 안 깨지게 예전 경로만 좁혀서 본다.
-                .andExpect(content().string(not(containsString("/places/1/payment"))));
+                // petIds 는 @NotEmpty 다. 이 체크박스가 없으면 무엇을 눌러도 예약이 성사되지 않는다.
+                .andExpect(content().string(containsString("name=\"petIds\"")))
+                .andExpect(content().string(containsString("value=\"7\"")))
+                .andExpect(content().string(containsString("초코")))
+                .andExpect(content().string(containsString("72,000원")))
+                .andExpect(content().string(containsString("결제하기")))
+                .andExpect(content().string(containsString("id=\"toss-pay\"")));
     }
 
     @Test
@@ -151,25 +255,16 @@ class PrototypeShellRenderingTest {
     void bookingRequestGuidesPetRegistration() throws Exception {
         given(placeMapper.findById(1L)).willReturn(placeEntity());
         given(petService.getPetList(1L)).willReturn(List.of());
+        given(reservationService.resolveHourly(eq(1L), any(), any(), any())).willReturn(confirmStep());
 
-        mockMvc.perform(get("/reservation/booking-request").param("placeId", "1").session(loggedIn()))
+        mockMvc.perform(get("/reservation/booking-request").session(loggedIn())
+                        .param("placeId", "1")
+                        .param("type", "SAME_DAY")
+                        .param("date", LocalDate.now().plusDays(3).toString())
+                        .param("start", "10")
+                        .param("end", "11"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("맡길 반려동물을 먼저 등록해주세요")));
-    }
-
-    @Test
-    @DisplayName("예약 요청 화면에 로그인 사용자의 반려동물이 체크박스로 내려온다")
-    void bookingRequestRendersPetCheckboxes() throws Exception {
-        given(placeMapper.findById(1L)).willReturn(placeEntity());
-        given(petService.getPetList(1L)).willReturn(List.of(pet()));
-
-        mockMvc.perform(get("/reservation/booking-request").param("placeId", "1").session(loggedIn()))
-                .andExpect(status().isOk())
-                // petIds 는 @NotEmpty 다. 이 체크박스가 없으면 무엇을 눌러도 예약이 성사되지 않는다.
-                .andExpect(content().string(containsString("name=\"petIds\"")))
-                .andExpect(content().string(containsString("value=\"7\"")))
-                .andExpect(content().string(containsString("초코")))
-                .andExpect(content().string(not(containsString("맡길 반려동물을 먼저 등록해주세요"))));
     }
 
     @Test
@@ -182,21 +277,26 @@ class PrototypeShellRenderingTest {
     }
 
     @Test
-    @DisplayName("검증 실패로 폼이 되돌아와도 반려동물 목록이 남아 있다")
+    @DisplayName("검증 실패로 폼이 되돌아와도 고른 일정과 반려동물 목록이 남아 있다")
     void bookingRequestKeepsPetsOnValidationFailure() throws Exception {
         given(placeMapper.findById(1L)).willReturn(placeEntity());
         given(petService.getPetList(1L)).willReturn(List.of(pet()));
+        given(reservationService.resolveConfirm(eq(1L), eq(ReservationType.SAME_DAY), any(), any()))
+                .willReturn(confirmStep());
 
         // petIds 를 비워 보내 @NotEmpty 를 일부러 터뜨린다.
         mockMvc.perform(post("/reservation/create").session(loggedIn())
                         .param("placeId", "1")
+                        .param("reservationType", "SAME_DAY")
                         .param("checkIn", "2026-08-20T15:00")
-                        .param("checkOut", "2026-08-20T19:00"))
+                        .param("checkOut", "2026-08-20T21:00"))
                 .andExpect(status().isOk())
-                .andExpect(view().name("booking-request"))
+                .andExpect(view().name("reservations/booking-request"))
                 // place 만 다시 담던 시절에는 고를 대상이 사라진 폼이 돌아왔다.
                 .andExpect(content().string(containsString("name=\"petIds\"")))
-                .andExpect(content().string(containsString("초코")));
+                .andExpect(content().string(containsString("초코")))
+                // 1단계로 튕기면 애써 고른 일정이 통째로 날아간다.
+                .andExpect(content().string(containsString("name=\"checkIn\"")));
     }
 
     // ────────────────────────── 호스트 ──────────────────────────
@@ -344,6 +444,8 @@ class PrototypeShellRenderingTest {
                 .areaSize(new BigDecimal("42"))
                 .capacity(2)
                 .hourlyPrice(new BigDecimal("12000"))
+                // 시 예약만 여는 장소다. 패키지 유형이 화면에 새는지도 같이 본다.
+                .supportsHourly(true)
                 .status(PlaceStatus.PUBLISHED)
                 .visible(true)
                 .build();
@@ -368,6 +470,37 @@ class PrototypeShellRenderingTest {
         given(review.getContent()).willReturn("마당이 넓어서 좋았어요");
         given(review.getCheckInAt()).willReturn(LocalDate.of(2026, 7, 18));
         return review;
+    }
+
+    /** 예약 가능 여부가 달린 날짜 한 칸. 오늘 기준으로 만들어야 "지난 날짜" 처리에 걸리지 않는다. */
+    private PackageDayResponse day(int plusDays, boolean selectable) {
+        return PackageDayResponse.builder()
+                .date(LocalDate.now().plusDays(plusDays))
+                .selectable(selectable)
+                .build();
+    }
+
+    /** 3시간짜리 슬롯 한 칸. */
+    private PlaceSlotResponse slot(long slotId, int hour, String status) {
+        LocalDateTime startAt = LocalDate.now().plusDays(3).atTime(hour, 0);
+        return PlaceSlotResponse.builder()
+                .slotId(slotId)
+                .startAt(startAt)
+                .endAt(startAt.plusHours(3))
+                .status(status)
+                .build();
+    }
+
+    /** 슬롯 두 칸(6시간)을 고른 뒤의 확인 단계. 12,000원 × 6시간 = 72,000원. */
+    private ReservationStepResponse confirmStep() {
+        LocalDateTime checkIn = LocalDate.now().plusDays(3).atTime(9, 0);
+        return ReservationStepResponse.builder()
+                .step("confirm")
+                .reservationType(ReservationType.SAME_DAY)
+                .checkIn(checkIn)
+                .checkOut(checkIn.plusHours(6))
+                .totalPrice(new BigDecimal("72000"))
+                .build();
     }
 
     /** 예약 요청 폼의 반려동물 체크박스에 쓰이는 목록 항목. */
