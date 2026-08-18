@@ -25,4 +25,6 @@ public interface PlaceMapper {
                               @Param("supportsPackage") boolean supportsPackage,
                               @Param("packageCheckInTime") LocalTime packageCheckInTime,
                               @Param("packageCheckOutTime") LocalTime packageCheckOutTime);
+
+    void lockPlaceForUpdate(Long placeId);
 }

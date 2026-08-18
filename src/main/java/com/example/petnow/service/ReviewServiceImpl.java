@@ -30,6 +30,10 @@ public class ReviewServiceImpl implements ReviewService {
             throw new BusinessException(ReviewErrorCode.REVIEW_FORBIDDEN);
         }
 
+        // 리뷰가 속한 장소 조회 후 해당 place 잠금
+        Long placeId = reviewMapper.findPlaceIdByReservationId(request.getReservationId());
+        placeMapper.lockPlaceForUpdate(placeId);
+
         Review review = Review.builder()
                 .reservationId(request.getReservationId())
                 .content(request.getContent())
@@ -42,9 +46,6 @@ public class ReviewServiceImpl implements ReviewService {
         } catch (DuplicateKeyException e) {
             throw new BusinessException(ReviewErrorCode.REVIEW_DUPLICATE);
         }
-
-        // 리뷰가 속한 장소 조회
-        Long placeId = reviewMapper.findPlaceIdByReservationId(request.getReservationId());
 
         // 평균 별점 계산
         Double avgRating = reviewMapper.selectAvgRatingByPlaceId(placeId);
