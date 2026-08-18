@@ -159,7 +159,6 @@ public class ReservationServiceImpl implements ReservationService {
             throw new BusinessException(ReservationErrorCode.SLOT_ALREADY_TAKEN);
         }
 
-		reservationMapper.insertReservationSlots(reservation.getId(), slotIds);
 		reservationMapper.saveReservationPets(reservation.getId(), request.getPetIds());
 		return reservationNo;
 	}
@@ -275,8 +274,9 @@ public class ReservationServiceImpl implements ReservationService {
 
     @Override
     public ReservationStepResponse resolveHourly(Long placeId, String date, Long start, Long end) {
-        if (date == null) {
+        if (date == null || date.trim().isEmpty()) {
             return ReservationStepResponse.builder()
+                .reservationType(ReservationType.SAME_DAY)
                 .step("hourly-date")
                 .build();
         }
@@ -287,6 +287,7 @@ public class ReservationServiceImpl implements ReservationService {
 
         if (start == null) {
             return ReservationStepResponse.builder()
+                .reservationType(ReservationType.SAME_DAY)
                 .step("hourly-slot")
                 .slots(slots)
                 .selectedDate(date)
@@ -297,6 +298,7 @@ public class ReservationServiceImpl implements ReservationService {
 
         if (end == null) {
             return ReservationStepResponse.builder()
+                .reservationType(ReservationType.SAME_DAY)
                 .step("hourly-slot")
                 .slots(slots)
                 .startSlot(startSlot)

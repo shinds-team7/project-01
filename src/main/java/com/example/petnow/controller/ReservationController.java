@@ -63,8 +63,12 @@ public class ReservationController {
             // place 만 다시 담으면 되돌아온 폼에서 반려동물 목록이 사라져,
             // 사용자는 petIds 검증 에러를 보면서도 고를 대상이 없는 상태가 된다.
             fillBookingRequestForm(placeId, userId, model);
-            model.addAttribute("step", "type");
-            return "reservations/booking-request";
+            model.addAttribute("step", "confirm");
+            model.addAttribute("reservationType", request.getReservationType() != null ? request.getReservationType().name() : null);
+            model.addAttribute("checkIn", request.getCheckIn());
+            model.addAttribute("checkOut", request.getCheckOut());
+
+            return "booking-request";
         }
 
 		String reservationNo = reservationService.saveReservation(request, userId);
@@ -94,11 +98,11 @@ public class ReservationController {
 			return "redirect:/";
 		}
 
-		fillBookingRequestForm(placeId, userId, model);
+        fillBookingRequestForm(placeId, userId, model);
 
-        if (type == null) {
+        if (type == null || type.isBlank()) {
             model.addAttribute("step", "type");
-            return "reservations/booking-request";
+            return "booking-request";
         }
 
         ReservationStepResponse result;
@@ -119,7 +123,7 @@ public class ReservationController {
         model.addAttribute("checkIn", result.getCheckIn());
         model.addAttribute("checkOut", result.getCheckOut());
 
-		return "reservations/booking-request";
+		return "booking-request";
 	}
 
 	/**
