@@ -20,10 +20,10 @@ import com.example.petnow.dto.request.ReservationRequest;
 import com.example.petnow.dto.response.ReservationDetailResponse;
 import com.example.petnow.dto.response.ReservationListResponse;
 import com.example.petnow.entity.Place;
-import com.example.petnow.entity.ReservationStatus;
 import com.example.petnow.exception.BusinessException;
 import com.example.petnow.exception.PlaceErrorCode;
 import com.example.petnow.mapper.PlaceMapper;
+import com.example.petnow.service.PetService;
 import com.example.petnow.service.ReservationService;
 
 import jakarta.servlet.http.HttpSession;
@@ -34,10 +34,13 @@ import jakarta.validation.Valid;
 public class ReservationController {
 	private final ReservationService reservationService;
 	private final PlaceMapper placeMapper;
+	private final PetService petService;
 
-	public ReservationController(ReservationService reservationService, PlaceMapper placeMapper) {
+	public ReservationController(ReservationService reservationService, PlaceMapper placeMapper,
+		PetService petService) {
 		this.reservationService = reservationService;
 		this.placeMapper = placeMapper;
+		this.petService = petService;
 	}
 
 	@PostMapping("/create")
@@ -55,12 +58,9 @@ public class ReservationController {
 				throw new BusinessException(PlaceErrorCode.PLACE_NOT_FOUND);
 			}
 
-			Place place = placeMapper.findById(placeId);
-			if (place == null) {
-				throw new BusinessException(PlaceErrorCode.PLACE_NOT_FOUND);
-			}
-
-			model.addAttribute("place", place);
+			// place 만 다시 담으면 되돌아온 폼에서 반려동물 목록이 사라져,
+			// 사용자는 petIds 검증 에러를 보면서도 고를 대상이 없는 상태가 된다.
+			fillBookingRequestForm(placeId, userId, model);
 			return "booking-request";
 		}
 
@@ -78,13 +78,33 @@ public class ReservationController {
 	}
 
 	@GetMapping("/booking-request")
-	public String bookingRequest(@RequestParam Long placeId, Model model) {
+	public String bookingRequest(@RequestParam Long placeId, HttpSession session, Model model) {
+		// 비로그인 사용자를 여기서 막는다. 제출 시점(create)에 튕기면 날짜·메모를 다 채운 뒤
+		// 입력이 통째로 날아간다.
+		Long userId = (Long) session.getAttribute(SessionConst.LOGIN_USER_ID);
+		if (userId == null) {
+			return "redirect:/";
+		}
+
+		fillBookingRequestForm(placeId, userId, model);
+		return "booking-request";
+	}
+
+	/**
+	 * 예약 요청 폼이 필요로 하는 모델을 채운다.
+	 *
+	 * <p>{@code ReservationRequest.petIds} 가 {@code @NotEmpty} 라 화면에 반려동물 목록이
+	 * 없으면 무엇을 눌러도 검증에서 막힌다. 최초 진입과 검증 실패 복귀 두 경로가 같은 화면을
+	 * 그리므로 담는 값도 한곳에서 맞춘다.
+	 */
+	private void fillBookingRequestForm(Long placeId, Long userId, Model model) {
 		Place place = placeMapper.findById(placeId);
 		if (place == null) {
 			throw new BusinessException(PlaceErrorCode.PLACE_NOT_FOUND);
 		}
+
 		model.addAttribute("place", place);
-		return "booking-request";
+		model.addAttribute("pets", petService.getPetList(userId));
 	}
 
 	@GetMapping("/detail")
@@ -131,7 +151,7 @@ public class ReservationController {
 		}
 
 		reservationService.approveReservation(reservationId, hostUserId);
-		return "redirect:/reservation/host/dashboard";
+		return "redirect:/host?tab=booking";
 	}
 
 	@PostMapping("/{reservationId}/reject")
@@ -142,17 +162,6 @@ public class ReservationController {
 		}
 
 		reservationService.rejectReservation(reservationId, hostUserId);
-		return "redirect:/reservation/host/dashboard";
-	}
-
-	@GetMapping("/host/dashboard")
-	public String dashBoard(HttpSession session, Model model) {
-		Long hostUserId = (Long) session.getAttribute(SessionConst.LOGIN_USER_ID);
-		if (hostUserId == null) {
-			return "redirect:/";
-		}
-
-		model.addAttribute("reservations", reservationService.getReservationByHost(hostUserId, ReservationStatus.PENDING));
-		return "host/dashboard";
+		return "redirect:/host?tab=booking";
 	}
 }

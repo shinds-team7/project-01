@@ -10,6 +10,7 @@ import com.example.petnow.entity.ReservationStatus;
 import com.example.petnow.mapper.PlaceMapper;
 import com.example.petnow.service.HostService;
 import com.example.petnow.service.MyProfileServiceImpl;
+import com.example.petnow.service.PetService;
 import com.example.petnow.service.ReservationService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -47,6 +48,10 @@ class UnstyledScreenShellTest {
     /** ReservationController 가 예약 폼용으로 직접 들고 있는 의존성이라 슬라이스에 필요하다. */
     @MockitoBean
     private PlaceMapper placeMapper;
+
+    /** 같은 이유로 필요하다. 예약 요청 폼이 반려동물 목록을 여기서 받는다 (#187). */
+    @MockitoBean
+    private PetService petService;
 
     @MockitoBean
     private HostService hostService;

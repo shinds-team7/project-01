@@ -1,7 +1,10 @@
 package com.example.petnow.controller;
 
 import com.example.petnow.common.constant.SessionConst;
+import com.example.petnow.entity.ReservationStatus;
 import com.example.petnow.service.HostService;
+import com.example.petnow.service.ReservationService;
+
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
@@ -16,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 public class HostController {
 
     private final HostService hostService;
+    private final ReservationService reservationService;
 
     /*
     TODO: if 분기문에 Reservation에 대한 model값을 채워주세요
@@ -23,6 +27,7 @@ public class HostController {
      */
     @GetMapping
     public String dashboard(@RequestParam(defaultValue = "places") String tab,
+                            @RequestParam(required = false) ReservationStatus status,
                             Model model,
                             HttpSession session) {
         Long loginUserId = (Long) session.getAttribute(SessionConst.LOGIN_USER_ID);
@@ -37,6 +42,7 @@ public class HostController {
         model.addAttribute("tab", tab);
 
         if ("booking".equals(tab)) {
+            model.addAttribute("booking", reservationService.getReservationByHost(loginUserId, status));
 
         } else if ("reviews".equals(tab)) {
 

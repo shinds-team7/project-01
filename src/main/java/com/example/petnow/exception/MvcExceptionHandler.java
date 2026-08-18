@@ -1,25 +1,17 @@
 package com.example.petnow.exception;
 
 import org.springframework.beans.TypeMismatchException;
+import org.springframework.core.Ordered;
 import org.springframework.core.annotation.AnnotatedElementUtils;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.BindException;
 import org.springframework.web.ErrorResponse;
-import org.springframework.core.Ordered;
-import org.springframework.core.annotation.Order;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.servlet.ModelAndView;
-
-import com.example.petnow.common.controller.HomeController;
-import com.example.petnow.controller.PetController;
-import com.example.petnow.controller.HostController;
-import com.example.petnow.controller.PlaceController;
-import com.example.petnow.controller.AuthController;
 import org.springframework.web.servlet.ModelAndView;
 
 import lombok.extern.slf4j.Slf4j;
@@ -81,6 +73,11 @@ public class MvcExceptionHandler {
 	 * 400 이 아니라 500 으로 뒤바뀐다)
 	 *
 	 * <p>그래서 예외가 스스로 status 를 갖고 있으면 그 값을 존중하고, 정말 모르는 예외만 500 으로 처리한다.
+	 *
+	 * <p>문구는 {@link ClientErrorMessages} 가 상태 코드로 정한다. 예외 종류마다 전용 핸들러를 다는 방식은
+	 * 새 예외가 생길 때마다 영어 문구가 새어 나가는 구멍을 만들어서 쓰지 않는다. 업로드 용량 초과
+	 * ({@code MaxUploadSizeExceededException}) 도 스스로 413 을 아는 {@link ErrorResponse} 라
+	 * 전용 핸들러 없이 여기서 413 → 안내 문구로 처리된다.
 	 */
 	@ExceptionHandler(Exception.class)
 	public ModelAndView handleException(Exception e) {
@@ -93,7 +90,8 @@ public class MvcExceptionHandler {
 		}
 
 		log.warn("{} -> {}", e.getClass().getSimpleName(), status.value());
-		return errorView(status, status.getReasonPhrase());
+		// getReasonPhrase() 는 영어라 화면에 그대로 쓸 수 없다. 상태 코드별 한국어 문구로 바꾼다.
+		return errorView(status, ClientErrorMessages.of(status));
 	}
 
 	/**

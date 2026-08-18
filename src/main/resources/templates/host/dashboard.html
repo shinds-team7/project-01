@@ -80,14 +80,14 @@
                     </a>
 
                     <div class="host-place-actions">
-                        <!--/*
-                          프로토타입 라벨 그대로 두되 비활성이다.
-                          장소 정보 수정과 가능한 일정(place_availability) 관리가 둘 다 없다.
-                        */-->
                         <button class="btn btn-ghost" type="button" disabled
-                                title="장소 수정과 일정 관리 기능은 준비 중이에요">
+                                title="장소 게시글 수정 기능은 준비 중이에요">
                             <span class="ico" aria-hidden="true">edit_calendar</span>일정 관리 및 수정
                         </button>
+                        <a class="btn btn-ghost"
+                           th:href="@{/host/places/{id}/availability(id=${place.id})}">
+                            <span class="ico" aria-hidden="true">schedule</span>예약 가능 시간 관리
+                        </a>
                         <a class="btn btn-ghost" th:href="@{/reviews/place/{id}(id=${place.id})}">
                             <span class="ico" aria-hidden="true">reviews</span>리뷰 관리
                         </a>

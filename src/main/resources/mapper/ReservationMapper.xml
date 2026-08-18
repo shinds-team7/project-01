@@ -119,7 +119,7 @@
         FROM reservations r
         INNER JOIN places pl ON r.place_id = pl.id
         <where>
-            pl.host_user_id = #{hostUserId}
+            pl.host_user_id = #{loginUserId}
             <if test="status != null">
                 AND r.status = #{status}
             </if>

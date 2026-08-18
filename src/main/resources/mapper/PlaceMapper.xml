@@ -52,13 +52,18 @@
             resultType="com.example.petnow.entity.Place">
         SELECT
         id,
+        host_user_id AS hostUserId,
         name,
         host_user_nickname AS hostUserNickname,
         place_type AS placeType,
         area_size AS areaSize,
         hourly_price AS hourlyPrice,
         nightly_price AS nightlyPrice,
-        average_rating AS averageRating
+        average_rating AS averageRating,
+        supports_hourly AS supportsHourly,
+        supports_package AS supportsPackage,
+        package_check_in_time AS packageCheckInTime,
+        package_check_out_time AS packageCheckOutTime
         FROM places
         WHERE id = #{placeId}
         AND deleted_at IS NULL
@@ -106,6 +111,10 @@
         other_options AS otherOptions,
         hourly_price AS hourlyPrice,
         nightly_price AS nightlyPrice,
+        supports_hourly AS supportsHourly,
+        supports_package AS supportsPackage,
+        package_check_in_time AS packageCheckInTime,
+        package_check_out_time AS packageCheckOutTime,
         status,
         is_visible AS visible
         FROM places
@@ -117,5 +126,15 @@
         UPDATE places
         SET average_rating = #{avgRating}
         WHERE id = #{placeId}
+    </update>
+      
+    <update id="updateOperatingPolicy">
+        UPDATE places
+        SET supports_hourly = #{supportsHourly},
+            supports_package = #{supportsPackage},
+            package_check_in_time = #{packageCheckInTime},
+            package_check_out_time = #{packageCheckOutTime}
+        WHERE id = #{placeId}
+        AND deleted_at IS NULL
     </update>
 </mapper>

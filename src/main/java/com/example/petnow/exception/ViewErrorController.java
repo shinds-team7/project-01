@@ -104,10 +104,16 @@ public class ViewErrorController implements ErrorController {
 			: status.name();
 	}
 
+	/**
+	 * 4xx 문구는 {@link MvcExceptionHandler} 와 같은 표({@link ClientErrorMessages})를 쓴다.
+	 *
+	 * <p>404 는 대부분 이쪽으로 들어온다. 여기서만 {@code getReasonPhrase()} 를 쓰면 주소를 잘못 친
+	 * 사용자에게 "Not Found" 라는 영어가 그대로 나가서, 핸들러 쪽만 고쳐 봐야 구멍이 남는다.
+	 */
 	private String messageOf(HttpStatus status) {
 		return status.is5xxServerError()
 			? CommonErrorCode.INTERNAL_ERROR.getDefaultMessage()
-			: status.getReasonPhrase();
+			: ClientErrorMessages.of(status);
 	}
 
 	private String attribute(HttpServletRequest request, String name) {

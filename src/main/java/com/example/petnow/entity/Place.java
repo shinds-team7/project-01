@@ -8,6 +8,7 @@ import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 @Getter
 @Setter
@@ -34,6 +35,10 @@ public class Place {
     private BigDecimal hourlyPrice;
     private BigDecimal nightlyPrice;
     private BigDecimal averageRating;
+    private boolean supportsHourly;
+    private boolean supportsPackage;
+    private LocalTime packageCheckInTime;
+    private LocalTime packageCheckOutTime;
     private PlaceStatus status;
     private boolean visible;
     private LocalDateTime createdAt;
