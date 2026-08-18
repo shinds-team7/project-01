@@ -1,5 +1,5 @@
 /*
- * 예약 요청 화면(reservations/booking-request.html) 전용 스크립트.
+ * 예약 요청 화면(booking-request.html) 전용 스크립트.
  *
  * 1) 시간대·날짜 탭투탭 선택
  *    - 칸을 처음 탭하면 그 칸이 시작점(anchor)이 되고, 다시 탭할 때마다 anchor 에서 범위를 다시 잡는다.

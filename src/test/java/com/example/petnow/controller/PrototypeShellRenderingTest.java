@@ -141,7 +141,7 @@ class PrototypeShellRenderingTest {
 
         mockMvc.perform(get("/reservation/booking-request").param("placeId", "1").session(loggedIn()))
                 .andExpect(status().isOk())
-                .andExpect(view().name("reservations/booking-request"))
+                .andExpect(view().name("booking-request"))
                 .andExpect(content().string(containsString("/css/app.css")))
                 .andExpect(content().string(containsString("예약 유형을 선택해주세요")))
                 .andExpect(content().string(containsString("시 예약")))
@@ -291,7 +291,7 @@ class PrototypeShellRenderingTest {
                         .param("checkIn", "2026-08-20T15:00")
                         .param("checkOut", "2026-08-20T21:00"))
                 .andExpect(status().isOk())
-                .andExpect(view().name("reservations/booking-request"))
+                .andExpect(view().name("booking-request"))
                 // place 만 다시 담던 시절에는 고를 대상이 사라진 폼이 돌아왔다.
                 .andExpect(content().string(containsString("name=\"petIds\"")))
                 .andExpect(content().string(containsString("초코")))
