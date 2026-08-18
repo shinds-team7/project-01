@@ -1,11 +1,9 @@
 package com.example.petnow.controller;
 
-import com.example.petnow.common.constant.SessionConst;
+import com.example.petnow.common.argument.LoginUser;
 import com.example.petnow.entity.ReservationStatus;
 import com.example.petnow.service.HostService;
 import com.example.petnow.service.ReservationService;
-
-import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -26,14 +24,10 @@ public class HostController {
     TODO: else if 분기문에 Review에 대한 model값을 채워주세요
      */
     @GetMapping
-    public String dashboard(@RequestParam(defaultValue = "places") String tab,
+    public String dashboard(@LoginUser Long loginUserId,
+                            @RequestParam(defaultValue = "places") String tab,
                             @RequestParam(required = false) ReservationStatus status,
-                            Model model,
-                            HttpSession session) {
-        Long loginUserId = (Long) session.getAttribute(SessionConst.LOGIN_USER_ID);
-        if (loginUserId == null) {
-            return "redirect:/";
-        }
+                            Model model) {
 
         if (!tab.equals("booking") && !tab.equals("reviews") && !tab.equals("places")) {
             tab = "places";

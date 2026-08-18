@@ -26,7 +26,10 @@
                         <span class="profile-copy"><small>반가워요</small><strong
                                 th:text="|${session.loginUser.nickname} 보호자님|">초코 보호자님</strong></span>
                     </a>
-                    <a class="auth-link" th:href="@{/auth/logout}">로그아웃</a>
+                    <!--/* 로그아웃은 상태를 바꾸는 요청이라 링크가 아니라 POST 폼으로 보낸다. */-->
+                    <form class="auth-logout" th:action="@{/auth/logout}" method="post">
+                        <button class="auth-link" type="submit">로그아웃</button>
+                    </form>
                 </span>
                 <span class="home-hero-actions" th:if="${session.loginUser == null}">
                     <a class="auth-link" th:href="@{/auth/login}">로그인</a>

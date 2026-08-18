@@ -184,11 +184,22 @@ class AuthControllerTest {
     void logoutInvalidatesSession() throws Exception {
         MockHttpSession session = loggedInSession();
 
-        mockMvc.perform(get("/auth/logout").session(session))
+        mockMvc.perform(post("/auth/logout").session(session))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/home"));
 
         assertThat(session.isInvalid()).isTrue();
+    }
+
+    @Test
+    @DisplayName("로그아웃은 GET 으로는 되지 않는다 — 이미지 태그나 프리페치로 세션이 끊기면 안 된다")
+    void logoutRejectsGet() throws Exception {
+        MockHttpSession session = loggedInSession();
+
+        mockMvc.perform(get("/auth/logout").session(session))
+                .andExpect(status().isMethodNotAllowed());
+
+        assertThat(session.isInvalid()).isFalse();
     }
 
     @Test

@@ -1192,6 +1192,12 @@ textarea.control {
     white-space: nowrap;
 }
 
+/* 로그아웃은 POST 라 form 으로 감싼다. form 이 히어로 액션 줄의 정렬을 깨지 않도록 레이아웃에서 빼고
+   버튼만 남긴다. 버튼 모양은 위의 .home-hero-actions button 리셋 + .auth-link 이 이미 맞춰 준다. */
+.home-hero-actions .auth-logout {
+    display: contents;
+}
+
 .home-hero-actions .auth-link-primary {
     padding: 7px 14px;
     border-radius: var(--r-pill);
