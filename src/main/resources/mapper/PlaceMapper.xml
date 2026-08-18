@@ -130,4 +130,16 @@
         WHERE id = #{placeId}
         AND deleted_at IS NULL
     </update>
+    <update id="updateAvgRating">
+        UPDATE places p
+        SET p.average_rating = (
+        SELECT COALESCE(AVG(rv.rating), 0)
+        FROM reviews rv
+        JOIN reservations rs ON rs.id = rv.reservation_id
+        WHERE rs.place_id = p.id
+        AND rv.deleted_at IS NULL
+        )
+        WHERE p.id = #{placeId}
+        AND p.deleted_at IS NULL
+    </update>
 </mapper>

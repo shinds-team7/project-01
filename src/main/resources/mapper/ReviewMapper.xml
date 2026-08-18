@@ -63,4 +63,10 @@
         ORDER BY r.created_at DESC
     </select>
 
+    <select id="findPlaceIdByReservationId" resultType="Long">
+        SELECT place_id
+        FROM reservations
+        WHERE id = #{reservationId}
+    </select>
+
 </mapper>
