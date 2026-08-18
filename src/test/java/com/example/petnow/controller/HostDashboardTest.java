@@ -4,6 +4,7 @@ import com.example.petnow.common.constant.SessionConst;
 import com.example.petnow.dto.response.HostPlaceListResponse;
 import com.example.petnow.entity.PlaceStatus;
 import com.example.petnow.service.HostService;
+import com.example.petnow.service.ReservationService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +32,9 @@ class HostDashboardTest {
     @MockitoBean
     private HostService hostService;
 
+    @MockitoBean
+    private ReservationService reservationService;
+
     @Test
     @DisplayName("장소 카드가 게시글 상세로 가는 링크를 갖는다")
     void placeCardLinksToPlaceDetail() throws Exception {
@@ -51,6 +55,8 @@ class HostDashboardTest {
         mockMvc.perform(get("/host").session(loggedIn()))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("일정 관리 및 수정")))
+                .andExpect(content().string(containsString("예약 가능 시간 관리")))
+                .andExpect(content().string(containsString("/host/places/3/availability")))
                 .andExpect(content().string(containsString("리뷰 관리")))
                 .andExpect(content().string(containsString("/reviews/place/3")))
                 .andExpect(content().string(containsString("btn btn-danger btn-icon\" type=\"button\" disabled")))

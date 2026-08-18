@@ -10,7 +10,12 @@
         <h1>반려동물 정보 수정</h1>
     </div>
 
-    <form class="pet-editor" th:action="@{/pet/update}" method="post">
+    <!--/*
+      파일을 보내려면 enctype 이 반드시 multipart/form-data 여야 한다.
+      빠뜨리면 파일이 아니라 파일명 문자열만 넘어간다 (docs/CONVENTIONS.md §9.2).
+    */-->
+    <form class="pet-editor" th:action="@{/pet/update}" method="post"
+          enctype="multipart/form-data">
         <input type="hidden" name="petId" th:value="${petId}">
 
         <section class="pet-editor-intro is-edit" aria-labelledby="pet-update-title">
@@ -26,6 +31,48 @@
         </section>
 
         <div class="pet-editor-fields">
+            <!--/*
+              사진 1장 (ImageCategory.PET 의 maxCount).
+
+              th:field 를 쓰지 않는 이유는 pet-form.html 과 같다. PetUpdateRequest 에
+              MultipartFile image 가 추가되면 name 바인딩이 그대로 동작한다.
+
+              현재 사진은 ${petPhotoUrl} 로 그린다. ${pet.photoUrl} 처럼 객체 프로퍼티로
+              읽으면 Pet 에 그 필드가 생기기 전까지 이 화면이 예외로 죽는다. 모델에 없는
+              변수는 null 로 평가될 뿐이라 아래 th:if 는 지금도 안전하게 넘어간다.
+              → 서버 작업자는 pet_photos 에서 찾은 URL 을 petPhotoUrl 로 넣어주면 된다.
+
+              수정 정책은 단일이므로 '교체' 다 (#228). 파일을 고르지 않으면 기존 사진을
+              그대로 두고, 새로 고르면 예전 URL 을 deleteImage 로 정리한다.
+            */-->
+            <div class="field">
+                <label class="field-label" for="update-image">사진 <span class="opt">선택</span></label>
+
+                <!--/*
+                  현재 사진. 공통 스크립트가 건드리는 것은 [data-image-upload] 안쪽뿐이므로
+                  이 목록은 밖에 둔다. 안에 두면 초기 render() 가 지워 버린다.
+                  새 클래스를 만들지 않고 image-upload.css 의 썸네일 스타일을 그대로 쓴다.
+                */-->
+                <ul class="image-upload-list" th:if="${petPhotoUrl != null}">
+                    <li class="image-upload-item">
+                        <img th:src="${petPhotoUrl}" alt="현재 등록된 사진">
+                    </li>
+                </ul>
+
+                <div class="image-upload" data-image-upload data-max-files="1" data-max-size-mb="5">
+                    <input class="image-upload-input" type="file" id="update-image" name="image"
+                           accept="image/jpeg,image/png,image/webp" data-image-upload-input>
+                    <label class="image-upload-trigger" for="update-image">
+                        <span class="ico" aria-hidden="true">photo_camera</span>
+                        <b data-image-upload-label>사진 추가</b>
+                        <small data-image-upload-guide></small>
+                    </label>
+                    <ul class="image-upload-list" data-image-upload-list></ul>
+                    <p class="image-upload-error" role="alert" data-image-upload-error></p>
+                </div>
+                <p class="field-hint">고르지 않으면 지금 사진을 그대로 둡니다.</p>
+            </div>
+
             <div class="field pet-editor-name">
                 <label for="update-name">이름 <span class="req">필수</span></label>
                 <input class="control" id="update-name" name="name" type="text"
@@ -105,6 +152,13 @@
             </a>
         </div>
     </form>
+
+    <!--/*
+      fragments/base 에는 화면별 스크립트 자리가 없다. <main> 끝에 두면 위 마크업이
+      모두 파싱된 뒤 실행되므로 defer 없이도 안전하다 (auth/login.html 과 같은 방식).
+      스타일시트는 base.html 이 이미 걸어 두었다.
+    */-->
+    <script th:src="@{/js/image-upload.js}"></script>
 </main>
 </body>
 </html>

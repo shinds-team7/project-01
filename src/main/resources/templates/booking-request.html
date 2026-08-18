@@ -8,12 +8,14 @@
 
   ReservationRequest 가 요구하는 값
     placeId  hidden
-    petIds   ${pets} 체크박스. 컨트롤러가 아직 pets 를 모델에 넣지 않는다.
+    petIds   ${pets} 체크박스. 로그인 사용자의 반려동물 목록이다 (#187).
     checkIn / checkOut  datetime-local (ISO_LOCAL_DATE_TIME 으로 그대로 바인딩된다)
     memo     선택
 
-  검증 실패로 되돌아올 때 컨트롤러가 place 를 다시 담아주므로 화면은 그대로 그려진다.
+  검증 실패로 되돌아올 때 컨트롤러가 place 와 pets 를 다시 담아주므로 화면은 그대로 그려진다.
   이때만 모델에 reservationRequest 가 있어 필드 에러를 띄울 수 있다.
+
+  비로그인 사용자는 이 화면에 들어오지 못한다. 컨트롤러가 GET 시점에 redirect:/ 로 보낸다.
 */-->
 <html lang="ko" xmlns:th="http://www.thymeleaf.org"
       th:replace="~{fragments/base :: page('예약 요청', 'none', ~{::main})}">
@@ -88,7 +90,7 @@
             </div>
 
             <!--/*
-              컨트롤러가 pets 를 모델에 담기 전까지는 이 안내가 대신 나온다.
+              등록한 반려동물이 한 마리도 없으면 이 안내가 대신 나온다.
               petIds 는 @NotEmpty 라 선택 없이 보내면 검증에서 막힌다.
             */-->
             <div class="notice" th:unless="${pets != null and !#lists.isEmpty(pets)}">

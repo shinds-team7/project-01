@@ -10,7 +10,12 @@
         <h1>반려동물 등록</h1>
     </div>
 
-    <form class="pet-editor" th:action="@{/pet/create}" method="post">
+    <!--/*
+      파일을 보내려면 enctype 이 반드시 multipart/form-data 여야 한다.
+      빠뜨리면 파일이 아니라 파일명 문자열만 넘어간다 (docs/CONVENTIONS.md §9.2).
+    */-->
+    <form class="pet-editor" th:action="@{/pet/create}" method="post"
+          enctype="multipart/form-data">
         <section class="pet-editor-intro" aria-labelledby="pet-create-title">
             <span class="pet-editor-portrait" aria-hidden="true">
                 <span class="ico is-filled">pets</span>
@@ -24,6 +29,33 @@
         </section>
 
         <div class="pet-editor-fields">
+            <!--/*
+              사진 1장 (ImageCategory.PET 의 maxCount).
+
+              th:field 를 쓰지 않는다. PetCreateRequest 에 아직 파일 필드가 없어서
+              th:field="*{image}" 를 걸면 지금 이 화면이 렌더 단계에서 죽는다.
+              name 기반 바인딩은 DTO 에 MultipartFile image 가 추가되는 순간
+              그대로 동작하므로, 서버 작업이 들어와도 이 마크업은 고칠 필요가 없다.
+
+              data-* 기준값은 서버를 따라간다 (static/js/image-upload.js 주석 참고).
+                data-max-files   ImageCategory.PET.maxCount = 1
+                data-max-size-mb spring.servlet.multipart.max-file-size = 5MB
+            */-->
+            <div class="field">
+                <label class="field-label" for="create-image">사진 <span class="opt">선택</span></label>
+                <div class="image-upload" data-image-upload data-max-files="1" data-max-size-mb="5">
+                    <input class="image-upload-input" type="file" id="create-image" name="image"
+                           accept="image/jpeg,image/png,image/webp" data-image-upload-input>
+                    <label class="image-upload-trigger" for="create-image">
+                        <span class="ico" aria-hidden="true">add_a_photo</span>
+                        <b data-image-upload-label>사진 추가</b>
+                        <small data-image-upload-guide></small>
+                    </label>
+                    <ul class="image-upload-list" data-image-upload-list></ul>
+                    <p class="image-upload-error" role="alert" data-image-upload-error></p>
+                </div>
+            </div>
+
             <div class="field pet-editor-name">
                 <label for="create-name">이름 <span class="req">필수</span></label>
                 <input class="control" id="create-name" name="name" type="text"
@@ -93,6 +125,13 @@
             </div>
         </div>
     </form>
+
+    <!--/*
+      fragments/base 에는 화면별 스크립트 자리가 없다. <main> 끝에 두면 위 마크업이
+      모두 파싱된 뒤 실행되므로 defer 없이도 안전하다 (auth/login.html 과 같은 방식).
+      스타일시트는 base.html 이 이미 걸어 두었다.
+    */-->
+    <script th:src="@{/js/image-upload.js}"></script>
 </main>
 </body>
 </html>

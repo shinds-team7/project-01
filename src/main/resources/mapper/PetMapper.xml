@@ -5,7 +5,11 @@
         "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.example.petnow.mapper.PetMapper">
-    <insert id="insertPet">
+    <!--
+      INSERT 후 pet_photos.pet_id 를 채우려면 방금 만들어진 PK 가 필요하다.
+      useGeneratedKeys 가 없으면 pet.getId() 가 null 로 남아 사진을 저장할 수 없다.
+    -->
+    <insert id="insertPet" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO pets
         (
             user_id,

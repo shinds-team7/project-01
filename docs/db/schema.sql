@@ -49,7 +49,10 @@ CREATE TABLE users (
     created_at        DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at        DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     deleted_at        DATETIME     NULL,
-    CONSTRAINT PK_USERS PRIMARY KEY (id)
+    CONSTRAINT PK_USERS PRIMARY KEY (id),
+    -- 소셜 전용 계정은 email 이 NULL 이다. MySQL/MariaDB 의 UNIQUE 는 NULL 을
+    -- 중복으로 보지 않으므로 그런 계정이 여럿이어도 문제가 없다.
+    CONSTRAINT UK_USERS_EMAIL UNIQUE (email)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------
@@ -130,6 +133,10 @@ CREATE TABLE places (
     hourly_price            DECIMAL(12, 0) NULL,
     nightly_price           DECIMAL(12, 0) NULL,
     average_rating          DECIMAL(3, 2)  NOT NULL DEFAULT 0.00 COMMENT '리뷰 평균 별점(리뷰 없으면 0.00)',
+    supports_hourly         BOOLEAN        NOT NULL DEFAULT TRUE COMMENT '시 예약 지원 여부',
+    supports_package        BOOLEAN        NOT NULL DEFAULT FALSE COMMENT '패키지 예약 지원 여부',
+    package_check_in_time   TIME           NULL COMMENT '패키지 입실 시각(3시간 격자 경계)',
+    package_check_out_time  TIME           NULL COMMENT '패키지 퇴실 시각(3시간 격자 경계)',
     status                  VARCHAR(20)    NOT NULL,
     is_visible              BOOLEAN        NOT NULL DEFAULT TRUE,
     created_at              DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -180,14 +187,18 @@ CREATE TABLE place_availability (
     place_id        BIGINT   NOT NULL,
     start_at        DATETIME NOT NULL,
     end_at          DATETIME NOT NULL,
-    is_available    BOOLEAN  NOT NULL DEFAULT TRUE,
+    status          VARCHAR(20) NOT NULL DEFAULT 'OPEN',
     created_at      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT PK_PLACE_AVAILABILITY PRIMARY KEY (id),
+    CONSTRAINT UK_PLACE_AVAILABILITY_SLOT UNIQUE (place_id, start_at),
     CONSTRAINT FK_PLACE_AVAILABILITY_PLACE FOREIGN KEY (place_id) REFERENCES places (id)
         ON DELETE CASCADE
         ON UPDATE CASCADE
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+
+CREATE INDEX IX_PLACE_AVAILABILITY_LOOKUP
+    ON place_availability (place_id, start_at, status);
 
 CREATE TABLE bookmarks (
     id          BIGINT   NOT NULL AUTO_INCREMENT,
@@ -211,6 +222,7 @@ CREATE TABLE reservations (
     id               BIGINT         NOT NULL AUTO_INCREMENT,
     guest_user_id    BIGINT         NOT NULL,
     place_id         BIGINT         NOT NULL,
+    reservation_no   VARCHAR(30)    NOT NULL COMMENT '예약번호(PN-yyyyMMdd-XXXXXXXX)',
     reservation_type VARCHAR(20)    NOT NULL,
     check_in_at      DATETIME       NOT NULL,
     check_out_at     DATETIME       NOT NULL,
@@ -223,6 +235,7 @@ CREATE TABLE reservations (
     created_at       DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at       DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT PK_RESERVATIONS PRIMARY KEY (id),
+    CONSTRAINT UK_RESERVATIONS_RESERVATION_NO UNIQUE (reservation_no),
     CONSTRAINT FK_RESERVATIONS_GUEST FOREIGN KEY (guest_user_id) REFERENCES users (id)
         ON DELETE RESTRICT
         ON UPDATE CASCADE,

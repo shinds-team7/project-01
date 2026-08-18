@@ -12,8 +12,21 @@
 
     <div class="screen">
         <section class="card card-raised my-account-profile" aria-labelledby="profile-title">
-            <span class="my-account-avatar" aria-hidden="true"
-                  th:text="${#strings.isEmpty(profile.nickname) ? '?' : #strings.substring(profile.nickname, 0, 1)}">보</span>
+            <!--/*
+              프로필 이미지가 있으면 보여주고, 없으면 지금까지처럼 닉네임 첫 글자를 쓴다.
+              이미지가 없는 회원이 대부분이라 기본 처리가 반드시 필요하다 (#232).
+              별도 기본 이미지 파일을 두지 않고 기존 이니셜 아바타를 그대로 폴백으로 쓴다.
+
+              ${profile.profileImageUrl} 이 아니라 별도 모델 속성으로 읽는 이유:
+              MyProfileResponse 의 해당 필드는 지금 주석 처리돼 있어 객체 프로퍼티로
+              접근하면 주석을 풀기 전까지 이 화면이 예외로 죽는다. 모델에 없는 변수는
+              null 로 평가될 뿐이라 이 방식은 지금도 안전하다.
+            */-->
+            <span class="my-account-avatar" aria-hidden="true">
+                <img th:if="${profileImageUrl != null}" th:src="${profileImageUrl}" alt="">
+                <th:block th:if="${profileImageUrl == null}"
+                          th:text="${#strings.isEmpty(profile.nickname) ? '?' : #strings.substring(profile.nickname, 0, 1)}">보</th:block>
+            </span>
             <div>
                 <h2 id="profile-title" th:text="${profile.nickname}">보호자</h2>
                 <p th:text="${profile.email}">guardian@petnow.kr</p>
@@ -34,6 +47,14 @@
                 <strong th:text="${profile.phone} ?: '미등록'">010-0000-0000</strong>
             </div>
         </div>
+
+        <!--/*
+          수정 화면 진입점. GET /my/profile/edit 매핑은 #232 서버 작업에서 붙는다.
+          그때까지 이 링크는 404 다 — 매핑 추가가 #232 의 첫 단계인 이유.
+        */-->
+        <a class="btn btn-ghost btn-block" th:href="@{/my/profile/edit}" style="margin-top:14px">
+            <span class="ico" aria-hidden="true">edit</span> 내 정보 수정
+        </a>
 
         <div class="notice notice-green">
             <span class="ico" aria-hidden="true">verified_user</span>

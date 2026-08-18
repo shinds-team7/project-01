@@ -53,7 +53,14 @@ public class AuthController {
             return "auth/signup";
         }
 
-        authService.signup(userSignupRequest);
+        try {
+            authService.signup(userSignupRequest);
+        } catch (BusinessException e) {
+            // 그대로 던지면 MvcExceptionHandler 가 잡아 error 페이지로 가고 입력이 전부 날아간다.
+            // 원인이 이메일 한 곳이라 global 이 아니라 email 필드 에러로 붙인다 (로그인 쪽과 다른 점).
+            bindingResult.rejectValue("email", "duplicateEmail", e.getMessage());
+            return "auth/signup";
+        }
 
         redirectAttributes.addFlashAttribute("registered", true);   // login.html 의 성공 배너
         return "redirect:/auth/login";

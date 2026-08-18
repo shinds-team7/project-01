@@ -3,6 +3,7 @@ package com.example.petnow.controller;
 import com.example.petnow.common.constant.SessionConst;
 import com.example.petnow.common.controller.HomeController;
 import com.example.petnow.dto.request.UserLoginRequest;
+import com.example.petnow.dto.request.UserSignupRequest;
 import com.example.petnow.dto.response.LoginUser;
 import com.example.petnow.exception.AuthErrorCode;
 import com.example.petnow.exception.BusinessException;
@@ -23,6 +24,7 @@ import static org.hamcrest.Matchers.not;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
+import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.never;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -139,6 +141,25 @@ class AuthControllerTest {
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/auth/login"))
                 .andExpect(flash().attribute("registered", true));
+    }
+
+    @Test
+    @DisplayName("이미 가입된 이메일이면 error 페이지가 아니라 이메일 필드 에러로 그려진다")
+    void duplicateEmailRendersFieldError() throws Exception {
+        willThrow(new BusinessException(AuthErrorCode.DUPLICATE_EMAIL))
+                .given(authService).signup(any(UserSignupRequest.class));
+
+        mockMvc.perform(post("/auth/signup")
+                        .param("email", "choco@petnow.kr")
+                        .param("nickname", "초코")
+                        .param("password", "pw12345678"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("auth/signup"))
+                // 원인이 이메일 한 곳이라 global 이 아니라 필드 에러로 붙는다
+                .andExpect(model().attributeHasFieldErrors("userSignupRequest", "email"))
+                // signup.html 의 th:errors="*{email}" 에 실제로 그려져야 한다
+                .andExpect(content().string(containsString(
+                        AuthErrorCode.DUPLICATE_EMAIL.getDefaultMessage())));
     }
 
     // ───────────────────── 3. 세션 ─────────────────────
