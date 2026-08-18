@@ -140,7 +140,6 @@ public class ReviewController {
      * GET /reviews/{id}/edit
      * -> templates/reviews/edit.html
      */
-    // TO-BE
     @GetMapping("/{reviewId}/edit")
     public String editForm(@PathVariable Long reviewId, Model model, HttpSession session) {
         Long loginUserId = getLoginUserId(session);
@@ -190,7 +189,23 @@ public class ReviewController {
 
         reviewService.updateReview(loginUserId, reviewId, request);
 
-        return "redirect:/reviews/my";     // 테스트용.
+        return "redirect:/reviews/my";
     }
 
+    /**
+     * 리뷰 삭제 처리
+     * POST /reviews/{reviewId}/delete
+     * 성공 시 내 리뷰 목록 페이지로 redirect
+     */
+    @PostMapping("/{reviewId}/delete")
+    public String deleteReview(@PathVariable Long reviewId, HttpSession session) {
+        Long loginUserId = getLoginUserId(session);
+        if (loginUserId == null) {
+            return "redirect:/";
+        }
+
+        reviewService.deleteReview(loginUserId, reviewId);
+
+        return "redirect:/reviews/my";
+    }
 }
