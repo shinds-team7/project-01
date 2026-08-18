@@ -32,6 +32,7 @@ import com.example.petnow.entity.Reservation;
 import com.example.petnow.entity.ReservationStatus;
 import com.example.petnow.entity.ReservationType;
 import com.example.petnow.entity.ReservationUseStatus;
+import com.example.petnow.entity.SlotStatus;
 import com.example.petnow.exception.AuthErrorCode;
 import com.example.petnow.exception.BusinessException;
 import com.example.petnow.exception.PlaceErrorCode;
@@ -157,6 +158,10 @@ public class ReservationServiceImpl implements ReservationService {
             reservationMapper.insertReservationSlots(reservation.getId(), slotIds);
         } catch (DuplicateKeyException e) {
             throw new BusinessException(ReservationErrorCode.SLOT_ALREADY_TAKEN);
+        }
+
+        for (Long slotId : slotIds) {
+            placeAvailabilityMapper.updateSlotStatus(request.getPlaceId(), slotId, SlotStatus.RESERVED);
         }
 
 		reservationMapper.saveReservationPets(reservation.getId(), request.getPetIds());
