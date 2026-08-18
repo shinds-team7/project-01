@@ -1460,6 +1460,27 @@ textarea.control {
     gap: 16px;
 }
 
+.my-profile-link {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    color: inherit;
+}
+
+.my-profile-link:hover,
+.my-profile-link:hover h1 {
+    color: inherit;
+}
+
+.my-profile-chevron {
+    flex: none;
+    margin-left: auto;
+    color: var(--faint);
+    font-size: 20px;
+}
+
 .my-profile-avatar {
     flex: none;
     width: 62px;
