@@ -6,6 +6,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 @Mapper
 public interface ReviewMapper {
@@ -23,7 +24,16 @@ public interface ReviewMapper {
     // 특정 장소의 리뷰 목록 조회 (reservation과 조인)
     List<ReviewResponse> findReviewsByPlaceId(@Param("placeId") Long placeId);
 
-    // 특정 리뷰의 placeId 조회
+    // 특정 예약의 placeId 조회
     Long findPlaceIdByReservationId(@Param("reservationId") Long reservationId);
 
+    // 리뷰 단건 조회 (화면 표시용)
+    Optional<ReviewResponse> findResponseById(@Param("id") Long id);
+
+    int countReviewById(@Param("reviewId") Long reviewId);
+    int countReviewOwnedByMember(@Param("reviewId") Long reviewId, @Param("memberId") Long memberId);
+    Long findPlaceIdByReviewId(@Param("reviewId") Long reviewId);
+
+    // 리뷰 수정
+    void updateReview(@Param("id") Long id, @Param("rating") Integer rating, @Param("content") String content);
 }
