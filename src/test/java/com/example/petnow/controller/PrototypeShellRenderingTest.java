@@ -492,6 +492,26 @@ class PrototypeShellRenderingTest {
     }
 
     /** 슬롯 두 칸(6시간)을 고른 뒤의 확인 단계. 12,000원 × 6시간 = 72,000원. */
+    @Test
+    @DisplayName("가격이 없는 장소는 예약 요청 대신 가격 문의를 안내한다")
+    void bookingRequestDisablesPaymentWhenPriceIsMissing() throws Exception {
+        given(placeMapper.findById(1L)).willReturn(placeEntity());
+        given(petService.getPetList(1L)).willReturn(List.of(pet()));
+        given(reservationService.resolveHourly(eq(1L), any(), any(), any()))
+                .willReturn(confirmStepWithoutPrice());
+
+        mockMvc.perform(get("/reservation/booking-request").session(loggedIn())
+                        .param("placeId", "1")
+                        .param("type", "SAME_DAY")
+                        .param("date", LocalDate.now().plusDays(3).toString())
+                        .param("start", "10")
+                        .param("end", "11"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("가격 문의")))
+                .andExpect(content().string(containsString("type=\"button\" disabled")))
+                .andExpect(content().string(not(containsString("data-pay-open"))));
+    }
+
     private ReservationStepResponse confirmStep() {
         LocalDateTime checkIn = LocalDate.now().plusDays(3).atTime(9, 0);
         return ReservationStepResponse.builder()
@@ -500,6 +520,17 @@ class PrototypeShellRenderingTest {
                 .checkIn(checkIn)
                 .checkOut(checkIn.plusHours(6))
                 .totalPrice(new BigDecimal("72000"))
+                .build();
+    }
+
+    private ReservationStepResponse confirmStepWithoutPrice() {
+        LocalDateTime checkIn = LocalDate.now().plusDays(3).atTime(9, 0);
+        return ReservationStepResponse.builder()
+                .step("confirm")
+                .reservationType(ReservationType.SAME_DAY)
+                .checkIn(checkIn)
+                .checkOut(checkIn.plusHours(6))
+                .totalPrice(null)
                 .build();
     }
 

@@ -78,6 +78,9 @@ public class ReservationServiceImpl implements ReservationService {
 			|| request.getCheckOut().isEqual(request.getCheckIn())) {
 			throw new BusinessException(ReservationErrorCode.INVALID_RESERVATION_PERIOD);
 		}
+		if (request.getCheckIn().isBefore(LocalDateTime.now())) {
+			throw new BusinessException(ReservationErrorCode.RESERVATION_IN_PAST);
+		}
 
 		if (Duration.between(request.getCheckIn(), request.getCheckOut()).toMinutes() < MIN_RESERVATION_MINUTES) {
 			throw new BusinessException(ReservationErrorCode.RESERVATION_TOO_SHORT);

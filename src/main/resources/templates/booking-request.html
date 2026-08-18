@@ -306,7 +306,8 @@
                     <small class="cta-note" th:text="${reservationType.name() == 'SAME_DAY'} ? '시 예약 · 결제 후 호스트 승인' : '패키지 예약 · 결제 후 호스트 승인'">결제 후 호스트 승인</small>
                 </div>
                 <!--/* JS 가 없으면 그대로 예약 요청이 제출된다(목업 결제창만 건너뛴다) */-->
-                <button class="btn btn-toss" type="submit" data-pay-open>결제하기</button>
+                <button class="btn btn-toss" type="submit" data-pay-open th:if="${totalPrice != null}">결제하기</button>
+                <button class="btn btn-toss" type="button" disabled th:unless="${totalPrice != null}">가격 문의</button>
             </div>
         </form>
 
