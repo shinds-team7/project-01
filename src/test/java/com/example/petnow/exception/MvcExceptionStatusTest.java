@@ -1,5 +1,6 @@
 package com.example.petnow.exception;
 
+import com.example.petnow.common.constant.SessionConst;
 import com.example.petnow.controller.PetController;
 import com.example.petnow.controller.PlaceController;
 import com.example.petnow.service.PetService;
@@ -11,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
+import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.server.ResponseStatusException;
@@ -69,7 +71,11 @@ class MvcExceptionStatusTest {
 	void typeMismatch_is400() throws Exception {
 		// GET /pet/detail/{petId} 의 petId 는 Long 이라 "abc" 는 변환에 실패한다.
 		// MethodArgumentTypeMismatchException 은 자기 상태(400)를 아는 ErrorResponse 다.
-		mockMvc.perform(get("/pet/detail/abc"))
+		//
+		// 세션을 함께 보내는 이유: /pet/** 는 로그인 인터셉터가 막는 경로다. 인터셉터는 파라미터
+		// 바인딩보다 먼저 돌기 때문에, 비로그인으로 부르면 400 에 닿기도 전에 로그인 화면으로 튄다.
+		// 여기서 보려는 건 인증이 아니라 타입 변환 실패의 상태 코드다.
+		mockMvc.perform(get("/pet/detail/abc").session(loggedInSession()))
 			.andExpect(status().isBadRequest())
 			.andExpect(view().name("error"))
 			// 예전에는 여기에 reason phrase 인 "Bad Request" 가 그대로 나갔다.
@@ -130,5 +136,11 @@ class MvcExceptionStatusTest {
 		mockMvc.perform(get("/places/1"))
 			.andExpect(status().isInternalServerError())
 			.andExpect(view().name("error"));
+	}
+
+	private MockHttpSession loggedInSession() {
+		MockHttpSession session = new MockHttpSession();
+		session.setAttribute(SessionConst.LOGIN_USER_ID, 1L);
+		return session;
 	}
 }

@@ -173,12 +173,12 @@ class PrototypeShellRenderingTest {
     }
 
     @Test
-    @DisplayName("비로그인 사용자는 예약 요청 화면에 들어가기 전에 홈으로 보내진다")
+    @DisplayName("비로그인 사용자는 예약 요청 화면에 들어가기 전에 로그인 화면으로 보내진다")
     void bookingRequestRedirectsAnonymousUser() throws Exception {
         // 제출 시점에 튕기면 날짜·메모를 다 채운 뒤 입력이 통째로 날아간다.
         mockMvc.perform(get("/reservation/booking-request").param("placeId", "1"))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/"));
+                .andExpect(redirectedUrl("/auth/login"));
     }
 
     @Test
