@@ -362,7 +362,7 @@ public class ReservationServiceImpl implements ReservationService {
         }
 
         List<PlaceSlotResponse> slotsInRange = new ArrayList<>();
-        for (int i=0; i<slots.size(); i++) {
+        for (int i = 0; i < slots.size(); i++) {
             PlaceSlotResponse slot = slots.get(i);
 
             boolean afterOrEqualFrom = !slot.getStartAt().isBefore(from.getStartAt());
@@ -374,8 +374,7 @@ public class ReservationServiceImpl implements ReservationService {
         }
 
         boolean blockedSlot = false;
-
-        for (int i=0; i<slotsInRange.size(); i++) {
+        for (int i = 0; i < slotsInRange.size(); i++) {
             PlaceSlotResponse slot = slotsInRange.get(i);
 
             if (!"OPEN".equals(slot.getStatus())) {
@@ -387,11 +386,13 @@ public class ReservationServiceImpl implements ReservationService {
         if (blockedSlot) {
             return ReservationStepResponse.builder()
                 .step("hourly-slot")
+                .reservationType(ReservationType.SAME_DAY)
                 .slots(slots)
                 .selectedDate(date)
-                .errorMessage("예약 불가한 시간이 포함되어 있습니다.")
+                .errorMessage("선택한 구간에 이미 마감되었거나 예약 불가한 시간이 포함되어 있습니다.")
                 .build();
         }
+
         return ReservationStepResponse.builder()
             .step("confirm")
             .reservationType(ReservationType.SAME_DAY)
@@ -471,24 +472,43 @@ public class ReservationServiceImpl implements ReservationService {
             to = startDay;
         }
 
+        if (from.getDate().isEqual(to.getDate())) {
+            return ReservationStepResponse.builder()
+                .step("package-day")
+                .reservationType(ReservationType.OVERNIGHT)
+                .days(days)
+                .startDay(startDay)
+                .errorMessage("체크아웃 날짜는 체크인 다음 날 이후로 선택해주세요.")
+                .build();
+        }
+
         LocalTime checkInTime = place.getPackageCheckInTime() != null ? place.getPackageCheckInTime() : PlaceAvailabilityServiceImpl.DEFAULT_PACKAGE_CHECK_IN_TIME;
         LocalTime checkOutTime = place.getPackageCheckOutTime() != null ? place.getPackageCheckOutTime() : PlaceAvailabilityServiceImpl.DEFAULT_PACKAGE_CHECK_OUT_TIME;
 
         LocalDateTime checkIn = from.getDate().atTime(checkInTime);
         LocalDateTime checkOut = to.getDate().atTime(checkOutTime);
+
         List<PlaceSlotResponse> actualSlots = placeAvailabilityMapper.findSlotsByPlaceAndPeriod(placeId, checkIn, checkOut);
 
+        long totalHours = Duration.between(checkIn, checkOut).toHours();
+        long expectedSlotCount = totalHours / SLOT_HOURS;
         boolean blockedSlot = false;
-        for (int i=0; i<actualSlots.size(); i++) {
-            if (!"OPEN".equals(actualSlots.get(i).getStatus())) {
-                blockedSlot = true;
-                break;
+
+        if (actualSlots.size() != expectedSlotCount) {
+            blockedSlot = true;
+        } else {
+            for (int i = 0; i < actualSlots.size(); i++) {
+                if (!"OPEN".equals(actualSlots.get(i).getStatus())) {
+                    blockedSlot = true;
+                    break;
+                }
             }
         }
 
         if (blockedSlot) {
             return ReservationStepResponse.builder()
                 .step("package-day")
+                .reservationType(ReservationType.OVERNIGHT)
                 .days(days)
                 .errorMessage("예약 불가한 날짜가 포함되어 있습니다.")
                 .build();
