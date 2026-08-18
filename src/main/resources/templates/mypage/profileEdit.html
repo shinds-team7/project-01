@@ -1,30 +1,5 @@
 <!DOCTYPE html>
-<!--/*
-  내 정보 수정.
-
-  develop 에는 프로필 '조회'(mypage/profile.html) 만 있고 수정 화면이 없었다.
-  #232 는 "프로필 수정 폼에 enctype 을 추가한다" 를 전제로 적혀 있는데 그 폼이
-  실제로는 존재하지 않아, 서버 담당자가 화면부터 만들어야 하는 상태였다.
-  이 화면이 그 자리를 채운다.
-
-  ── 서버 담당자가 붙일 것 (#232) ──────────────────────────────────────
-  MyProfileController (@RequestMapping("/my"))
-
-    @GetMapping("/profile/edit")   → 이 뷰. 모델에 profile, profileImageUrl
-    @PostMapping("/profile/edit")  → 저장 후 redirect:/my/profile (PRG)
-
-  모델 이름
-    profile          MyProfileResponse (nickname · email · phone)
-    profileImageUrl  현재 프로필 이미지 URL, 없으면 넣지 않아도 된다
-
-  profileImageUrl 을 ${profile.profileImageUrl} 이 아니라 별도 모델 속성으로
-  읽는 이유가 있다. MyProfileResponse 의 해당 필드는 지금 주석 처리돼 있어
-  객체 프로퍼티로 접근하면 주석을 풀기 전까지 화면이 예외로 죽는다. 모델에 없는
-  변수는 null 로 평가될 뿐이라 이 방식은 지금도 안전하다.
-
-  같은 이유로 파일 input 에 th:field 를 쓰지 않는다. 요청 DTO 에
-  MultipartFile image 가 추가되면 name 바인딩이 그대로 동작한다.
-*/-->
+<!--/* 내 정보 수정. 파일 input 은 ProfileEditRequest.image 에 name 으로 바인딩한다. */-->
 <html lang="ko" xmlns:th="http://www.thymeleaf.org"
       th:replace="~{fragments/base :: page('내 정보 수정', 'my', ~{::main})}">
 <body>
@@ -40,8 +15,14 @@
       파일을 보내려면 enctype 이 반드시 multipart/form-data 여야 한다.
       빠뜨리면 파일이 아니라 파일명 문자열만 넘어간다 (docs/CONVENTIONS.md §9.2).
     */-->
-    <form th:action="@{/my/profile/edit}" method="post" enctype="multipart/form-data">
+    <form th:action="@{/my/profile/edit}" method="post" enctype="multipart/form-data"
+          th:object="${profileEditRequest}" novalidate>
         <div class="screen">
+            <div class="notice notice-danger" role="alert" th:if="${#fields.hasErrors('global')}">
+                <span class="ico" aria-hidden="true">error</span>
+                <span th:each="err : ${#fields.errors('global')}" th:text="${err}">내 정보를 수정하지 못했습니다.</span>
+            </div>
+
             <!--/*
               프로필 이미지 1장 (ImageCategory.USER 의 maxCount).
 
@@ -78,15 +59,24 @@
 
             <div class="field">
                 <label class="field-label" for="nickname">닉네임 <span class="req">필수</span></label>
-                <input class="control" id="nickname" name="nickname" type="text"
-                       th:value="${profile.nickname}" maxlength="20" autocomplete="nickname" required>
+                <div class="field-inline">
+                    <input class="control" id="nickname" type="text" th:field="*{nickname}"
+                           th:errorclass="has-error" maxlength="20" autocomplete="nickname"
+                           aria-describedby="nickname-error nickname-check-result"
+                           th:aria-invalid="${#fields.hasErrors('nickname')}" required>
+                    <button class="btn btn-ghost" type="button" data-nickname-check>중복 확인</button>
+                </div>
+                <p class="field-error" id="nickname-error" th:errors="*{nickname}"></p>
+                <p class="field-hint" id="nickname-check-result" data-nickname-check-result
+                   role="status" aria-live="polite" hidden></p>
             </div>
 
             <div class="field">
                 <label class="field-label" for="phone">전화번호</label>
-                <input class="control" id="phone" name="phone" type="tel"
-                       th:value="${profile.phone}" maxlength="20" autocomplete="tel"
-                       placeholder="010-0000-0000">
+                <input class="control" id="phone" type="tel" th:field="*{phone}" th:errorclass="has-error"
+                       maxlength="20" autocomplete="tel" placeholder="010-0000-0000"
+                       aria-describedby="phone-error" th:aria-invalid="${#fields.hasErrors('phone')}">
+                <p class="field-error" id="phone-error" th:errors="*{phone}"></p>
             </div>
 
             <!--/* 이메일은 로그인 아이디라 여기서 바꾸지 않는다. 값만 보여준다. */-->
@@ -109,6 +99,7 @@
       스타일시트는 base.html 이 이미 걸어 두었다.
     */-->
     <script th:src="@{/js/image-upload.js}"></script>
+    <script th:src="@{/js/profile.js}"></script>
 </main>
 </body>
 </html>
