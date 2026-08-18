@@ -140,6 +140,7 @@ public class ReviewController {
      * GET /reviews/{id}/edit
      * -> templates/reviews/edit.html
      */
+    // TO-BE
     @GetMapping("/{reviewId}/edit")
     public String editForm(@PathVariable Long reviewId, Model model, HttpSession session) {
         Long loginUserId = getLoginUserId(session);
@@ -148,7 +149,17 @@ public class ReviewController {
         }
 
         ReviewResponse review = reviewService.getReview(loginUserId, reviewId);
-        model.addAttribute("review", review);
+
+        // 폼 바인딩용 객체를 기존 값으로 채워서 넘긴다 (create 화면과 동일하게 "form")
+        ReviewUpdateRequest form = new ReviewUpdateRequest();
+        form.setRating(review.getRating());
+        form.setContent(review.getContent());
+        model.addAttribute("form", form);
+
+        // 상단 요약 카드용 (create 화면과 같은 키를 쓴다)
+        model.addAttribute("reviewId", reviewId);
+        model.addAttribute("placeName", review.getPlaceName());
+        model.addAttribute("checkInAt", review.getCheckInAt());
 
         return "reviews/edit";
     }
@@ -170,7 +181,10 @@ public class ReviewController {
         }
 
         if (bindingResult.hasErrors()) {
-            model.addAttribute("review", request);
+            ReviewResponse review = reviewService.getReview(loginUserId, reviewId);
+            model.addAttribute("reviewId", reviewId);
+            model.addAttribute("placeName", review.getPlaceName());
+            model.addAttribute("checkInAt", review.getCheckInAt());
             return "reviews/edit";     // 테스트용.
         }
 
