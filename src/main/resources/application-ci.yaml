@@ -1,0 +1,23 @@
+# GitHub Actions CI 전용 프로필.
+#
+# application-local.yaml 은 개인 DB 계정이 들어가 .gitignore 대상이라
+# 러너에는 존재하지 않는다. 그래서 local 프로필로는 @SpringBootTest 가
+# datasource 를 못 찾고 컨텍스트 로딩부터 실패한다.
+# 이 파일은 ci.yml 이 띄우는 MariaDB service container 를 가리킨다.
+#
+# 여기 계정은 러너 안에서만 살아있다 사라지는 컨테이너용이라 공개되어도 무방하다.
+# ci.yml 의 service 정의와 값이 같아야 한다.
+spring:
+  datasource:
+    driver-class-name: org.mariadb.jdbc.Driver
+    url: jdbc:mariadb://127.0.0.1:3306/petnow
+    username: petnow
+    password: petnow1234
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 1
+
+logging:
+  level:
+    root: warn
+    com.example.petnow: info
