@@ -23,4 +23,10 @@ public interface ReviewMapper {
     // 특정 장소의 리뷰 목록 조회 (reservation과 조인)
     List<ReviewResponse> findReviewsByPlaceId(@Param("placeId") Long placeId);
 
+    // 특정 리뷰의 placeId 조회
+    Long findPlaceIdByReservationId(@Param("reservationId") Long reservationId);
+
+    // 평균 별점 계산
+    Double selectAvgRatingByPlaceId(@Param("placeId") Long placeId);
+
 }

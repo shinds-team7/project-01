@@ -19,9 +19,12 @@ public interface PlaceMapper {
 
     PlaceDetailResponse findDetailById(Long placeId);
 
+    void updateAvgRating(@Param("placeId") Long placeId, @Param("avgRating") Double avgRating);
     int updateOperatingPolicy(@Param("placeId") Long placeId,
                               @Param("supportsHourly") boolean supportsHourly,
                               @Param("supportsPackage") boolean supportsPackage,
                               @Param("packageCheckInTime") LocalTime packageCheckInTime,
                               @Param("packageCheckOutTime") LocalTime packageCheckOutTime);
+
+    void lockPlaceForUpdate(Long placeId);
 }
