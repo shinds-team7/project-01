@@ -1,6 +1,6 @@
 package com.example.petnow.controller;
 
-import com.example.petnow.common.constant.SessionConst;
+import com.example.petnow.common.argument.LoginUser;
 import com.example.petnow.common.session.LoginSession;
 import com.example.petnow.dto.response.MyProfileResponse;
 import com.example.petnow.service.MyProfileService;
@@ -21,14 +21,9 @@ public class MyProfileController {
 
     @GetMapping("/profile")
     // 프로필 상세 조회
-    public String getProfile(HttpSession session, Model model) {
-        Long userId = (Long) session.getAttribute(SessionConst.LOGIN_USER_ID);
+    public String getProfile(@LoginUser Long loginUserId, Model model) {
 
-        if(userId == null) {
-            return "redirect:/auth/login";
-        }
-
-        MyProfileResponse profile = myProfileService.getProfile(userId);
+        MyProfileResponse profile = myProfileService.getProfile(loginUserId);
 
         model.addAttribute("profile", profile);
 
@@ -38,15 +33,9 @@ public class MyProfileController {
 
     // 회원탈퇴 , 페이지 생성 후 버튼, form 연결 필요
     @PostMapping("/withdraw")
-    public String withdraw(HttpSession session) {
+    public String withdraw(@LoginUser Long loginUserId, HttpSession session) {
 
-        Long userId = (Long) session.getAttribute(SessionConst.LOGIN_USER_ID);
-
-        if (userId == null) {
-            return "redirect:/auth/login";
-        }
-
-        myProfileService.withdraw(userId);
+        myProfileService.withdraw(loginUserId);
 
         LoginSession.clear(session);
 

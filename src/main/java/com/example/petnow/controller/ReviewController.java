@@ -1,12 +1,11 @@
 package com.example.petnow.controller;
 
-import com.example.petnow.common.constant.SessionConst;
+import com.example.petnow.common.argument.LoginUser;
 import com.example.petnow.dto.request.ReviewCreateRequest;
 import com.example.petnow.dto.response.ReservationDetailResponse;
 import com.example.petnow.dto.response.ReviewResponse;
 import com.example.petnow.service.ReservationService;
 import com.example.petnow.service.ReviewService;
-import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
@@ -28,13 +27,6 @@ public class ReviewController {
 
     private final ReviewService reviewService;
     private final ReservationService reservationService;
-
-    /**
-     * 세션에서 로그인 유저 id를 꺼내오는 헬퍼.
-     */
-    private Long getLoginUserId(HttpSession session) {
-        return (Long) session.getAttribute(SessionConst.LOGIN_USER_ID);
-    }
 
     /**
      * 작성 폼 상단 요약 카드(장소명 · 체크인 날짜)를 모델에 채운다.
@@ -62,11 +54,7 @@ public class ReviewController {
      * -> templates/reviews/form.html
      */
     @GetMapping("/new")
-    public String reviewForm(@RequestParam Long reservationId, Model model,  HttpSession session) {
-        Long loginUserId = getLoginUserId(session);
-        if (loginUserId == null) {
-            return "redirect:/";
-        }
+    public String reviewForm(@RequestParam Long reservationId, Model model, @LoginUser Long loginUserId) {
 
         ReviewCreateRequest form = new ReviewCreateRequest();
         form.setReservationId(reservationId);
@@ -83,14 +71,10 @@ public class ReviewController {
      * 성공 시 내 리뷰 목록 페이지로 redirect
      */
     @PostMapping
-    public String createReview(@ModelAttribute("form") @Valid ReviewCreateRequest request,
+    public String createReview(@LoginUser Long loginUserId,
+                               @ModelAttribute("form") @Valid ReviewCreateRequest request,
                                BindingResult bindingResult,
-                               Model model,
-                               HttpSession session) {
-        Long loginUserId = getLoginUserId(session);
-        if (loginUserId == null) {
-            return "redirect:/";
-        }
+                               Model model) {
 
         if (bindingResult.hasErrors()) {
             addReservationSummary(model, request.getReservationId(), loginUserId);
@@ -109,11 +93,7 @@ public class ReviewController {
      * -> templates/review/my-list.html
      */
     @GetMapping("/my")
-    public String myReviews(Model model, HttpSession session) {
-        Long loginUserId = getLoginUserId(session);
-        if (loginUserId == null) {
-            return "redirect:/";
-        }
+    public String myReviews(Model model, @LoginUser Long loginUserId) {
 
         List<ReviewResponse> reviews = reviewService.getMyReviews(loginUserId);
         model.addAttribute("reviews", reviews);
