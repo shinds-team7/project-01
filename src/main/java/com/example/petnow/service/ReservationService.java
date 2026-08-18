@@ -1,11 +1,13 @@
 package com.example.petnow.service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import com.example.petnow.dto.request.ReservationRequest;
 import com.example.petnow.dto.response.ReservationListResponse;
 import com.example.petnow.dto.response.ReservationStepResponse;
 import com.example.petnow.entity.ReservationStatus;
+import com.example.petnow.entity.ReservationType;
 import com.example.petnow.entity.ReservationUseStatus;
 import com.example.petnow.dto.response.ReservationDetailResponse;
 
@@ -25,6 +27,8 @@ public interface ReservationService {
 	List<ReservationListResponse> getReservationByHost(Long loginUserId, ReservationStatus status);
 
     ReservationStepResponse resolveHourly(Long placeId, String date, Long start, Long end);
+
+    ReservationStepResponse resolveConfirm(Long placeId, ReservationType reservationType, LocalDateTime checkIn, LocalDateTime checkOut);
 
     ReservationStepResponse resolvePackage(Long placeId, String startDate, String endDate);
 }

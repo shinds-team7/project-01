@@ -1,5 +1,6 @@
 package com.example.petnow.dto.response;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -21,4 +22,6 @@ public class ReservationStepResponse {
     private String errorMessage;
     private LocalDateTime checkIn;
     private LocalDateTime checkOut;
+    /** 확인 단계에서 결제 금액을 미리 보여주기 위한 값. 가격이 설정되지 않은 장소면 null 이다. */
+    private BigDecimal totalPrice;
 }

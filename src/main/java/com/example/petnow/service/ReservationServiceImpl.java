@@ -279,10 +279,20 @@ public class ReservationServiceImpl implements ReservationService {
 
     @Override
     public ReservationStepResponse resolveHourly(Long placeId, String date, Long start, Long end) {
+        Place place = placeMapper.findById(placeId);
+        if (place == null) {
+            throw new BusinessException(PlaceErrorCode.PLACE_NOT_FOUND);
+        }
+
+        // 날짜 필터 없이 들어온 사용자(예: 내 주변 → 장소 상세 → 요청)는 어떤 날짜에 슬롯이 열려
+        // 있는지 모른다. 고를 수 있는 날짜를 항상 함께 내려서 화면이 불가 날짜를 막게 한다.
+        List<PackageDayResponse> days = buildDays(placeId, false);
+
         if (date == null || date.trim().isEmpty()) {
             return ReservationStepResponse.builder()
                 .reservationType(ReservationType.SAME_DAY)
                 .step("hourly-date")
+                .days(days)
                 .build();
         }
         LocalDate localDate = LocalDate.parse(date);
@@ -295,6 +305,7 @@ public class ReservationServiceImpl implements ReservationService {
                 .reservationType(ReservationType.SAME_DAY)
                 .step("hourly-slot")
                 .slots(slots)
+                .days(days)
                 .selectedDate(date)
                 .build();
         }
@@ -306,13 +317,30 @@ public class ReservationServiceImpl implements ReservationService {
                 .reservationType(ReservationType.SAME_DAY)
                 .step("hourly-slot")
                 .slots(slots)
+                .days(days)
                 .startSlot(startSlot)
                 .selectedDate(date)
                 .build();
         }
 
         PlaceSlotResponse endSlot = findSlot(slots, end);
-        return validateAndBuildRange(slots, startSlot, endSlot, date);
+        return validateAndBuildRange(place, slots, days, startSlot, endSlot, date);
+    }
+
+    @Override
+    public ReservationStepResponse resolveConfirm(Long placeId, ReservationType reservationType, LocalDateTime checkIn, LocalDateTime checkOut) {
+        Place place = placeMapper.findById(placeId);
+        if (place == null) {
+            throw new BusinessException(PlaceErrorCode.PLACE_NOT_FOUND);
+        }
+
+        return ReservationStepResponse.builder()
+            .step("confirm")
+            .reservationType(reservationType)
+            .checkIn(checkIn)
+            .checkOut(checkOut)
+            .totalPrice(previewTotalPrice(place, reservationType, checkIn, checkOut))
+            .build();
     }
 
     @Override
@@ -321,7 +349,7 @@ public class ReservationServiceImpl implements ReservationService {
         if (place == null) {
             throw new BusinessException(PlaceErrorCode.PLACE_NOT_FOUND);
         }
-        List<PackageDayResponse> days = buildPackageDays(placeId);
+        List<PackageDayResponse> days = buildDays(placeId, true);
 
         if (startDate == null || startDate.trim().isEmpty()) {
             return ReservationStepResponse.builder()
@@ -351,7 +379,7 @@ public class ReservationServiceImpl implements ReservationService {
             .orElseThrow(() -> new BusinessException(ReservationErrorCode.SLOT_NOT_AVAILABLE));
     }
 
-    private ReservationStepResponse validateAndBuildRange(List<PlaceSlotResponse> slots, PlaceSlotResponse startSlot, PlaceSlotResponse endSlot, String date) {
+    private ReservationStepResponse validateAndBuildRange(Place place, List<PlaceSlotResponse> slots, List<PackageDayResponse> days, PlaceSlotResponse startSlot, PlaceSlotResponse endSlot, String date) {
         PlaceSlotResponse from;
         PlaceSlotResponse to;
 
@@ -390,6 +418,7 @@ public class ReservationServiceImpl implements ReservationService {
                 .step("hourly-slot")
                 .reservationType(ReservationType.SAME_DAY)
                 .slots(slots)
+                .days(days)
                 .selectedDate(date)
                 .errorMessage("선택한 구간에 이미 마감되었거나 예약 불가한 시간이 포함되어 있습니다.")
                 .build();
@@ -400,10 +429,17 @@ public class ReservationServiceImpl implements ReservationService {
             .reservationType(ReservationType.SAME_DAY)
             .checkIn(from.getStartAt())
             .checkOut(to.getEndAt())
+            .totalPrice(previewTotalPrice(place, ReservationType.SAME_DAY, from.getStartAt(), to.getEndAt()))
             .build();
     }
 
-    private List<PackageDayResponse> buildPackageDays(Long placeId) {
+    /**
+     * 고를 수 있는 날짜 목록을 만든다.
+     *
+     * <p>{@code requireAllOpen} 이 true 면 그날 슬롯이 전부 OPEN 이어야 고를 수 있다(패키지 예약).
+     * false 면 OPEN 슬롯이 하나라도 있으면 고를 수 있다(시 예약). 지난 날짜는 어느 쪽이든 막는다.
+     */
+    private List<PackageDayResponse> buildDays(Long placeId, boolean requireAllOpen) {
         PlaceSlotPeriodResponse period = placeAvailabilityMapper.findSlotPeriodByPlaceId(placeId);
         if (period == null || period.getFromDate() == null || period.getToDate() == null) {
             return Collections.emptyList();
@@ -429,22 +465,27 @@ public class ReservationServiceImpl implements ReservationService {
         List<PackageDayResponse> days = new ArrayList<>();
         List<LocalDate> sortedDates = new ArrayList<>(slotsByDate.keySet());
         Collections.sort(sortedDates);
+        LocalDate today = LocalDate.now();
 
         for (int i=0; i<sortedDates.size(); i++) {
             LocalDate date = sortedDates.get(i);
             List<PlaceSlotResponse> daySlots = slotsByDate.get(date);
 
             boolean allOpen = true;
+            boolean anyOpen = false;
             for (int j=0; j<daySlots.size(); j++) {
-                if (!"OPEN".equals(daySlots.get(j).getStatus())) {
+                if ("OPEN".equals(daySlots.get(j).getStatus())) {
+                    anyOpen = true;
+                } else {
                     allOpen = false;
-                    break;
                 }
             }
 
+            boolean selectable = (requireAllOpen ? allOpen : anyOpen) && !date.isBefore(today);
+
             days.add(PackageDayResponse.builder()
                 .date(date)
-                .selectable(allOpen)
+                .selectable(selectable)
                 .build());
         }
 
@@ -521,7 +562,25 @@ public class ReservationServiceImpl implements ReservationService {
             .reservationType(ReservationType.OVERNIGHT)
             .checkIn(checkIn)
             .checkOut(checkOut)
+            .totalPrice(previewTotalPrice(place, ReservationType.OVERNIGHT, checkIn, checkOut))
             .build();
+    }
+
+    /**
+     * 확인 화면에 미리 보여줄 결제 금액. 가격이 설정되지 않은 장소면 예외 대신 null 을 준다.
+     *
+     * <p>{@link #calculateTotalPrice} 는 예약 저장 경로라 가격이 없으면 막아야 하지만,
+     * 화면은 "가격 문의"로 그려주면 되는 자리다.
+     */
+    private BigDecimal previewTotalPrice(Place place, ReservationType reservationType, LocalDateTime checkIn, LocalDateTime checkOut) {
+        boolean priceMissing = (reservationType == ReservationType.SAME_DAY)
+            ? place.getHourlyPrice() == null
+            : place.getNightlyPrice() == null;
+
+        if (priceMissing) {
+            return null;
+        }
+        return calculateTotalPrice(place, reservationType, checkIn, checkOut);
     }
 
 	private BigDecimal calculateTotalPrice(Place place, ReservationType reservationType, LocalDateTime checkIn, LocalDateTime checkOut) {
