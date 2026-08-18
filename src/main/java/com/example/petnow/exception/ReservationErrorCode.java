@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum ReservationErrorCode implements ErrorCode {
 
+    SLOT_ALREADY_TAKEN(HttpStatus.CONFLICT, "SLOT_ALREADY_TAKEN", "다른 사용자가 먼저 예약한 시간이 있습니다. 다시 선택해주세요."),
 	SLOT_NOT_AVAILABLE(HttpStatus.BAD_REQUEST, "SLOT_NOT_AVAILABLE", "선택한 시간은 예약할 수 없습니다."),
 	UNSUPPORTED_RESERVATION_TYPE(HttpStatus.BAD_REQUEST, "UNSUPPORTED_RESERVATION_TYPE", "이 장소가 지원하지 않는 예약 유형입니다."),
 	INVALID_PACKAGE_TIME(HttpStatus.BAD_REQUEST, "INVALID_PACKAGE_TIME", "패키지 예약의 입실/퇴실 시각이 올바르지 않습니다."),
