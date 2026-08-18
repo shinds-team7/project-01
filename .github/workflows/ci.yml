@@ -1,0 +1,62 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [develop, main]
+  push:
+    branches: [develop]
+
+# 같은 PR 에 연속으로 push 하면 이전 실행은 취소한다.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Build & Test
+    runs-on: ubuntu-latest
+
+    services:
+      # @SpringBootTest 가 Flyway 마이그레이션까지 태우므로 진짜 MariaDB 가 필요하다.
+      # 값은 application-ci.yaml 과 반드시 일치해야 한다.
+      mariadb:
+        image: mariadb:11
+        env:
+          MARIADB_DATABASE: petnow
+          MARIADB_USER: petnow
+          MARIADB_PASSWORD: petnow1234
+          MARIADB_ROOT_PASSWORD: root1234
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+          --health-start-period=30s
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Test
+        run: ./gradlew test --no-daemon
+        env:
+          SPRING_PROFILES_ACTIVE: ci
+
+      # 실패했을 때 어떤 테스트가 왜 깨졌는지 보려면 리포트가 있어야 한다.
+      - name: Upload test report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-report
+          path: build/reports/tests/test
+          retention-days: 7
