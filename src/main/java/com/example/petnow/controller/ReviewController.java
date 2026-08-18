@@ -122,11 +122,7 @@ public class ReviewController {
      */
     // TO-BE
     @GetMapping("/{reviewId}/edit")
-    public String editForm(@PathVariable Long reviewId, Model model, HttpSession session) {
-        Long loginUserId = getLoginUserId(session);
-        if (loginUserId == null) {
-            return "redirect:/";
-        }
+    public String editForm(@PathVariable Long reviewId, Model model, @LoginUser Long loginUserId) {
 
         ReviewResponse review = reviewService.getReview(loginUserId, reviewId);
 
@@ -154,11 +150,7 @@ public class ReviewController {
                                @ModelAttribute("form") @Valid ReviewUpdateRequest request,
                                BindingResult bindingResult,
                                Model model,
-                               HttpSession session) {
-        Long loginUserId = getLoginUserId(session);
-        if (loginUserId == null) {
-            return "redirect:/";
-        }
+                               @LoginUser Long loginUserId) {
 
         if (bindingResult.hasErrors()) {
             ReviewResponse review = reviewService.getReview(loginUserId, reviewId);
