@@ -69,4 +69,51 @@
         WHERE id = #{reservationId}
     </select>
 
+    <select id="findResponseById" resultType="com.example.petnow.dto.response.ReviewResponse">
+        SELECT
+            r.id,
+            r.reservation_id AS reservationId,
+            res.guest_user_id AS memberId,
+            res.place_id AS placeId,
+            p.name AS placeName,
+            res.check_in_at AS checkInAt,
+            r.content,
+            r.rating
+        FROM reviews r
+        JOIN reservations res
+            ON r.reservation_id = res.id
+        JOIN places p
+            ON res.place_id = p.id
+        WHERE r.id = #{id}
+    </select>
+
+    <select id="countReviewById" resultType="int">
+        SELECT COUNT(*)
+        FROM reviews
+        WHERE id = #{reviewId}
+    </select>
+
+    <select id="countReviewOwnedByMember" resultType="int">
+        SELECT COUNT(*)
+        FROM reviews r
+        JOIN reservations res ON r.reservation_id = res.id
+        WHERE r.id = #{reviewId}
+        AND res.guest_user_id = #{memberId}
+    </select>
+
+    <select id="findPlaceIdByReviewId" resultType="Long">
+        SELECT res.place_id
+        FROM reviews r
+        JOIN reservations res ON r.reservation_id = res.id
+        WHERE r.id = #{reviewId}
+    </select>
+
+    <update id="updateReview">
+        UPDATE reviews
+        SET
+            rating = #{rating},
+            content = #{content}
+        WHERE id = #{id}
+    </update>
+
 </mapper>

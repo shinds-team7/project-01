@@ -923,6 +923,24 @@ textarea.control {
     box-shadow: 0 0 0 3px rgba(34, 164, 92, 0.2);
 }
 
+.field-inline {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.field-inline .control {
+    flex: 1;
+    min-width: 0;
+}
+
+.field-inline .btn {
+    flex: none;
+    height: 48px;
+    padding: 0 14px;
+    font-size: 13px;
+}
+
 /* ───────────────────────── 바텀시트/모달 ───────────────────────── */
 .sheet {
     position: fixed;

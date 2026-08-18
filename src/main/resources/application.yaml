@@ -35,6 +35,9 @@ server:
     max-swallow-size: 55MB
 
 app:
+  # 카카오톡 등 외부 크롤러에 노출할 운영 주소. 예: https://petnow.example.com
+  # 비워 두면 현재 요청 주소를 사용한다.
+  public-url: ${APP_PUBLIC_URL:}
   storage:
     local:
       # local 프로필에서 이미지를 저장할 디렉터리. Git 에 올라가지 않는다.
