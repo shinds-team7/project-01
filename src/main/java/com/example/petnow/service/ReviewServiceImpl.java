@@ -62,7 +62,7 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     // 리뷰 단건 조회 (수정 폼 화면 용)
-    public ReviewResponse getReview(Long reviewId, Long memberId) {
+    public ReviewResponse getReview(Long memberId, Long reviewId) {
         ReviewResponse response = reviewMapper.findResponseById(reviewId)
             .orElseThrow(() -> new BusinessException(ReviewErrorCode.REVIEW_NOT_FOUND));
 

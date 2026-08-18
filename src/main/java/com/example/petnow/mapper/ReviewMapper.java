@@ -28,12 +28,12 @@ public interface ReviewMapper {
     Long findPlaceIdByReservationId(@Param("reservationId") Long reservationId);
 
     // 리뷰 단건 조회 (화면 표시용)
-    Optional<ReviewResponse> findResponseById(@Param("id") Long id);
+    Optional<ReviewResponse> findResponseById(@Param("reviewId") Long reviewId);
 
     int countReviewById(@Param("reviewId") Long reviewId);
-    int countReviewOwnedByMember(@Param("reviewId") Long reviewId, @Param("memberId") Long memberId);
+    int countReviewOwnedByMember(@Param("memberId") Long memberId, @Param("reviewId") Long reviewId);
     Long findPlaceIdByReviewId(@Param("reviewId") Long reviewId);
 
     // 리뷰 수정
-    void updateReview(@Param("id") Long id, @Param("rating") Integer rating, @Param("content") String content);
+    void updateReview(@Param("reviewId") Long reviewId, @Param("rating") Integer rating, @Param("content") String content);
 }
