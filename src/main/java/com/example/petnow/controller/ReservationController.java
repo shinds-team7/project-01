@@ -1,5 +1,6 @@
 package com.example.petnow.controller;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.stereotype.Controller;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.support.StandardServletMultipartResolver;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.example.petnow.common.constant.SessionConst;
@@ -19,6 +21,7 @@ import com.example.petnow.dto.request.ReservationRequest;
 
 import com.example.petnow.dto.response.ReservationDetailResponse;
 import com.example.petnow.dto.response.ReservationListResponse;
+import com.example.petnow.dto.response.ReservationStepResponse;
 import com.example.petnow.entity.Place;
 import com.example.petnow.exception.BusinessException;
 import com.example.petnow.exception.PlaceErrorCode;
@@ -36,11 +39,11 @@ public class ReservationController {
 	private final PlaceMapper placeMapper;
 	private final PetService petService;
 
-	public ReservationController(ReservationService reservationService, PlaceMapper placeMapper, PetService petService) {
+    public ReservationController(ReservationService reservationService, PlaceMapper placeMapper, PetService petService) {
 		this.reservationService = reservationService;
 		this.placeMapper = placeMapper;
 		this.petService = petService;
-	}
+    }
 
 	@PostMapping("/create")
 	public String saveReservation(@Valid @ModelAttribute ReservationRequest request,
@@ -51,21 +54,18 @@ public class ReservationController {
 			return "redirect:/";
 		}
 
-		if (bindingResult.hasErrors()) {
-			Long placeId = request.getPlaceId();
-			if (placeId == null) {
-				throw new BusinessException(PlaceErrorCode.PLACE_NOT_FOUND);
-			}
+        if (bindingResult.hasErrors()) {
+            Long placeId = request.getPlaceId();
+            if (placeId == null) {
+                throw new BusinessException(PlaceErrorCode.PLACE_NOT_FOUND);
+            }
 
-			Place place = placeMapper.findById(placeId);
-			if (place == null) {
-				throw new BusinessException(PlaceErrorCode.PLACE_NOT_FOUND);
-			}
-
-			model.addAttribute("petIds", petService.getPetList(userId));
-			model.addAttribute("place", place);
-			return "booking-request";
-		}
+            // place 만 다시 담으면 되돌아온 폼에서 반려동물 목록이 사라져,
+            // 사용자는 petIds 검증 에러를 보면서도 고를 대상이 없는 상태가 된다.
+            fillBookingRequestForm(placeId, userId, model);
+            model.addAttribute("step", "type");
+            return "reservations/booking-request";
+        }
 
 		String reservationNo = reservationService.saveReservation(request, userId);
 		redirectAttributes.addFlashAttribute("reservationNo", reservationNo);
@@ -81,14 +81,45 @@ public class ReservationController {
 	}
 
 	@GetMapping("/booking-request")
-	public String bookingRequest(@RequestParam Long placeId, HttpSession session, Model model) {
+	public String bookingRequest(@RequestParam Long placeId,
+            @RequestParam(required = false) String type,
+            @RequestParam(required = false) String date,
+            @RequestParam(required = false) Long start,
+            @RequestParam(required = false) Long end,
+            @RequestParam(required = false) String startDate,
+            @RequestParam(required = false) String endDate,
+            HttpSession session, Model model) {
 		Long userId = (Long) session.getAttribute(SessionConst.LOGIN_USER_ID);
 		if (userId == null) {
 			return "redirect:/";
 		}
 
 		fillBookingRequestForm(placeId, userId, model);
-		return "booking-request";
+
+        if (type == null) {
+            model.addAttribute("step", "type");
+            return "reservations/booking-request";
+        }
+
+        ReservationStepResponse result;
+        if ("SAME_DAY".equals(type)) {
+            result = reservationService.resolveHourly(placeId, date, start, end);
+        } else {
+            result = reservationService.resolvePackage(placeId, startDate, endDate);
+        }
+
+        model.addAttribute("reservationType", result.getReservationType());
+        model.addAttribute("step", result.getStep());
+        model.addAttribute("slots", result.getSlots());
+        model.addAttribute("startSlot", result.getStartSlot());
+        model.addAttribute("days", result.getDays());
+        model.addAttribute("startDay", result.getStartDay());
+        model.addAttribute("selectedDate", result.getSelectedDate());
+        model.addAttribute("errorMessage", result.getErrorMessage());
+        model.addAttribute("checkIn", result.getCheckIn());
+        model.addAttribute("checkOut", result.getCheckOut());
+
+		return "reservations/booking-request";
 	}
 
 	/**
@@ -105,7 +136,7 @@ public class ReservationController {
 		}
 
 		model.addAttribute("place", place);
-		model.addAttribute("petIds", petService.getPetList(userId));
+		model.addAttribute("pets", petService.getPetList(userId));
 
 	}
 
