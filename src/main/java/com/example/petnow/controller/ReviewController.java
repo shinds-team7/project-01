@@ -2,6 +2,7 @@ package com.example.petnow.controller;
 
 import com.example.petnow.common.constant.SessionConst;
 import com.example.petnow.dto.request.ReviewCreateRequest;
+import com.example.petnow.dto.request.ReviewUpdateRequest;
 import com.example.petnow.dto.response.ReservationDetailResponse;
 import com.example.petnow.dto.response.ReviewResponse;
 import com.example.petnow.service.ReservationService;
@@ -133,4 +134,49 @@ public class ReviewController {
         model.addAttribute("reviews", reviews);
         return "reviews/list";     // 테스트용. 장소별 리뷰 목록으로 바꿔야함
     }
+
+    /**
+     * 리뷰 수정 폼 화면
+     * GET /reviews/{id}/edit
+     * -> templates/reviews/edit.html
+     */
+    @GetMapping("/{reviewId}/edit")
+    public String editForm(@PathVariable Long reviewId, Model model, HttpSession session) {
+        Long loginUserId = getLoginUserId(session);
+        if (loginUserId == null) {
+            return "redirect:/";
+        }
+
+        ReviewResponse review = reviewService.getReview(loginUserId, reviewId);
+        model.addAttribute("review", review);
+
+        return "reviews/edit";
+    }
+
+    /**
+     * 리뷰 수정 처리
+     * POST /reviews/{id}
+     * 성공 시 내 리뷰 목록 페이지로 redirect
+     */
+    @PostMapping("/{reviewId}")
+    public String updateReview(@PathVariable Long reviewId,
+                               @ModelAttribute("form") @Valid ReviewUpdateRequest request,
+                               BindingResult bindingResult,
+                               Model model,
+                               HttpSession session) {
+        Long loginUserId = getLoginUserId(session);
+        if (loginUserId == null) {
+            return "redirect:/";
+        }
+
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("review", request);
+            return "reviews/edit";     // 테스트용.
+        }
+
+        reviewService.updateReview(loginUserId, reviewId, request);
+
+        return "redirect:/reviews/my";     // 테스트용.
+    }
+
 }
