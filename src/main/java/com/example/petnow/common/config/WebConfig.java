@@ -1,12 +1,16 @@
 package com.example.petnow.common.config;
 
+import com.example.petnow.common.argument.LoginUserArgumentResolver;
 import com.example.petnow.common.interceptor.LoginCheckInterceptor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+import java.util.List;
 
 /**
  * Spring MVC 전역 설정.
@@ -21,6 +25,7 @@ public class WebConfig implements WebMvcConfigurer {
 
     private final LoginCheckInterceptor loginCheckInterceptor;
     private final LocalStorageProperties localStorageProperties;
+    private final LoginUserArgumentResolver loginUserArgumentResolver;
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
@@ -37,7 +42,8 @@ public class WebConfig implements WebMvcConfigurer {
                 "/",
                 "/home",
                 "/places/**",
-                "/auth/**"
+                "/auth/**",
+                "/reviews/place/**"
             );
     }
     /**
@@ -50,5 +56,10 @@ public class WebConfig implements WebMvcConfigurer {
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         registry.addResourceHandler(localStorageProperties.getUrlPrefix() + "/**")
                 .addResourceLocations(localStorageProperties.resolveResourceLocation());
+    }
+
+    @Override
+    public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
+        resolvers.add(loginUserArgumentResolver);
     }
 }
