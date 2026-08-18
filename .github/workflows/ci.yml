@@ -35,10 +35,6 @@ jobs:
           --health-retries=10
           --health-start-period=30s
 
-  build:
-    name: Build & Test
-    runs-on: ubuntu-latest
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -51,9 +47,6 @@ jobs:
 
       - name: Grant execute permission for gradlew
         run: chmod +x ./gradlew
-
-      - name: Build & Test
-        run: ./gradlew clean build
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
