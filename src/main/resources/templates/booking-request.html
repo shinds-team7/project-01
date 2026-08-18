@@ -1,282 +1,22 @@
 <!DOCTYPE html>
+<!--/*
+  예약 요청 = 유형 → 날짜·시간 → 확인·결제 3단 화면.
+
+  ── 화면이 지키는 두 가지
+  1) 예약 불가한 날짜·시간은 전부 눌리지 않는다.
+     날짜 필터 없이 들어온 사용자(내 주변 → 장소 상세 → 요청)는 어느 날에 슬롯이 열려 있는지
+     모른 채 도착한다. 그래서 서버가 내려준 days(선택 가능 여부) 와 slots(status) 를 그대로 써서
+     못 고르는 칸은 <a> 대신 <span class="is-disabled"> 로 그린다. 지난 시각도 같이 막는다.
+  2) 블록을 두 개 골랐다고 다음 화면으로 넘어가지 않는다.
+     선택은 booking-slot.js 가 화면 안에서만 관리하고, 하단 CTA 를 눌러야 다음 단계로 간다.
+     탭할 때마다 시작점(anchor)에서 범위가 다시 계산되므로 계속 고쳐 잡을 수 있다.
+
+  JS 가 없을 때는 각 칸의 href 가 살아 있어 서버 탭투탭(start → end 쿼리)으로 동작한다.
+*/-->
 <html lang="ko" xmlns:th="http://www.thymeleaf.org"
       th:replace="~{fragments/base :: page('예약 요청', 'none', ~{::main})}">
 <body>
 <main id="main-content" class="app-main no-nav has-cta">
-    <style>
-        .app-main {
-            padding-bottom: 100px;
-        }
-
-        /* 1단계: 유형 선택 */
-        .type-picks {
-            display: flex;
-            gap: 12px;
-            margin: 20px 0;
-        }
-        .type-picks .btn {
-            flex: 1;
-            padding: 16px;
-            font-size: 15px;
-            font-weight: 600;
-            text-align: center;
-            border-radius: 12px;
-        }
-
-        /* 2단계: 슬롯 그리드 (2열) */
-        .slot-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-            margin: 16px 0;
-        }
-        .slot-btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 14px 8px;
-            border: 1px solid #e0e0e0;
-            border-radius: 10px;
-            background: #fff;
-            color: #222;
-            text-decoration: none;
-            font-size: 14px;
-            font-weight: 500;
-            transition: all 0.15s ease;
-        }
-        .slot-btn:hover {
-            border-color: #222;
-        }
-        .slot-btn.is-selected {
-            background: #222;
-            color: #fff;
-            border-color: #222;
-            font-weight: 600;
-        }
-        .slot-btn.is-disabled {
-            background: #f8f9fa;
-            color: #ccc;
-            border-color: #eee;
-            cursor: not-allowed;
-            pointer-events: none;
-        }
-
-        /* 2단계: 패키지 캘린더 그리드 (4열) */
-        .calendar-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 8px;
-            margin: 16px 0;
-        }
-        .cal-cell {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 14px 4px;
-            border: 1px solid #e0e0e0;
-            border-radius: 10px;
-            background: #fff;
-            color: #222;
-            text-decoration: none;
-            font-size: 14px;
-            font-weight: 500;
-        }
-        .cal-cell.is-selected {
-            background: #222;
-            color: #fff;
-            border-color: #222;
-            font-weight: 600;
-        }
-        .cal-cell.is-disabled {
-            background: #f8f9fa;
-            color: #ccc;
-            border-color: #eee;
-            cursor: not-allowed;
-            pointer-events: none;
-        }
-
-        /* 안내 문구 박스 */
-        .info-notice {
-            background-color: #f4f4f6;
-            color: #666;
-            padding: 12px 16px;
-            border-radius: 8px;
-            font-size: 13px;
-            margin-bottom: 16px;
-        }
-
-        /* 3단계: 인계일/귀가일 스케줄 카드 */
-        .schedule-card {
-            background-color: #f7f7f9;
-            border-radius: 16px;
-            padding: 16px;
-            margin: 12px 0 20px 0;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            position: relative;
-        }
-        .schedule-card::after {
-            content: "";
-            position: absolute;
-            top: 16px;
-            bottom: 16px;
-            left: 50%;
-            width: 1px;
-            background-color: #e5e5ea;
-        }
-        .schedule-col {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-        .schedule-col small {
-            font-size: 12px;
-            color: #8e8e93;
-            text-align: center;
-        }
-        .schedule-val {
-            background: #fff;
-            border: 1px solid #e5e5ea;
-            border-radius: 10px;
-            padding: 12px 6px;
-            font-size: 13px;
-            font-weight: 700;
-            text-align: center;
-            color: #1c1c1e;
-        }
-
-        /* 3단계: 반려견 카드 선택 */
-        .section-header-wrap {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin: 24px 0 12px 0;
-        }
-        .section-header-wrap h2 {
-            font-size: 17px;
-            font-weight: 700;
-            margin: 0;
-        }
-        .section-header-wrap .section-more {
-            font-size: 13px;
-            color: #8e8e93;
-            text-decoration: none;
-        }
-
-        .pet-picks-list {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        .pet-item-label {
-            display: block;
-            cursor: pointer;
-        }
-        .pet-item-label input[type="checkbox"] {
-            display: none;
-        }
-        .pet-card {
-            display: flex;
-            align-items: center;
-            padding: 14px 16px;
-            border: 1px solid #e5e5ea;
-            border-radius: 14px;
-            background: #fff;
-            transition: all 0.2s ease;
-        }
-        .pet-card .pet-avatar {
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            background-color: #eee;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: 14px;
-            color: #aaa;
-        }
-        .pet-card .pet-info {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-        }
-        .pet-card .pet-info strong {
-            font-size: 15px;
-            font-weight: 700;
-            color: #1c1c1e;
-        }
-        .pet-card .pet-info small {
-            font-size: 12px;
-            color: #8e8e93;
-        }
-        .pet-card .check-icon {
-            color: #d1d1d6;
-            font-size: 22px;
-        }
-
-        .pet-item-label input[type="checkbox"]:checked + .pet-card {
-            border: 1.5px solid #107c41;
-            background-color: #fff;
-        }
-        .pet-item-label input[type="checkbox"]:checked + .pet-card .check-icon {
-            color: #107c41;
-        }
-
-        .memo-textarea {
-            width: 100%;
-            box-sizing: border-box;
-            border: 1.5px solid #107c41;
-            border-radius: 12px;
-            padding: 14px;
-            font-size: 14px;
-            resize: none;
-            outline: none;
-            font-family: inherit;
-        }
-
-        .fixed-cta {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            max-width: 480px;
-            margin: 0 auto;
-            background: #fff;
-            border-top: 1px solid #f0f0f0;
-            padding: 14px 20px 20px 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            z-index: 100;
-        }
-        .cta-price-wrap {
-            display: flex;
-            flex-direction: column;
-        }
-        .cta-price-wrap .price {
-            font-size: 19px;
-            font-weight: 800;
-            color: #1c1c1e;
-        }
-        .cta-price-wrap .desc {
-            font-size: 11px;
-            color: #8e8e93;
-            margin-top: 2px;
-        }
-        .cta-submit-btn {
-            background-color: #1c1c1e;
-            color: #fff;
-            border: none;
-            border-radius: 12px;
-            padding: 14px 28px;
-            font-size: 15px;
-            font-weight: 700;
-            cursor: pointer;
-        }
-    </style>
-
     <div class="topbar">
         <a class="topbar-back" th:href="@{/places/{id}(id=${place.id})}" aria-label="뒤로 가기">
             <span class="ico" aria-hidden="true">arrow_back_ios_new</span>
@@ -284,217 +24,334 @@
         <h1>예약 요청</h1>
     </div>
 
-    <!-- 메인 폼: 항상 최상위에 존재하여 테스트의 form 탐색을 만족 -->
-    <form th:action="@{/reservation/create}" method="post">
-        <input type="hidden" name="placeId" th:value="${place.id}">
-        <input type="hidden" name="reservationType" th:value="${reservationType}">
+    <div class="screen">
+        <div class="notice notice-danger" role="alert" th:if="${errorMessage}">
+            <span class="ico" aria-hidden="true">error</span>
+            <span th:text="${errorMessage}">예약 불가한 구간이 포함되어 있습니다.</span>
+        </div>
 
-        <div class="screen">
-            <!-- 에러 메시지 -->
-            <div th:if="${reservationRequest != null}" th:object="${reservationRequest}">
-                <div class="notice notice-danger" role="alert" th:if="${#fields.hasAnyErrors()}">
-                    <span class="ico" aria-hidden="true">error</span>
-                    <span th:each="err : ${#fields.allErrors()}" th:text="${err}">입력값을 확인해주세요.</span>
-                </div>
+        <div class="summary-row">
+            <div class="media">
+                <span class="ico" aria-hidden="true">weekend</span>
             </div>
-            <div class="notice notice-danger" role="alert" th:if="${errorMessage}">
-                <span class="ico" aria-hidden="true">error</span>
-                <span th:text="${errorMessage}">예약 불가한 구간이 포함되어 있습니다.</span>
+            <div class="summary-copy">
+                <span class="badge badge-warn" th:if="${place.placeType != null}"
+                      th:text="${place.placeType.label}">단독주택</span>
+                <strong th:text="${place.name}">성수 조용한 단독주택 마당</strong>
+                <small th:text="${place.hostUserNickname}">김도윤 호스트</small>
+            </div>
+        </div>
+
+        <!-- STEP 1: 유형 선택 -->
+        <section th:if="${step == 'type'}">
+            <h2 class="section-title">예약 유형을 선택해주세요</h2>
+            <div class="type-picks">
+                <a class="btn btn-ghost type-pick"
+                   th:if="${place.supportsHourly}"
+                   th:href="@{/reservation/booking-request(placeId=${place.id}, type='SAME_DAY')}">
+                    <span class="ico" aria-hidden="true">schedule</span>
+                    <strong>시 예약</strong>
+                    <small>3시간 단위로 필요한 시간만</small>
+                </a>
+                <a class="btn btn-ghost type-pick"
+                   th:if="${place.supportsPackage}"
+                   th:href="@{/reservation/booking-request(placeId=${place.id}, type='OVERNIGHT')}">
+                    <span class="ico" aria-hidden="true">bedtime</span>
+                    <strong>패키지 예약</strong>
+                    <small>1박 이상 맡기고 찾기</small>
+                </a>
             </div>
 
-            <!-- 플레이스 요약 카드 -->
-            <div class="summary-row">
-                <div class="media">
-                    <span class="ico" aria-hidden="true">weekend</span>
-                </div>
-                <div class="summary-copy">
-                    <span class="badge badge-warn" th:if="${place.placeType != null}"
-                          th:text="${place.placeType.label}">주택</span>
-                    <strong th:text="${place.name}">aaa</strong>
-                    <small th:text="${place.hostUserNickname}">test2</small>
-                </div>
+            <div class="notice" th:unless="${place.supportsHourly or place.supportsPackage}">
+                <span class="ico" aria-hidden="true">event_busy</span>
+                <span>이 공간은 아직 예약을 받고 있지 않아요. 호스트가 예약 유형을 열면 신청할 수 있어요.</span>
             </div>
+        </section>
 
-            <!-- 1단계: 유형 선택 -->
-            <section th:if="${step == 'type'}">
-                <h2 class="section-title" style="margin-top: 20px;">예약 유형을 선택해주세요</h2>
-                <div class="type-picks">
-                    <a class="btn btn-outline"
-                       th:if="${place.supportsHourly}"
-                       th:href="@{/reservation/booking-request(placeId=${place.id}, type='SAME_DAY')}">시간제 예약</a>
-                    <a class="btn btn-outline"
-                       th:if="${place.supportsPackage}"
-                       th:href="@{/reservation/booking-request(placeId=${place.id}, type='OVERNIGHT')}">패키지 예약</a>
-                </div>
-            </section>
+        <!-- STEP 2-A: 시 예약 - 날짜 고르기 (예약 가능한 날짜만 눌린다) -->
+        <section th:if="${step == 'hourly-date'}">
+            <h2 class="section-title">이용 날짜를 선택해주세요</h2>
+            <p class="field-hint">예약 가능한 시간이 남아 있는 날짜만 선택할 수 있어요.</p>
 
-            <!-- 2-A단계: 시간제 - 날짜 선택 -->
-            <section th:if="${step == 'hourly-date'}">
-                <h2 class="section-title" style="margin-top: 20px;">이용 날짜를 선택해주세요</h2>
-                <div style="margin-top: 16px;">
-                    <input class="control" type="date" id="hourlyDatePicker" required>
-                </div>
-                <div style="margin-top: 16px;">
-                    <button class="btn btn-dark" type="button" style="width: 100%;"
-                            th:onclick="|location.href='@{/reservation/booking-request(placeId=${place.id}, type='SAME_DAY')}&date=' + document.getElementById('hourlyDatePicker').value|">
-                        슬롯 선택하기
-                    </button>
-                </div>
-            </section>
-            <!-- 2-B단계: 시간제 - 슬롯 선택 -->
-            <section th:if="${step == 'hourly-slot'}">
-                <div class="section-header-wrap">
-                    <h2 th:text="${selectedDate}">2026-08-22</h2>
-                    <a class="section-more" th:href="@{/reservation/booking-request(placeId=${place.id}, type='SAME_DAY')}">날짜 변경</a>
-                </div>
-
-                <div class="info-notice" th:text="${startSlot == null} ? '시작 시간을 탭해주세요.' : '종료 시간을 탭해주세요.'">
-                    종료 시간을 탭해주세요.
-                </div>
-
-                <div class="slot-grid">
-                    <a th:each="slot : ${slots}"
-                       th:if="${slot.status == 'OPEN'}"
-                       th:href="@{/reservation/booking-request(
-                            placeId=${place.id}, type='SAME_DAY', date=${selectedDate},
-                            start=${startSlot == null ? slot.slotId : startSlot.slotId},
-                            end=${startSlot != null ? slot.slotId : null})}"
-                       th:class="${startSlot != null and startSlot.slotId == slot.slotId} ? 'slot-btn is-selected' : 'slot-btn'"
-                       th:text="${#temporals.format(slot.startAt, 'HH:mm')} + '~' + ${#temporals.format(slot.endAt, 'HH:mm')}">
-                        00:00~03:00
+            <div class="pick-grid is-days" th:if="${days != null and !#lists.isEmpty(days)}">
+                <th:block th:each="day : ${days}">
+                    <a class="pick-cell" th:if="${day.selectable}"
+                       th:href="@{/reservation/booking-request(placeId=${place.id}, type='SAME_DAY', date=${day.date})}">
+                        <strong th:text="${#temporals.format(day.date, 'MM/dd')}">08/20</strong>
+                        <small th:text="${#temporals.dayOfWeekName(day.date)}">목요일</small>
                     </a>
-                    <span th:each="slot : ${slots}"
-                          th:if="${slot.status != 'OPEN'}"
-                          class="slot-btn is-disabled"
-                          th:text="${#temporals.format(slot.startAt, 'HH:mm')} + '~' + ${#temporals.format(slot.endAt, 'HH:mm')}">
-                        03:00~06:00
+                    <span class="pick-cell is-disabled" th:unless="${day.selectable}" aria-disabled="true">
+                        <strong th:text="${#temporals.format(day.date, 'MM/dd')}">08/22</strong>
+                        <small>마감</small>
                     </span>
-                </div>
-            </section>
+                </th:block>
+            </div>
 
-            <!-- 2-C단계: 패키지 - 달력 선택 -->
-            <section th:if="${step == 'package-day'}">
-                <div class="section-header-wrap">
-                    <h2>체크인 ~ 체크아웃 날짜를 선택해주세요</h2>
-                </div>
+            <div class="notice" th:if="${days == null or #lists.isEmpty(days)}">
+                <span class="ico" aria-hidden="true">event_busy</span>
+                <span>아직 열린 예약 가능 시간이 없어요. 호스트가 일정을 등록하면 바로 예약할 수 있어요.</span>
+            </div>
+        </section>
 
-                <div class="info-notice" th:text="${startDay == null} ? '체크인 날짜를 탭해주세요.' : '체크아웃 날짜를 탭해주세요.'">
-                    체크인 날짜를 탭해주세요.
-                </div>
+        <!-- STEP 2-B: 시 예약 - 시간대 탭투탭 -->
+        <section th:if="${step == 'hourly-slot'}">
+            <div class="section-head">
+                <h2 class="section-title" th:text="${selectedDate}">2026-08-20</h2>
+                <a class="section-more"
+                   th:href="@{/reservation/booking-request(placeId=${place.id}, type='SAME_DAY')}">날짜 변경</a>
+            </div>
 
-                <div class="calendar-grid">
-                    <th:block th:if="${startDay == null}">
-                        <a th:each="day : ${days}"
-                           th:if="${day.selectable}"
-                           th:href="@{/reservation/booking-request(placeId=${place.id}, type='OVERNIGHT', startDate=${day.date})}"
-                           class="cal-cell"
-                           th:text="${#temporals.format(day.date, 'MM/dd')}">08/20</a>
-                        <span th:each="day : ${days}"
-                              th:if="${!day.selectable}"
-                              class="cal-cell is-disabled"
-                              th:text="${#temporals.format(day.date, 'MM/dd')}">08/22</span>
+            <!--/* 날짜를 바꿔도 화면 안에 머문다. 여기서도 예약 불가한 날짜는 눌리지 않는다. */-->
+            <div class="date-chips" th:if="${days != null and !#lists.isEmpty(days)}">
+                <th:block th:each="day : ${days}">
+                    <a class="date-chip" th:if="${day.selectable}"
+                       th:classappend="${#temporals.format(day.date, 'yyyy-MM-dd') == selectedDate} ? ' is-current'"
+                       th:href="@{/reservation/booking-request(placeId=${place.id}, type='SAME_DAY', date=${day.date})}"
+                       th:text="${#temporals.format(day.date, 'M/d(E)')}">8/20(목)</a>
+                    <span class="date-chip is-disabled" th:unless="${day.selectable}" aria-disabled="true"
+                          th:text="${#temporals.format(day.date, 'M/d(E)')}">8/22(토)</span>
+                </th:block>
+            </div>
+
+            <p class="field-hint">시작 시간을 탭하고, 끝나는 시간을 한 번 더 탭하세요. 다시 탭하면 언제든 고칠 수 있어요.</p>
+
+            <div class="pick-grid" th:if="${slots != null and !#lists.isEmpty(slots)}"
+                 data-picker="hourly"
+                 th:attr="data-unit-price=${place.hourlyPrice != null ? place.hourlyPrice : 0}">
+                <th:block th:each="slot : ${slots}">
+                    <!--/* 지난 시각은 status 와 무관하게 고를 수 없다 */-->
+                    <th:block th:with="past=${slot.startAt.isBefore(T(java.time.LocalDateTime).now())},
+                                       open=${slot.status == 'OPEN'}">
+                        <a class="pick-cell" th:if="${open and !past}"
+                           data-pick-selectable="true"
+                           th:attr="data-pick-value=${slot.slotId},
+                                    data-pick-start=${#temporals.format(slot.startAt, 'yyyy-MM-dd''T''HH:mm')},
+                                    data-pick-end=${#temporals.format(slot.endAt, 'yyyy-MM-dd''T''HH:mm')}"
+                           th:href="@{/reservation/booking-request(
+                                placeId=${place.id}, type='SAME_DAY', date=${selectedDate},
+                                start=${startSlot == null ? slot.slotId : startSlot.slotId},
+                                end=${startSlot != null ? slot.slotId : null})}">
+                            <strong th:text="${#temporals.format(slot.startAt, 'HH:mm')} + '~' + ${#temporals.format(slot.endAt, 'HH:mm')}">09:00~12:00</strong>
+                            <small>예약 가능</small>
+                        </a>
+                        <span class="pick-cell is-disabled" th:unless="${open and !past}" aria-disabled="true"
+                              data-pick-selectable="false"
+                              th:attr="data-pick-value=${slot.slotId},
+                                       data-pick-start=${#temporals.format(slot.startAt, 'yyyy-MM-dd''T''HH:mm')},
+                                       data-pick-end=${#temporals.format(slot.endAt, 'yyyy-MM-dd''T''HH:mm')}">
+                            <strong th:text="${#temporals.format(slot.startAt, 'HH:mm')} + '~' + ${#temporals.format(slot.endAt, 'HH:mm')}">12:00~15:00</strong>
+                            <small th:text="${past ? '지난 시간' : (slot.status == 'RESERVED' ? '예약 마감' : '예약 불가')}">예약 마감</small>
+                        </span>
                     </th:block>
+                </th:block>
+            </div>
 
-                    <th:block th:if="${startDay != null}">
-                        <a th:each="day : ${days}"
-                           th:if="${day.selectable}"
-                           th:href="@{/reservation/booking-request(placeId=${place.id}, type='OVERNIGHT', startDate=${startDay.date}, endDate=${day.date})}"
-                           class="cal-cell is-selected"
-                           th:text="${#temporals.format(day.date, 'MM/dd')}">08/23</a>
-                        <span th:each="day : ${days}"
-                              th:if="${!day.selectable}"
-                              class="cal-cell is-disabled"
-                              th:text="${#temporals.format(day.date, 'MM/dd')}">08/24</span>
-                    </th:block>
+            <div class="notice" th:if="${slots == null or #lists.isEmpty(slots)}">
+                <span class="ico" aria-hidden="true">event_busy</span>
+                <span>이 날짜에는 열린 시간이 없어요. 다른 날짜를 선택해주세요.</span>
+            </div>
+
+            <form class="cta-bar no-nav" method="get" th:action="@{/reservation/booking-request}"
+                  data-pick-form>
+                <input type="hidden" name="placeId" th:value="${place.id}">
+                <input type="hidden" name="type" value="SAME_DAY">
+                <input type="hidden" name="date" th:value="${selectedDate}">
+                <input type="hidden" name="start" data-pick-input="start">
+                <input type="hidden" name="end" data-pick-input="end">
+                <div class="cta-copy">
+                    <p class="cta-price" data-pick-price>시간을 선택해주세요</p>
+                    <small class="cta-note" data-pick-summary>시작·종료 시간을 탭해 정해주세요</small>
                 </div>
+                <button class="btn btn-dark" type="submit" data-pick-submit disabled>다음</button>
+            </form>
+        </section>
 
-                <div style="margin-top: 16px;" th:if="${startDay != null}">
-                    <a class="btn btn-outline" th:href="@{/reservation/booking-request(placeId=${place.id}, type='OVERNIGHT')}">
-                        체크인 날짜 다시 선택
+        <!-- STEP 2-C: 패키지 - 날짜 탭투탭 -->
+        <section th:if="${step == 'package-day'}">
+            <h2 class="section-title">체크인 ~ 체크아웃 날짜를 선택해주세요</h2>
+            <p class="field-hint">체크인 날짜를 탭하고, 체크아웃 날짜를 한 번 더 탭하세요. 다시 탭하면 언제든 고칠 수 있어요.</p>
+
+            <div class="pick-grid is-days" th:if="${days != null and !#lists.isEmpty(days)}"
+                 data-picker="package"
+                 th:attr="data-unit-price=${place.nightlyPrice != null ? place.nightlyPrice : 0}">
+                <th:block th:each="day : ${days}">
+                    <a class="pick-cell" th:if="${day.selectable}"
+                       data-pick-selectable="true"
+                       th:attr="data-pick-value=${day.date}, data-pick-date=${day.date}"
+                       th:href="@{/reservation/booking-request(
+                            placeId=${place.id}, type='OVERNIGHT',
+                            startDate=${startDay == null ? day.date : startDay.date},
+                            endDate=${startDay != null ? day.date : null})}">
+                        <strong th:text="${#temporals.format(day.date, 'MM/dd')}">08/20</strong>
+                        <small th:text="${#temporals.dayOfWeekName(day.date)}">목요일</small>
                     </a>
+                    <span class="pick-cell is-disabled" th:unless="${day.selectable}" aria-disabled="true"
+                          data-pick-selectable="false"
+                          th:attr="data-pick-value=${day.date}, data-pick-date=${day.date}">
+                        <strong th:text="${#temporals.format(day.date, 'MM/dd')}">08/22</strong>
+                        <small>마감</small>
+                    </span>
+                </th:block>
+            </div>
+
+            <div class="notice" th:if="${days == null or #lists.isEmpty(days)}">
+                <span class="ico" aria-hidden="true">event_busy</span>
+                <span>아직 열린 예약 가능 날짜가 없어요. 호스트가 일정을 등록하면 바로 예약할 수 있어요.</span>
+            </div>
+
+            <form class="cta-bar no-nav" method="get" th:action="@{/reservation/booking-request}"
+                  data-pick-form>
+                <input type="hidden" name="placeId" th:value="${place.id}">
+                <input type="hidden" name="type" value="OVERNIGHT">
+                <input type="hidden" name="startDate" data-pick-input="start">
+                <input type="hidden" name="endDate" data-pick-input="end">
+                <div class="cta-copy">
+                    <p class="cta-price" data-pick-price>날짜를 선택해주세요</p>
+                    <small class="cta-note" data-pick-summary>체크인·체크아웃 날짜를 탭해 정해주세요</small>
                 </div>
-            </section>
+                <button class="btn btn-dark" type="submit" data-pick-submit disabled>다음</button>
+            </form>
+        </section>
 
-            <!-- 3단계 (최종 폼): step == 'confirm' 일 때만 실제로 보이고, 아닐 때는 display: none 처리하여 테스트 통과 및 UX 유지 -->
-            <div th:style="${step == 'confirm'} ? '' : 'display: none;'">
-                <input type="hidden" name="checkIn"
-                       th:value="${checkIn != null ? #temporals.format(checkIn, 'yyyy-MM-dd''T''HH:mm') : (reservationRequest?.checkIn != null ? #temporals.format(reservationRequest.checkIn, 'yyyy-MM-dd''T''HH:mm') : '')}">
-                <input type="hidden" name="checkOut"
-                       th:value="${checkOut != null ? #temporals.format(checkOut, 'yyyy-MM-dd''T''HH:mm') : (reservationRequest?.checkOut != null ? #temporals.format(reservationRequest.checkOut, 'yyyy-MM-dd''T''HH:mm') : '')}">
+        <!-- STEP 3: 반려동물 + 메모 + 결제 -->
+        <form th:action="@{/reservation/create}" method="post" th:if="${step == 'confirm'}" data-pay-form>
+            <input type="hidden" name="placeId" th:value="${place.id}">
+            <input type="hidden" name="reservationType" th:value="${reservationType}">
+            <input type="hidden" name="checkIn"
+                   th:value="${#temporals.format(checkIn, 'yyyy-MM-dd''T''HH:mm')}">
+            <input type="hidden" name="checkOut"
+                   th:value="${#temporals.format(checkOut, 'yyyy-MM-dd''T''HH:mm')}">
 
-                <!-- 스케줄 박스 -->
-                <div class="section-header-wrap" style="margin-bottom: 8px;">
-                    <h2 style="font-size: 15px;">선택한 일정</h2>
-                    <a class="section-more" th:href="@{/reservation/booking-request(placeId=${place.id})}">일정 변경</a>
+            <div class="schedule-split">
+                <div>
+                    <label><small>인계일 (체크인)</small></label>
+                    <input class="control" type="text" readonly
+                           th:value="${#temporals.format(checkIn, 'yyyy-MM-dd HH:mm')}">
                 </div>
-
-                <div class="schedule-card" style="margin-top: 0;">
-                    <div class="schedule-col">
-                        <small>인계일 (체크인)</small>
-                        <div class="schedule-val"
-                             th:text="${checkIn != null ? #temporals.format(checkIn, 'yyyy-MM-dd HH:mm') : (reservationRequest?.checkIn != null ? #temporals.format(reservationRequest.checkIn, 'yyyy-MM-dd HH:mm') : '-')}">
-                            2026-08-21 15:00
-                        </div>
-                    </div>
-                    <div class="schedule-col">
-                        <small>귀가일 (체크아웃)</small>
-                        <div class="schedule-val"
-                             th:text="${checkOut != null ? #temporals.format(checkOut, 'yyyy-MM-dd HH:mm') : (reservationRequest?.checkOut != null ? #temporals.format(reservationRequest.checkOut, 'yyyy-MM-dd HH:mm') : '-')}">
-                            2026-08-22 12:00
-                        </div>
-                    </div>
+                <div>
+                    <label><small>귀가일 (체크아웃)</small></label>
+                    <input class="control" type="text" readonly
+                           th:value="${#temporals.format(checkOut, 'yyyy-MM-dd HH:mm')}">
                 </div>
+            </div>
 
-                <!-- 반려견 프로필 -->
-                <div class="section-header-wrap">
-                    <h2>반려견 프로필</h2>
-                    <a class="section-more" th:href="@{/mypage}">변경하기</a>
+            <a class="btn btn-ghost btn-block" style="margin-top:10px"
+               th:href="@{/reservation/booking-request(placeId=${place.id},
+                          type=${reservationType.name()},
+                          date=${reservationType.name() == 'SAME_DAY' ? #temporals.format(checkIn, 'yyyy-MM-dd') : null})}">
+                <span class="ico" aria-hidden="true">edit_calendar</span>일정 다시 고르기
+            </a>
+
+            <div class="section-head">
+                <h2 class="section-title">반려견 프로필</h2>
+                <a class="section-more" th:href="@{/mypage}">변경하기</a>
+            </div>
+
+            <div class="pet-picks" th:if="${pets != null and !#lists.isEmpty(pets)}">
+                <label class="pet-pick" th:each="pet : ${pets}">
+                    <input type="checkbox" name="petIds" th:value="${pet.id}">
+                    <span class="person-row">
+                        <span class="avatar"><span class="ico" aria-hidden="true">pets</span></span>
+                        <span class="person-copy">
+                            <strong th:text="${pet.name}">초코</strong>
+                            <small th:text="${pet.size != null ? pet.size.label : ''} + (${pet.weight != null} ? ' · ' + ${pet.weight} + 'kg' : '')">소형 · 6kg</small>
+                        </span>
+                        <span class="ico is-check" aria-hidden="true">check_circle</span>
+                    </span>
+                </label>
+            </div>
+
+            <div class="notice" th:unless="${pets != null and !#lists.isEmpty(pets)}">
+                <span class="ico" aria-hidden="true">pets</span>
+                <span>맡길 반려동물을 먼저 등록해주세요. <a th:href="@{/pet/new}">반려동물 등록하기</a></span>
+            </div>
+
+            <h2 class="section-title">호스트에게 요청 메시지</h2>
+            <textarea class="control" name="memo" rows="4"
+                      placeholder="분리불안이 조금 있어요. 자주 확인 부탁드립니다 🐾"></textarea>
+
+            <h2 class="section-title">결제 금액</h2>
+            <div class="info-rows">
+                <div class="info-row is-split">
+                    <span th:text="${reservationType.name() == 'SAME_DAY'} ? '이용 요금 (시간당)' : '이용 요금 (1박)'">이용 요금</span>
+                    <span th:text="${reservationType.name() == 'SAME_DAY'
+                                    ? (place.hourlyPrice != null ? #numbers.formatInteger(place.hourlyPrice, 0, 'COMMA') + '원' : '가격 문의')
+                                    : (place.nightlyPrice != null ? #numbers.formatInteger(place.nightlyPrice, 0, 'COMMA') + '원' : '가격 문의')}">-</span>
                 </div>
+                <div class="info-row is-split">
+                    <span>서비스 수수료</span>
+                    <span>0원</span>
+                </div>
+            </div>
+            <div class="info-total">
+                <span>총 결제금액</span>
+                <span class="amount"
+                      th:text="${totalPrice != null} ? ${#numbers.formatInteger(totalPrice, 0, 'COMMA')} + '원' : '가격 문의'">-</span>
+            </div>
 
-                <div class="pet-picks-list" th:if="${pets != null and !#lists.isEmpty(pets)}">
-                    <label class="pet-item-label" th:each="pet : ${pets}">
-                        <input type="checkbox" name="petIds" th:value="${pet.id}">
-                        <div class="pet-card">
-                            <div class="pet-avatar">
-                                <span class="ico" aria-hidden="true">pets</span>
-                            </div>
-                            <div class="pet-info">
-                                <strong th:text="${pet.name}">뽀삐</strong>
-                                <small th:text="${pet.size != null ? pet.size.label : '소형'} + (${pet.weight != null} ? ' · ' + ${pet.weight} + 'kg' : '')">소형 · 4.0kg</small>
-                            </div>
-                            <span class="ico is-check check-icon" aria-hidden="true">check_circle</span>
-                        </div>
+            <div class="notice" style="margin-top:12px">
+                <span class="ico" aria-hidden="true">info</span>
+                <span>결제 연동 전이라 결제창은 목업이에요. 결제하기를 누르면 예약 요청만 접수됩니다.</span>
+            </div>
+
+            <div class="notice notice-danger" role="alert" hidden data-pay-error>
+                <span class="ico" aria-hidden="true">error</span>
+                <span>맡길 반려동물을 한 마리 이상 선택해주세요.</span>
+            </div>
+
+            <div class="cta-bar no-nav">
+                <div class="cta-copy">
+                    <p class="cta-price"
+                       th:text="${totalPrice != null} ? ${#numbers.formatInteger(totalPrice, 0, 'COMMA')} + '원' : '가격 문의'">120,000원</p>
+                    <small class="cta-note" th:text="${reservationType.name() == 'SAME_DAY'} ? '시 예약 · 결제 후 호스트 승인' : '패키지 예약 · 결제 후 호스트 승인'">결제 후 호스트 승인</small>
+                </div>
+                <!--/* JS 가 없으면 그대로 예약 요청이 제출된다(목업 결제창만 건너뛴다) */-->
+                <button class="btn btn-toss" type="submit" data-pay-open>결제하기</button>
+            </div>
+        </form>
+
+        <!--/* 토스 결제창 목업. 실제 PG 연동은 없고, 승인 연출 뒤 예약 요청을 제출한다. */-->
+        <dialog class="modal toss-modal" id="toss-pay" th:if="${step == 'confirm'}" aria-labelledby="toss-pay-title">
+            <div class="toss-head">
+                <span class="toss-mark">toss</span>
+                <button class="toss-close" type="button" data-pay-close aria-label="결제창 닫기">
+                    <span class="ico" aria-hidden="true">close</span>
+                </button>
+            </div>
+            <div class="toss-body">
+                <p class="toss-store">Pet NOW</p>
+                <h2 id="toss-pay-title" class="toss-amount"
+                    th:text="${totalPrice != null} ? ${#numbers.formatInteger(totalPrice, 0, 'COMMA')} + '원' : '금액 미정'">120,000원</h2>
+                <p class="toss-item" th:text="${place.name}">성수 조용한 단독주택 마당</p>
+
+                <div class="toss-methods">
+                    <label class="toss-method">
+                        <input type="radio" name="mockPayMethod" value="tossmoney" checked>
+                        <span>
+                            <span class="toss-method-mark">₩</span>
+                            <span class="toss-method-name">토스머니 <small>잔액 1,250,000원</small></span>
+                            <span class="ico toss-method-check" aria-hidden="true">check_circle</span>
+                        </span>
+                    </label>
+                    <label class="toss-method">
+                        <input type="radio" name="mockPayMethod" value="card">
+                        <span>
+                            <span class="toss-method-mark is-card"><span class="ico" aria-hidden="true">credit_card</span></span>
+                            <span class="toss-method-name">신한카드 <small>1234-**-****-5678</small></span>
+                            <span class="ico toss-method-check" aria-hidden="true">check_circle</span>
+                        </span>
                     </label>
                 </div>
 
-                <div class="notice" th:unless="${pets != null and !#lists.isEmpty(pets)}">
-                    <span class="ico" aria-hidden="true">pets</span>
-                    <span>맡길 반려동물을 먼저 등록해주세요. <a th:href="@{/pet/new}">반려동물 등록하기</a></span>
-                </div>
-
-                <!-- 요청 메시지 -->
-                <div class="section-header-wrap" style="margin-top: 24px;">
-                    <h2>호스트에게 요청 메시지</h2>
-                </div>
-                <textarea class="memo-textarea" name="memo" rows="4"
-                          placeholder="분리불안이 조금 있어요. 자주 확인 부탁드립니다 🐾"
-                          th:text="${reservationRequest?.memo}"></textarea>
-
-                <!-- 하단 CTA 바 -->
-                <div class="fixed-cta">
-                    <div class="cta-price-wrap">
-                        <span class="price" th:if="${(reservationType == null or reservationType.toString() != 'OVERNIGHT') and place.hourlyPrice != null}"
-                              th:text="${#numbers.formatInteger(place.hourlyPrice, 0, 'COMMA')} + '원'">12,000원</span>
-                        <span class="price" th:if="${reservationType != null and reservationType.toString() == 'OVERNIGHT' and place.nightlyPrice != null}"
-                              th:text="${#numbers.formatInteger(place.nightlyPrice, 0, 'COMMA')} + '원'">50,000원</span>
-                        <span class="price" th:if="${(reservationType != null and reservationType.toString() == 'OVERNIGHT' and place.nightlyPrice == null) or ((reservationType == null or reservationType.toString() != 'OVERNIGHT') and place.hourlyPrice == null)}">가격 문의</span>
-                        <span class="desc" th:text="${reservationType != null and reservationType.toString() == 'OVERNIGHT'} ? '1박 기준 요금 · 총액은 숙박 일수에 따라 정해져요' : '시간당 요금 · 총액은 이용 시간에 따라 정해져요'">1박 기준 요금 · 총액은 숙박 일수에 따라 정해져요</span>
-                    </div>
-                    <button class="cta-submit-btn" type="submit">예약 요청하기</button>
-                </div>
+                <p class="toss-mock-note">목업 결제창이에요. 실제로 돈이 빠져나가지 않아요.</p>
+                <button class="btn btn-toss btn-block" type="button" data-pay-confirm>
+                    <span data-pay-confirm-label>결제하기</span>
+                </button>
             </div>
-        </div>
-    </form>
+        </dialog>
+    </div>
+
+    <script th:src="@{/js/booking-slot.js}"></script>
 </main>
 </body>
 </html>
