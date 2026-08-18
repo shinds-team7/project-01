@@ -14,15 +14,16 @@
         result.classList.add("field-hint");
     }
 
-    function hideAvailability() {
-        button.hidden = true;
-        clearResult();
-    }
+    let latestRequest = 0;
 
-    input.addEventListener("input", clearResult);
+    input.addEventListener("input", () => {
+        latestRequest += 1;
+        clearResult();
+    });
 
     button.addEventListener("click", async () => {
         const nickname = input.value.trim();
+        const requestId = ++latestRequest;
         clearResult();
 
         if (!nickname) return;
@@ -34,24 +35,24 @@
             });
 
             if (!response.ok) {
-                hideAvailability();
+                if (requestId === latestRequest) clearResult();
                 return;
             }
 
             const data = await response.json();
             if (typeof data.available !== "boolean" || typeof data.message !== "string") {
-                hideAvailability();
+                if (requestId === latestRequest) clearResult();
                 return;
             }
 
-            if (input.value.trim() !== nickname) return;
+            if (requestId !== latestRequest || input.value.trim() !== nickname) return;
 
             result.textContent = data.message;
             result.classList.remove("field-hint", "field-error");
             result.classList.add(data.available ? "field-hint" : "field-error");
             result.hidden = false;
         } catch {
-            hideAvailability();
+            if (requestId === latestRequest) clearResult();
         }
     });
 })();

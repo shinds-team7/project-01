@@ -10,13 +10,14 @@ public class MyProfileResponse {
     private String nickname;
     private String email;
     private String phone;
-    //private String profileImageUrl; 추후 재선언 예정
+    private String profileImageUrl;
 
     public static MyProfileResponse from(User user) {
         return MyProfileResponse.builder()
                 .nickname(user.getNickname())
                 .email(user.getEmail())
                 .phone(user.getPhone())
+                .profileImageUrl(user.getProfileImageUrl())
                 .build();
     }
 }
