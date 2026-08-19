@@ -40,6 +40,7 @@ public class PlaceServiceImpl implements PlaceService {
     private final PlaceMapper placeMapper;
     private final AuthMapper authMapper;
     private final PetMapper petMapper;
+    private final PlaceGeocodingService placeGeocodingService;
 
     @Override
     @Transactional
@@ -80,6 +81,8 @@ public class PlaceServiceImpl implements PlaceService {
         if (addressResult != 1) {
             throw new BusinessException(PlaceErrorCode.PLACE_CREATE_FAILED);
         }
+
+        placeGeocodingService.geocodeAndUpdate(place.getId(), request.getRoadAddress());
     }
 
     @Override

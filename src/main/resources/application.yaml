@@ -53,6 +53,17 @@ cloud:
       # 비워 두면 https://{bucket}.s3.{region}.amazonaws.com 을 쓴다. CloudFront 로 옮기면 이 값만 바꾼다.
       base-url: ${AWS_S3_BASE_URL:}
 
+kakao:
+  local-api:
+    # REST API 키는 서버에서만 사용하며 템플릿·JavaScript로 전달하지 않는다.
+    rest-api-key: ${KAKAO_REST_API_KEY:}
+    base-url: https://dapi.kakao.com
+    connect-timeout: 2s
+    read-timeout: 3s
+    # 기존 주소 좌표를 채울 때만 명시적으로 true로 켜고 실행 후 다시 끈다.
+    backfill-enabled: ${KAKAO_LOCAL_API_BACKFILL_ENABLED:false}
+    backfill-batch-size: ${KAKAO_LOCAL_API_BACKFILL_BATCH_SIZE:100}
+
 mybatis:
   mapper-locations: classpath:mapper/*.xml
   configuration:

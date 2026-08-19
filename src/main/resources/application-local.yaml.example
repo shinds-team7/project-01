@@ -12,3 +12,8 @@ spring:
 logging:
   level:
     org.springframework.web: debug
+
+kakao:
+  local-api:
+    # 카카오 개발자 콘솔의 REST API 키. 실제 키는 환경변수로만 넣는다.
+    rest-api-key: ${KAKAO_REST_API_KEY:}
