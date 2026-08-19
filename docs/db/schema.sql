@@ -182,6 +182,9 @@ CREATE TABLE place_addresses (
         ON UPDATE CASCADE
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
+CREATE INDEX IX_PLACE_ADDRESSES_SIGUNGU
+    ON place_addresses (sigungu);
+
 CREATE TABLE place_availability (
     id              BIGINT   NOT NULL AUTO_INCREMENT,
     place_id        BIGINT   NOT NULL,
