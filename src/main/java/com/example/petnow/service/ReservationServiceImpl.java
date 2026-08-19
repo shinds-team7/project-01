@@ -5,6 +5,7 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -432,6 +433,18 @@ public class ReservationServiceImpl implements ReservationService {
             }
         }
 
+        long expectedSlotCount = Duration.between(from.getStartAt(), to.getStartAt()).toHours() / SLOT_HOURS;
+        if (slotsInRange.size() != expectedSlotCount) {
+            return ReservationStepResponse.builder()
+                .step("hourly-slot")
+                .reservationType(ReservationType.SAME_DAY)
+                .slots(slots)
+                .days(days)
+                .selectedDate(date)
+                .errorMessage("선택한 구간에 등록되지 않았거나 조회되지 않는 시간이 포함되어 있습니다.")
+                .build();
+        }
+
         boolean blockedSlot = false;
         for (int i = 0; i < slotsInRange.size(); i++) {
             PlaceSlotResponse slot = slotsInRange.get(i);
@@ -522,8 +535,12 @@ public class ReservationServiceImpl implements ReservationService {
     }
 
     private PackageDayResponse findDay(List<PackageDayResponse> days, String dateStr) {
-        LocalDate target = LocalDate.parse(dateStr);
-
+        LocalDate target;
+        try {
+            target = LocalDate.parse(dateStr);
+        } catch (DateTimeParseException e) {
+            throw new BusinessException(ReservationErrorCode.INVALID_RESERVATION_PERIOD);
+        }
         for (int i=0; i<days.size(); i++) {
             if (days.get(i).getDate().equals(target)) {
                 return days.get(i);
