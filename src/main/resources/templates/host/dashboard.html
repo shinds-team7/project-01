@@ -10,8 +10,7 @@
   예약 요청·리뷰 탭은 호스트용 조회 API 가 아직 없어 빈 상태로 둔다.
   붙일 자리는 #100(예약 승인/거부)에서 이어간다.
 
-  "일정 관리 및 수정"은 프로토타입 라벨을 그대로 두되 비활성이다.
-  장소 수정·일정 관리 서버 기능이 둘 다 없다.
+  장소 정보 수정과 예약 가능 시간 관리는 서로 다른 화면으로 연결한다.
 */-->
 <html lang="ko" xmlns:th="http://www.thymeleaf.org"
       th:replace="~{fragments/base :: page('호스트 홈', 'my', ~{::main})}">
@@ -80,10 +79,9 @@
                     </a>
 
                     <div class="host-place-actions">
-                        <button class="btn btn-ghost" type="button" disabled
-                                title="장소 게시글 수정 기능은 준비 중이에요">
-                            <span class="ico" aria-hidden="true">edit_calendar</span>일정 관리 및 수정
-                        </button>
+                        <a class="btn btn-ghost" th:href="@{/places/edit/{id}(id=${place.id})}">
+                            <span class="ico" aria-hidden="true">edit</span>장소 정보 수정
+                        </a>
                         <a class="btn btn-ghost"
                            th:href="@{/host/places/{id}/availability(id=${place.id})}">
                             <span class="ico" aria-hidden="true">schedule</span>예약 가능 시간 관리

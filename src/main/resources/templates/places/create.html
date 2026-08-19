@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <!--/*
-  게시글 작성 = 프로토타입의 "HOST POST CREATE" 화면.
+  게시글 작성·수정 = 프로토타입의 "HOST POST CREATE" 화면을 함께 사용한다.
 
   프로토타입에는 있지만 PlaceCreateRequest 에 없어 옮기지 않은 것 (#182 의 함정 1)
-    주소(도로명주소 API) · 요금 임시저장 · 가능한 일정 캘린더 · 고정 휴무
+    요금 임시저장 · 가능한 일정 캘린더 · 고정 휴무
   전부 서버 모델과 저장 로직이 먼저 있어야 해서 화면만 앞서 만들면 빈 껍데기가 된다.
 
   사진은 위 목록에서 빠졌다. place_photos 테이블과 공통 저장 모듈(#230)이
@@ -11,26 +11,27 @@
 
   반대로 프로토타입에 없지만 develop 에 있는 것은 그대로 지켰다 (#182 의 함정 2)
     placeType 라디오는 컨트롤러가 넘기는 ${placeTypes} 로 그리고,
-    모든 입력은 th:field 로 placeCreateRequest 에 바인딩된 채 검증 에러를 표시한다.
+    모든 입력은 th:field 로 placeForm 에 바인딩된 채 검증 에러를 표시한다.
 
   기타 옵션 토글은 체크박스 형제 선택자로만 동작해 별도 스크립트가 필요 없다.
 */-->
 <html lang="ko" xmlns:th="http://www.thymeleaf.org"
-      th:replace="~{fragments/base :: page('게시글 작성', 'none', ~{::main})}">
+      th:replace="~{fragments/base :: page(${editPlaceId == null ? '게시글 작성' : '게시글 수정'}, 'none', ~{::main})}">
 <body>
 <main id="main-content" class="app-main no-nav">
     <div class="topbar has-line">
         <a class="topbar-back" th:href="@{/host(tab='places')}" aria-label="내 호스팅 장소로 돌아가기">
             <span class="ico" aria-hidden="true">arrow_back_ios_new</span>
         </a>
-        <h1>게시글 작성</h1>
+        <h1 th:text="${editPlaceId == null ? '게시글 작성' : '게시글 수정'}">게시글 작성</h1>
     </div>
 
     <!--/*
       파일을 보내려면 enctype 이 반드시 multipart/form-data 여야 한다.
       빠뜨리면 파일이 아니라 파일명 문자열만 넘어간다 (docs/CONVENTIONS.md §9.2).
     */-->
-    <form th:action="@{/places/create}" th:object="${placeCreateRequest}" method="post"
+    <form th:action="${editPlaceId == null} ? @{/places/create} : @{/places/edit/{id}(id=${editPlaceId})}"
+          th:object="${placeForm}" method="post"
           enctype="multipart/form-data">
         <div class="screen">
             <p class="field-hint" style="margin-top:14px">정성껏 돌볼 수 있는 공간을 소개해주세요.</p>
@@ -99,11 +100,11 @@
                 <p class="field-error" th:errors="*{roadAddress}"></p>
             </div>
 
-            <h2 class="section-title">사진 <span class="opt">선택</span></h2>
+            <h2 class="section-title" th:if="${editPlaceId == null}">사진 <span class="opt">선택</span></h2>
             <!--/*
               사진 최대 10장 (ImageCategory.PLACE 의 maxCount).
 
-              이 form 은 th:object 로 placeCreateRequest 에 바인딩돼 있지만 여기만
+              이 form 은 th:object 로 placeForm 에 바인딩돼 있지만 여기만
               th:field 를 쓰지 않는다. DTO 에 파일 필드가 아직 없어서 th:field="*{images}"
               를 걸면 이 화면이 렌더 단계에서 죽는다. name 기반 바인딩은 DTO 에
               List<MultipartFile> images 가 추가되는 순간 그대로 동작하므로,
@@ -117,7 +118,7 @@
               10장 × 5MB = 50MB 라 장수보다 요청 전체 30MB 에 먼저 걸린다 (#240).
               서버에서 413 을 받고 나서 알면 늦으니 고르는 시점에 미리 잘라낸다.
             */-->
-            <div class="field">
+            <div class="field" th:if="${editPlaceId == null}">
                 <label class="sr-only" for="images">장소 사진</label>
                 <div class="image-upload" data-image-upload
                      data-max-files="10" data-max-size-mb="5" data-max-total-mb="30">
@@ -244,7 +245,8 @@
                 <span>등록한 정보는 운영팀 확인 후 검색 결과에 공개됩니다.</span>
             </div>
 
-            <button class="btn btn-primary btn-block" type="submit" style="margin-top:24px">게시글 등록</button>
+            <button class="btn btn-primary btn-block" type="submit" style="margin-top:24px"
+                    th:text="${editPlaceId == null ? '게시글 등록' : '수정 완료'}">게시글 등록</button>
         </div>
     </form>
 
