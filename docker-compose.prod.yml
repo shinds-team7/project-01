@@ -67,6 +67,16 @@ services:
       KAKAO_MAP_JAVASCRIPT_KEY: ${KAKAO_MAP_JAVASCRIPT_KEY:?KAKAO_MAP_JAVASCRIPT_KEY is required}
       KAKAO_REST_API_KEY: ${KAKAO_REST_API_KEY:?KAKAO_REST_API_KEY is required}
 
+      # 기존 place_addresses 의 빈 좌표를 채우는 일회성 백필. (#265)
+      # 평소에는 꺼져 있어야 한다. 켠 채로 두면 재배포·재기동 때마다 카카오 API 를 다시 부른다.
+      # 켜는 법 — ~/app/.env 에 KAKAO_LOCAL_API_BACKFILL_ENABLED=true 를 넣고
+      #   docker compose -f docker-compose.prod.yml up -d
+      #   docker compose -f docker-compose.prod.yml logs app | grep 백필
+      # 로그로 결과를 확인한 뒤 .env 에서 그 줄을 지우고 다시 up -d 한다.
+      # 배포 워크플로는 이 두 값을 내보내지 않으므로 EC2 의 .env 가 그대로 이긴다.
+      KAKAO_LOCAL_API_BACKFILL_ENABLED: ${KAKAO_LOCAL_API_BACKFILL_ENABLED:-false}
+      KAKAO_LOCAL_API_BACKFILL_BATCH_SIZE: ${KAKAO_LOCAL_API_BACKFILL_BATCH_SIZE:-100}
+
       # S3 업로드용.
       # AWS 자격증명은 넣지 않는다.
       # EC2 인스턴스 프로파일(IAM Role)에서 SDK가 가져간다.
