@@ -77,6 +77,21 @@ class MyPageRenderingTest {
                         org.hamcrest.Matchers.containsString("class=\"my-pet-add\""))));
     }
 
+    /**
+     * 내 정보 수정·비밀번호 변경 화면은 /my/profile 을 거쳐야만 닿는다.
+     * 마이페이지에 이 링크가 없으면 해당 기능 전체가 화면에서 사라지므로 여기서 고정한다.
+     */
+    @Test
+    void linksToProfileScreen() throws Exception {
+        given(petService.getPetList(1L)).willReturn(List.of());
+        given(authService.getMyPage(1L)).willReturn(
+                UserMyPageResponse.builder().nickname("지우").email("a@b.c").build());
+
+        mockMvc.perform(get("/mypage").session(loggedIn()))
+                .andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("href=\"/my/profile\"")));
+    }
+
     @Test
     void redirectsAnonymousUsersToLogin() throws Exception {
         mockMvc.perform(get("/mypage"))
