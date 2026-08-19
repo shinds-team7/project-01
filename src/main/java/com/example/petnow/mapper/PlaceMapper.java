@@ -1,6 +1,7 @@
 package com.example.petnow.mapper;
 
 import com.example.petnow.dto.request.PlaceFilterCriteria;
+import com.example.petnow.dto.request.PlaceUpdateRequest;
 import com.example.petnow.dto.response.PlaceDetailResponse;
 import com.example.petnow.dto.response.PlaceListResponse;
 import com.example.petnow.entity.Place;
@@ -20,6 +21,18 @@ public interface PlaceMapper {
                       @Param("roadAddress") String roadAddress);
 
     Place findById(Long placeId);
+
+    PlaceUpdateRequest findUpdateForm(Long placeId);
+
+    int update(@Param("placeId") Long placeId,
+               @Param("hostUserId") Long hostUserId,
+               @Param("request") PlaceUpdateRequest request,
+               @Param("otherOptions") String otherOptions);
+
+    void upsertAddress(@Param("placeId") Long placeId,
+                       @Param("sido") String sido,
+                       @Param("sigungu") String sigungu,
+                       @Param("roadAddress") String roadAddress);
 
     List<PlaceListResponse> findAllPublished();
 
