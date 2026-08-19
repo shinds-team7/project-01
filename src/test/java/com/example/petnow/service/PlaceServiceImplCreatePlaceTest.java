@@ -5,6 +5,7 @@ import com.example.petnow.entity.Place;
 import com.example.petnow.entity.PlaceType;
 import com.example.petnow.entity.User;
 import com.example.petnow.mapper.AuthMapper;
+import com.example.petnow.mapper.PetMapper;
 import com.example.petnow.mapper.PlaceMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -27,7 +28,7 @@ class PlaceServiceImplCreatePlaceTest {
     void setUp() {
         placeMapper = mock(PlaceMapper.class);
         authMapper = mock(AuthMapper.class);
-        placeService = new PlaceServiceImpl(placeMapper, authMapper);
+        placeService = new PlaceServiceImpl(placeMapper, authMapper, mock(PetMapper.class));
     }
 
     @Test
