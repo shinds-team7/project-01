@@ -22,13 +22,16 @@ class PlaceServiceImplCreatePlaceTest {
 
     private PlaceMapper placeMapper;
     private AuthMapper authMapper;
+    private PlaceGeocodingService placeGeocodingService;
     private PlaceServiceImpl placeService;
 
     @BeforeEach
     void setUp() {
         placeMapper = mock(PlaceMapper.class);
         authMapper = mock(AuthMapper.class);
-        placeService = new PlaceServiceImpl(placeMapper, authMapper, mock(PetMapper.class));
+        placeGeocodingService = mock(PlaceGeocodingService.class);
+        placeService = new PlaceServiceImpl(
+                placeMapper, authMapper, mock(PetMapper.class), placeGeocodingService);
     }
 
     @Test
@@ -58,6 +61,8 @@ class PlaceServiceImplCreatePlaceTest {
                 "서울특별시",
                 "성동구",
                 "서울특별시 성동구 왕십리로 83-21");
+        verify(placeGeocodingService)
+                .geocodeAndUpdate(41L, "서울특별시 성동구 왕십리로 83-21");
     }
 
     private PlaceCreateRequest request() {
