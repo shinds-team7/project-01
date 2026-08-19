@@ -26,6 +26,7 @@ import com.example.petnow.mapper.PlaceMapper;
 import com.example.petnow.service.PetService;
 import com.example.petnow.service.ReservationService;
 
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 
 /**

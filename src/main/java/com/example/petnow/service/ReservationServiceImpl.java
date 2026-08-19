@@ -2,18 +2,22 @@ package com.example.petnow.service;
 
 import java.math.BigDecimal;
 import java.time.Duration;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.petnow.dto.request.ReservationRequest;
 import com.example.petnow.dto.response.PetListResponse;
 import com.example.petnow.dto.response.PlaceDetailResponse;
+import com.example.petnow.dto.response.PlaceSlotResponse;
 import com.example.petnow.dto.response.ReservationDetailResponse;
 import com.example.petnow.dto.response.ReservationListResponse;
 import com.example.petnow.entity.Place;
@@ -21,12 +25,14 @@ import com.example.petnow.entity.Reservation;
 import com.example.petnow.entity.ReservationStatus;
 import com.example.petnow.entity.ReservationType;
 import com.example.petnow.entity.ReservationUseStatus;
+import com.example.petnow.entity.SlotStatus;
 import com.example.petnow.exception.AuthErrorCode;
 import com.example.petnow.exception.BusinessException;
 import com.example.petnow.exception.PlaceErrorCode;
 import com.example.petnow.exception.ReservationErrorCode;
 import com.example.petnow.mapper.PetMapper;
 
+import com.example.petnow.mapper.PlaceAvailabilityMapper;
 import com.example.petnow.mapper.PlaceMapper;
 import com.example.petnow.mapper.ReservationMapper;
 
@@ -39,14 +45,24 @@ public class ReservationServiceImpl implements ReservationService {
 	private final PlaceMapper placeMapper;
 	private final PetMapper petMapper;
 
-	private static final long MIN_RESERVATION_MINUTES = 60;
+	private static final int SLOT_HOURS = 3;
+	private static final long MIN_RESERVATION_MINUTES = SLOT_HOURS * 60;
+	private final PlaceAvailabilityMapper placeAvailabilityMapper;
 
 	@Override
 	@Transactional
 	public String saveReservation(ReservationRequest request, Long userId) {
 		Place place = placeMapper.findById(request.getPlaceId());
-		if (place == null ) {
+		if (place == null) {
 			throw new BusinessException(PlaceErrorCode.PLACE_NOT_FOUND);
+		}
+
+		ReservationType type = request.getReservationType();
+		if (type == ReservationType.SAME_DAY && !place.isSupportsHourly()) {
+			throw new BusinessException(ReservationErrorCode.UNSUPPORTED_RESERVATION_TYPE);
+		}
+		if (type == ReservationType.OVERNIGHT && !place.isSupportsPackage()) {
+			throw new BusinessException(ReservationErrorCode.UNSUPPORTED_RESERVATION_TYPE);
 		}
 
 		if (request.getCheckOut().isBefore(request.getCheckIn())
@@ -58,6 +74,30 @@ public class ReservationServiceImpl implements ReservationService {
 			throw new BusinessException(ReservationErrorCode.RESERVATION_TOO_SHORT);
 		}
 
+		LocalDate checkInDate = request.getCheckIn().toLocalDate();
+		LocalDate checkOutDate = request.getCheckOut().toLocalDate();
+		if (request.getReservationType() == ReservationType.SAME_DAY && !((checkInDate.isEqual(checkOutDate)) || (checkOutDate.isEqual(checkInDate.plusDays(1)) && request.getCheckOut().toLocalTime().equals(LocalTime.MIDNIGHT)))) {
+			throw new BusinessException(ReservationErrorCode.INVALID_RESERVATION_PERIOD);
+		}
+		if (request.getReservationType() == ReservationType.OVERNIGHT) {
+			LocalTime expectedCheckIn = place.getPackageCheckInTime();
+			if (expectedCheckIn == null) {
+				expectedCheckIn = PlaceAvailabilityServiceImpl.DEFAULT_PACKAGE_CHECK_IN_TIME;
+			}
+			LocalTime expectedCheckOut = place.getPackageCheckOutTime();
+			if (expectedCheckOut == null) {
+				expectedCheckOut = PlaceAvailabilityServiceImpl.DEFAULT_PACKAGE_CHECK_OUT_TIME;
+			}
+
+			boolean timeMatches = request.getCheckIn().toLocalTime().equals(expectedCheckIn) &&
+				request.getCheckOut().toLocalTime().equals(expectedCheckOut);
+			long nights = ChronoUnit.DAYS.between(checkInDate, checkOutDate);
+
+			if (!timeMatches || nights<1) {
+				throw new BusinessException(ReservationErrorCode.INVALID_PACKAGE_TIME);
+			}
+		}
+
 		List<PetListResponse> myPets = petMapper.getPetList(userId);
 		Set<Long> myPetIds = myPets.stream()
 			.map(PetListResponse::getId)
@@ -66,6 +106,23 @@ public class ReservationServiceImpl implements ReservationService {
 			throw new BusinessException(ReservationErrorCode.PET_NOT_FOUND);
 		}
 
+        long totalHours = Duration.between(request.getCheckIn(), request.getCheckOut()).toHours();
+        if (totalHours % SLOT_HOURS != 0) {
+            throw new BusinessException(ReservationErrorCode.INVALID_RESERVATION_PERIOD);
+        }
+
+        long slotAmount = totalHours / SLOT_HOURS;
+        List<PlaceSlotResponse> actualSlots = placeAvailabilityMapper.findSlotsByPlaceAndPeriod(request.getPlaceId(), request.getCheckIn(), request.getCheckOut());
+
+        if (actualSlots.size() != slotAmount) {
+            throw new BusinessException(ReservationErrorCode.SLOT_NOT_AVAILABLE);
+        }
+
+        for (int i=0; i<actualSlots.size(); i++) {
+            if (!"OPEN".equals(actualSlots.get(i).getStatus())) {
+                throw new BusinessException(ReservationErrorCode.SLOT_NOT_AVAILABLE);
+            }
+        }
 
 		String reservationNo = Reservation.createReservationNo();
 		BigDecimal totalPrice = calculateTotalPrice(place, request.getReservationType(), request.getCheckIn(), request.getCheckOut());
@@ -83,6 +140,21 @@ public class ReservationServiceImpl implements ReservationService {
 			.build();
 
 		reservationMapper.save(reservation);
+
+        List<Long> slotIds = actualSlots.stream()
+            .map(PlaceSlotResponse::getSlotId)
+            .collect(Collectors.toList());
+
+        try {
+            reservationMapper.insertReservationSlots(reservation.getId(), slotIds);
+        } catch (DuplicateKeyException e) {
+            throw new BusinessException(ReservationErrorCode.SLOT_ALREADY_TAKEN);
+        }
+
+        for (Long slotId : slotIds) {
+            placeAvailabilityMapper.updateSlotStatus(request.getPlaceId(), slotId, SlotStatus.RESERVED);
+        }
+		reservationMapper.saveReservationSlots(reservation.getId(), slotIds);
 		reservationMapper.saveReservationPets(reservation.getId(), request.getPetIds());
 		return reservationNo;
 	}
