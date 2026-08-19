@@ -4,8 +4,8 @@ import java.util.List;
 
 import com.example.petnow.dto.request.ReservationRequest;
 import com.example.petnow.dto.response.ReservationListResponse;
+import com.example.petnow.dto.response.ReservationStepResponse;
 import com.example.petnow.entity.ReservationStatus;
-import com.example.petnow.entity.ReservationUseStatus;
 import com.example.petnow.dto.response.ReservationDetailResponse;
 
 public interface ReservationService {
@@ -22,4 +22,8 @@ public interface ReservationService {
 	void rejectReservation(Long reservationId, Long hostUserId);
 
 	List<ReservationListResponse> getReservationByHost(Long loginUserId, ReservationStatus status);
+
+    ReservationStepResponse resolveHourly(Long placeId, String date, Long start, Long end);
+
+    ReservationStepResponse resolvePackage(Long placeId, String startDate, String endDate);
 }
