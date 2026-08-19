@@ -42,4 +42,5 @@ public interface ReservationMapper {
 
     int deleteReservationSlotsByReservationId(Long reservationId);
 
+    int deleteReservationPets(Long reservationId);
 }
