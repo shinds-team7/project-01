@@ -23,6 +23,7 @@ import com.example.petnow.dto.response.ReservationDetailResponse;
 import com.example.petnow.dto.response.ReservationListResponse;
 import com.example.petnow.dto.response.ReservationStepResponse;
 import com.example.petnow.entity.Place;
+import com.example.petnow.entity.Reservation;
 import com.example.petnow.entity.ReservationStatus;
 import com.example.petnow.exception.BusinessException;
 import com.example.petnow.exception.PlaceErrorCode;
@@ -181,7 +182,6 @@ public class ReservationController {
         @RequestParam(required = false, defaultValue = "booking") String tab,
         @RequestParam(required = false, defaultValue = "ALL") String status,
         Model model) {
-        System.out.println(">>> 컨트롤러 진입: tab=" + tab + ", status=" + status);
         model.addAttribute("tab", tab);
         model.addAttribute("activeTab", tab);
 
@@ -226,4 +226,17 @@ public class ReservationController {
         reservationService.changeReservationPet(reservationId, petIds, userId);
         return "redirect:/reservation/detail?reservationId=" + reservationId;
     }
+
+    @GetMapping("/{reservationId}")
+    public String bookingDetailHost(@LoginUser Long hostUserId, @PathVariable Long reservationId, Model model) {
+        ReservationDetailResponse reservation = reservationService.detailReservationForHost(reservationId, hostUserId);
+
+        if (reservation == null) {
+            throw new BusinessException(ReservationErrorCode.RESERVATION_NOT_FOUND);
+        }
+
+        model.addAttribute("reservation", reservation);
+        return "host/booking-detail";
+    }
+
 }
