@@ -3,10 +3,10 @@ name: CD
 on:
   push:
     branches: [main]        # develop 이 아니라 main 머지에만 배포한다.
-  # 재배포/롤백을 손으로 돌릴 수 있게 열어둔다. 이 단계의 검증도 여기서 한다.
+  # 재배포/롤백을 손으로 돌릴 수 있게 열어둔다.
   workflow_dispatch:
 
-# 배포는 절대 겹치면 안 된다. 겹치면 EC2 에서 두 개의 compose 가 동시에 뜬다.
+# 배포는 절대 겹치면 안 된다.
 concurrency:
   group: cd-production
   cancel-in-progress: false
@@ -21,7 +21,8 @@ jobs:
 
     permissions:
       contents: read
-      packages: write   # GHCR push 용. GITHUB_TOKEN 이 자동으로 받는다.
+      packages: write
+      id-token: write
 
     steps:
       - uses: actions/checkout@v4
@@ -38,8 +39,9 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x ./gradlew
 
-      # 여기서 만든 jar 하나가 도커 이미지에 들어가고, 5/5 에서는 S3 에도 같이 올라간다.
-      # 테스트는 CI 워크플로가 이미 돌렸으므로 다시 돌리지 않는다.
+      # 여기서 만든 jar 하나가 도커 이미지에 들어가고
+      # 필요하면 S3 아티팩트로도 보관한다.
+      # 테스트는 CI 워크플로에서 이미 수행하므로 다시 실행하지 않는다.
       - name: Build jar
         run: ./gradlew bootJar --no-daemon -x test
 
@@ -48,6 +50,7 @@ jobs:
         run: echo "path=$(ls build/libs/*.jar | head -n1)" >> "$GITHUB_OUTPUT"
 
       # --- 이미지 빌드 & GHCR push --------------------------------------
+
       - name: Log in to GHCR
         uses: docker/login-action@v3
         with:
@@ -72,4 +75,85 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      # --- 여기서부터는 4/5 에서 이어 붙입니다 (EC2 배포 · 스모크 테스트) ---
+      # --- EC2 배포 -----------------------------------------------------
+
+      - name: Copy compose file to EC2
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          fingerprint: ${{ secrets.EC2_HOST_FINGERPRINT }}
+          source: docker-compose.prod.yml
+          target: ~/app/
+
+      - name: Deploy
+        uses: appleboy/ssh-action@v1
+        env:
+          DB_USERNAME: ${{ secrets.DB_USERNAME }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_ROOT_PASSWORD: ${{ secrets.DB_ROOT_PASSWORD }}
+          KAKAO_MAP_JAVASCRIPT_KEY: ${{ secrets.KAKAO_MAP_JAVASCRIPT_KEY }}
+          KAKAO_REST_API_KEY: ${{ secrets.KAKAO_REST_API_KEY }}
+          AWS_S3_REGION: ${{ vars.AWS_S3_REGION }}
+          AWS_S3_BUCKET: ${{ vars.AWS_S3_BUCKET }}
+          AWS_S3_BASE_URL: ${{ vars.AWS_S3_BASE_URL }}
+          FLYWAY_BASELINE_ON_MIGRATE: ${{ vars.FLYWAY_BASELINE_ON_MIGRATE || 'false' }}
+          APP_IMAGE: ${{ env.IMAGE_NAME }}:${{ github.sha }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GHCR_USERNAME: ${{ github.actor }}
+
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          fingerprint: ${{ secrets.EC2_HOST_FINGERPRINT }}
+          script_stop: true
+
+          envs: DB_USERNAME,DB_PASSWORD,DB_ROOT_PASSWORD,KAKAO_MAP_JAVASCRIPT_KEY,KAKAO_REST_API_KEY,AWS_S3_REGION,AWS_S3_BUCKET,AWS_S3_BASE_URL,FLYWAY_BASELINE_ON_MIGRATE,APP_IMAGE,GHCR_TOKEN,GHCR_USERNAME
+
+          script: |
+            set -e
+
+            mkdir -p ~/app
+            cd ~/app
+
+            cleanup() {
+              docker logout ghcr.io >/dev/null 2>&1 || true
+            }
+
+            trap cleanup EXIT
+
+            echo "$GHCR_TOKEN" \
+              | docker login ghcr.io \
+              -u "$GHCR_USERNAME" \
+              --password-stdin
+
+            docker compose -f docker-compose.prod.yml config --quiet
+            docker compose -f docker-compose.prod.yml pull
+            docker compose -f docker-compose.prod.yml up -d
+
+            docker image prune -f
+
+      # 컨테이너가 실제로 HTTP 응답을 하는지 확인한다.
+      - name: Smoke test
+        run: |
+          for i in $(seq 1 30); do
+            code=$(curl \
+              --connect-timeout 3 \
+              --max-time 5 \
+              -s -o /dev/null \
+              -w '%{http_code}' \
+              "${{ vars.SERVICE_BASE_URL }}/nearby" || true)
+
+            if [ "$code" = "200" ]; then
+              echo "up (HTTP $code)"
+              exit 0
+            fi
+
+            echo "waiting... ($i/30, last=$code)"
+            sleep 5
+          done
+
+          echo "앱이 2분 안에 응답하지 않음"
+          exit 1
