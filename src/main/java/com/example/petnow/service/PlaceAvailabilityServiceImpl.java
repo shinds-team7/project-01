@@ -1,7 +1,6 @@
 package com.example.petnow.service;
 
 import com.example.petnow.dto.request.PlaceOperatingPolicyUpdateRequest;
-import com.example.petnow.dto.response.PackageDayResponse;
 import com.example.petnow.dto.response.PlaceSlotResponse;
 import com.example.petnow.dto.response.PlaceSlotPeriodResponse;
 import com.example.petnow.entity.Place;
@@ -15,11 +14,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.YearMonth;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
@@ -131,51 +128,6 @@ public class PlaceAvailabilityServiceImpl implements PlaceAvailabilityService {
         }
     }
 
-    @Override
-    @Transactional(readOnly = true)
-    public List<PlaceSlotResponse> getHourlySlots(Long placeId, LocalDate date) {
-        Place place = findPlace(placeId);
-        if (!place.isSupportsHourly()) {
-            return List.of();
-        }
-        return findSlotsOfDay(placeId, date);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<PackageDayResponse> getPackageDays(Long placeId, YearMonth yearMonth) {
-        Place place = findPlace(placeId);
-        if (!place.isSupportsPackage()) {
-            return List.of();
-        }
-
-        LocalTime checkInTime = place.getPackageCheckInTime() == null
-                ? DEFAULT_PACKAGE_CHECK_IN_TIME : place.getPackageCheckInTime();
-        LocalTime checkOutTime = place.getPackageCheckOutTime() == null
-                ? DEFAULT_PACKAGE_CHECK_OUT_TIME : place.getPackageCheckOutTime();
-        long stayHours = Duration.between(
-                LocalDate.EPOCH.atTime(checkInTime),
-                LocalDate.EPOCH.plusDays(1).atTime(checkOutTime)
-        ).toHours();
-        boolean alignedToGrid = isOnGrid(checkInTime)
-                && isOnGrid(checkOutTime)
-                && stayHours % SLOT_HOURS == 0;
-        int requiredSlots = (int) (stayHours / SLOT_HOURS);
-
-        List<PackageDayResponse> days = new ArrayList<>();
-        for (int day = 1; day <= yearMonth.lengthOfMonth(); day++) {
-            LocalDate date = yearMonth.atDay(day);
-            LocalDateTime startAt = date.atTime(checkInTime);
-            LocalDateTime endAt = date.plusDays(1).atTime(checkOutTime);
-            int openSlots = placeAvailabilityMapper.countOpenSlotsInRange(placeId, startAt, endAt);
-            days.add(PackageDayResponse.builder()
-                    .date(date)
-                    .selectable(alignedToGrid && openSlots == requiredSlots)
-                    .build());
-        }
-        return days;
-    }
-
     public static boolean isOnGrid(LocalTime time) {
         return time != null
                 && time.getMinute() == 0
@@ -189,12 +141,11 @@ public class PlaceAvailabilityServiceImpl implements PlaceAvailabilityService {
                 placeId, date.atStartOfDay(), date.plusDays(1).atStartOfDay());
     }
 
-    private Place validateOwner(Long hostUserId, Long placeId) {
+    private void validateOwner(Long hostUserId, Long placeId) {
         Place place = findPlace(placeId);
         if (hostUserId == null || !hostUserId.equals(place.getHostUserId())) {
             throw new BusinessException(PlaceErrorCode.PLACE_ACCESS_DENIED);
         }
-        return place;
     }
 
     private Place findPlace(Long placeId) {

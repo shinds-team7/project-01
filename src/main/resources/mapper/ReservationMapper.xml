@@ -127,7 +127,6 @@
         ORDER BY r.check_in_at DESC;
     </select>
 
-
     <update id="cancelReservation">
         UPDATE reservations
         SET status='CANCELED', updated_at=CURRENT_TIMESTAMP
@@ -146,4 +145,23 @@
         SET status='CANCELED', responded_at=CURRENT_TIMESTAMP
         WHERE id = #{reservationId} AND status='PENDING'
     </update>
+
+    <insert id="insertReservationSlots">
+        INSERT INTO reservation_slots (reservation_id, availability_id)
+        VALUES
+        <foreach collection="slotIds" item="slotId" separator=",">
+            (#{reservationId}, #{slotId})
+        </foreach>
+    </insert>
+
+    <select id="findSlotIdsByReservationId" resultType="java.lang.Long">
+        SELECT availability_id
+        FROM reservation_slots
+        WHERE reservation_id = #{reservationId}
+    </select>
+
+    <delete id="deleteReservationSlotsByReservationId">
+        DELETE FROM reservation_slots
+        WHERE reservation_id = #{reservationId}
+    </delete>
 </mapper>
