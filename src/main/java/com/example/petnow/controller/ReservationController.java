@@ -22,6 +22,7 @@ import com.example.petnow.dto.request.ReservationRequest;
 import com.example.petnow.dto.response.ReservationDetailResponse;
 import com.example.petnow.dto.response.ReservationListResponse;
 import com.example.petnow.dto.response.ReservationStepResponse;
+import com.example.petnow.dto.response.ReviewResponse;
 import com.example.petnow.entity.Place;
 import com.example.petnow.entity.Reservation;
 import com.example.petnow.entity.ReservationStatus;
@@ -31,6 +32,7 @@ import com.example.petnow.exception.ReservationErrorCode;
 import com.example.petnow.mapper.PlaceMapper;
 import com.example.petnow.service.PetService;
 import com.example.petnow.service.ReservationService;
+import com.example.petnow.service.ReviewService;
 
 import jakarta.validation.Valid;
 
@@ -45,11 +47,14 @@ public class ReservationController {
 	private final ReservationService reservationService;
 	private final PlaceMapper placeMapper;
 	private final PetService petService;
+	private final ReviewService reviewService;
 
-    public ReservationController(ReservationService reservationService, PlaceMapper placeMapper, PetService petService) {
+    public ReservationController(ReservationService reservationService, PlaceMapper placeMapper, PetService petService,
+		ReviewService reviewService) {
 		this.reservationService = reservationService;
 		this.placeMapper = placeMapper;
 		this.petService = petService;
+		this.reviewService = reviewService;
     }
 
 	@PostMapping("/create")
@@ -166,7 +171,21 @@ public class ReservationController {
 	public String detailReservation(@LoginUser Long userId, @RequestParam Long reservationId, Model model) {
 		ReservationDetailResponse reservation = reservationService.detailReservation(reservationId, userId);
 		model.addAttribute("reservation", reservation);
+		model.addAttribute("myReviewId", findMyReviewId(userId, reservationId));
 		return "reservations/reservationDetail";
+	}
+
+	/**
+	 * 이 예약에 내가 이미 남긴 리뷰의 id. 없으면 null.
+	 * 예약 상세 하단 CTA 를 "리뷰 쓰기" 로 그릴지 "리뷰 수정하기" 로 그릴지 정하는 데만 쓴다.
+	 * 이미 리뷰를 쓴 예약인데 작성 폼으로 다시 들어가면 등록 단계에서야 REVIEW_DUPLICATE 로 막힌다.
+	 */
+	private Long findMyReviewId(Long userId, Long reservationId) {
+		return reviewService.getMyReviews(userId).stream()
+			.filter(review -> reservationId.equals(review.getReservationId()))
+			.map(ReviewResponse::getId)
+			.findFirst()
+			.orElse(null);
 	}
 
 	@GetMapping("/list")
