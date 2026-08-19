@@ -165,6 +165,28 @@
         WHERE reservation_id = #{reservationId}
     </select>
 
+    <select id="detailReservationForHost" resultMap="ReservationDetailResponseMap">
+        SELECT
+            r.id AS reservation_id,
+            r.status AS status,
+            r.reservation_no AS reservation_no,
+            r.check_in_at AS check_in_at,
+            r.check_out_at AS check_out_at,
+            u.nickname AS user_name,
+            pl.name AS place_name,
+            p.id AS pet_id,
+            p.name AS pet_name,
+            p.weight AS pet_weight,
+            LOWER(p.size) AS pet_size
+        FROM reservations r
+            INNER JOIN users u ON r.guest_user_id = u.id
+            INNER JOIN places pl ON r.place_id = pl.id
+            LEFT JOIN reservation_pets rp ON r.id = rp.reservation_id
+            LEFT JOIN pets p ON rp.pet_id = p.id
+        WHERE r.id = #{reservationId}
+        AND pl.host_user_id = #{hostUserId}
+    </select>
+
     <delete id="deleteReservationSlotsByReservationId">
         DELETE FROM reservation_slots
         WHERE reservation_id = #{reservationId}

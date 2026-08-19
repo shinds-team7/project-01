@@ -15,6 +15,8 @@ public interface ReservationService {
 
 	ReservationDetailResponse detailReservation(Long reservationId, Long userId);
 
+    ReservationDetailResponse detailReservationForHost(Long reservationId, Long hostUserId);
+
 	List<ReservationListResponse> getReservationList(Long userId, String useStatus);
 
 	void cancelReservation(Long reservationId, Long userId);

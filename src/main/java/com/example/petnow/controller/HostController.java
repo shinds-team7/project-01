@@ -1,6 +1,9 @@
 package com.example.petnow.controller;
 
+import java.util.List;
+
 import com.example.petnow.common.argument.LoginUser;
+import com.example.petnow.dto.response.ReservationListResponse;
 import com.example.petnow.entity.ReservationStatus;
 import com.example.petnow.service.HostService;
 import com.example.petnow.service.ReservationService;
@@ -26,7 +29,7 @@ public class HostController {
     @GetMapping
     public String dashboard(@LoginUser Long loginUserId,
                             @RequestParam(defaultValue = "places") String tab,
-                            @RequestParam(required = false) ReservationStatus status,
+                            @RequestParam(required = false, defaultValue = "ALL") String status,
                             Model model) {
 
         if (!tab.equals("booking") && !tab.equals("reviews") && !tab.equals("places")) {
@@ -36,7 +39,13 @@ public class HostController {
         model.addAttribute("tab", tab);
 
         if ("booking".equals(tab)) {
-            model.addAttribute("booking", reservationService.getReservationByHost(loginUserId, status));
+            ReservationStatus filterStatus = "ALL".equalsIgnoreCase(status)
+                ? null : ReservationStatus.valueOf(status.toUpperCase());
+
+            List<ReservationListResponse> reservations = reservationService.getReservationByHost(loginUserId, filterStatus);
+
+            model.addAttribute("reservations", reservations);
+            model.addAttribute("status", status);
 
         } else if ("reviews".equals(tab)) {
 

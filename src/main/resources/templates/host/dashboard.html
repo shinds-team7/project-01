@@ -32,10 +32,37 @@
         </div>
 
         <!--/* 예약 요청 탭 — 호스트용 예약 조회 API 가 없어 아직 비어 있다 (#100) */-->
-        <div th:if="${activeTab == 'booking'}" class="empty">
-            <span class="ico" aria-hidden="true">event_note</span>
-            <strong>예약 요청을 불러올 수 없어요</strong>
-            <p>호스트용 예약 조회 API 가 연결되면 여기에 표시됩니다.</p>
+        <div th:if="${activeTab == 'booking'}">
+            <div class="tab-row">
+                <a th:href="@{/host(tab='booking', status='PENDING')}"
+                   th:classappend="${status == 'PENDING'} ? 'is-active'">예약 대기</a>
+                <a th:href="@{/host(tab='booking', status='ALL')}"
+                   th:classappend="${status == 'ALL'} ? 'is-active'">전체</a>
+            </div>
+
+            <div class="empty" th:if="${#lists.isEmpty(reservations)}">
+                <span class="ico" aria-hidden="true">event_note</span>
+                <strong th:text="${status == 'PENDING' ? '대기 중인 예약이 없어요' : '예약 요청을 불러올 수 없어요'}">예약 요청을 불러올 수 없어요</strong>
+            </div>
+
+            <div class="list" th:unless="${#lists.isEmpty(reservations)}">
+                <a class="card list-row" th:each="r : ${reservations}"
+                   th:href="@{/reservation/{id}(id=${r.reservationId})}">
+            <span class="list-row-label">
+                <strong th:text="${r.placeName}">연남동 윤슬 호스트</strong>
+                <small th:text="${#temporals.format(r.checkIn, 'M월 d일 HH:mm')} + ' ~ ' + ${#temporals.format(r.checkOut, 'M월 d일 HH:mm')}">
+                    8월 5일 15:00 ~ 8월 6일 12:00
+                </small>
+            </span>
+                    <span class="badge"
+                          th:classappend="${r.reservationStatus.name() == 'CONFIRMED' ? 'badge-green'
+                  : (r.reservationStatus.name() == 'CANCELED' ? 'badge-danger' : 'badge-warn')}"
+                          th:text="${r.reservationStatus.name() == 'CONFIRMED' ? '예약 확정'
+           : (r.reservationStatus.name() == 'CANCELED' ? '취소됨' : '응답 대기')}">
+                응답 대기
+            </span>
+                </a>
+            </div>
         </div>
 
         <!--/* 리뷰 탭 — 호스트용 리뷰 조회 API 가 없어 아직 비어 있다 */-->

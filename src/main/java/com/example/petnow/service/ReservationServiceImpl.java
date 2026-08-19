@@ -198,7 +198,12 @@ public class ReservationServiceImpl implements ReservationService {
 		return reservationMapper.detailReservation(reservationId);
 	}
 
-	@Override
+    @Override
+    public ReservationDetailResponse detailReservationForHost(Long reservationId, Long hostUserId) {
+        return reservationMapper.detailReservationForHost(reservationId, hostUserId);
+    }
+
+    @Override
 	@Transactional
 	public void cancelReservation(Long reservationId, Long userId) {
 		Reservation reservation = reservationMapper.findById(reservationId);
