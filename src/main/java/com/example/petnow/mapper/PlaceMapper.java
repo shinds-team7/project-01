@@ -13,6 +13,11 @@ import java.util.List;
 public interface PlaceMapper {
     int insert(Place place);
 
+    int insertAddress(@Param("placeId") Long placeId,
+                      @Param("sido") String sido,
+                      @Param("sigungu") String sigungu,
+                      @Param("roadAddress") String roadAddress);
+
     Place findById(Long placeId);
 
     List<PlaceListResponse> findAllPublished();

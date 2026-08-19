@@ -48,6 +48,20 @@
         )
     </insert>
 
+    <insert id="insertAddress">
+        INSERT INTO place_addresses (
+        place_id,
+        sido,
+        sigungu,
+        road_address
+        ) VALUES (
+        #{placeId},
+        #{sido},
+        #{sigungu},
+        #{roadAddress}
+        )
+    </insert>
+
     <select id="findById"
             resultType="com.example.petnow.entity.Place">
         SELECT

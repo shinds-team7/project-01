@@ -21,6 +21,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PlaceServiceImpl implements PlaceService {
 
+    private static final String SEOUL = "서울특별시";
+
     private final PlaceMapper placeMapper;
     private final AuthMapper authMapper;
 
@@ -55,6 +57,12 @@ public class PlaceServiceImpl implements PlaceService {
 
         int result = placeMapper.insert(place);
         if (result != 1 || place.getId() == null) {
+            throw new BusinessException(PlaceErrorCode.PLACE_CREATE_FAILED);
+        }
+
+        int addressResult = placeMapper.insertAddress(
+                place.getId(), SEOUL, request.getSigungu(), request.getRoadAddress());
+        if (addressResult != 1) {
             throw new BusinessException(PlaceErrorCode.PLACE_CREATE_FAILED);
         }
     }
