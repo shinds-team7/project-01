@@ -389,6 +389,7 @@ public class ReservationServiceImpl implements ReservationService {
     }
 
     @Override
+    @Transactional
     public void changeReservationPet(Long reservationId, List<Long> petIds, Long userId) {
         Reservation reservation = reservationMapper.findById(reservationId);
         if (reservation == null) {
