@@ -143,6 +143,23 @@ class PlaceMapperFilterStatementTest {
     }
 
     @Test
+    @DisplayName("키워드는 장소명·소개글·호스트 닉네임에만 LIKE 조건을 건다")
+    void keywordConditionIsOptional() {
+        String withoutKeyword = collapse(sqlOf(base(PlaceFilterCriteria.ScheduleMode.NONE).build()));
+        assertThat(withoutKeyword).doesNotContain("LIKE CONCAT");
+
+        BoundSql boundSql = boundSqlOf(base(PlaceFilterCriteria.ScheduleMode.NONE)
+                .keyword("마당")
+                .build());
+        String sql = collapse(boundSql.getSql());
+
+        assertThat(sql).contains("AND (p.name LIKE CONCAT('%', ?, '%')"
+                + " OR p.description LIKE CONCAT('%', ?, '%')"
+                + " OR p.host_user_nickname LIKE CONCAT('%', ?, '%'))");
+        assertThat(properties(boundSql)).containsExactly("keyword", "keyword", "keyword");
+    }
+
+    @Test
     @DisplayName("정렬은 허용 목록으로만 만들어지고 모르는 값은 최신순으로 떨어진다")
     void sortIsAllowlisted() {
         assertThat(collapse(sqlOf(sorted("price"))))

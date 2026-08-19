@@ -36,6 +36,9 @@ public class PlaceFilterRequest {
     /** 지역구(sigungu) 복수 선택. 비어 있으면 지역 조건을 걸지 않는다. */
     private List<String> regions;
 
+    /** 장소명·소개글·호스트 닉네임에서 찾을 검색어. 빈 문자열은 서비스에서 조건 없이 정규화한다. */
+    private String keyword;
+
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     private LocalDate startDate;
 

@@ -191,6 +191,28 @@ class PlaceServiceImplFilterTest {
     }
 
     @Test
+    @DisplayName("키워드는 앞뒤 공백을 걷어 매퍼에 넘긴다")
+    void keywordIsTrimmed() {
+        PlaceFilterRequest request = request();
+        request.setKeyword("  마당 있는 집  ");
+
+        PlaceFilterCriteria criteria = capture(request);
+
+        assertThat(criteria.getKeyword()).isEqualTo("마당 있는 집");
+    }
+
+    @Test
+    @DisplayName("공백뿐인 키워드는 조회 조건을 만들지 않는다")
+    void blankKeywordAddsNoCondition() {
+        PlaceFilterRequest request = request();
+        request.setKeyword("   ");
+
+        PlaceFilterCriteria criteria = capture(request);
+
+        assertThat(criteria.getKeyword()).isNull();
+    }
+
+    @Test
     @DisplayName("고른 조건을 화면 문구로 요약한다")
     void buildsSummaryLabels() {
         given(petMapper.getPetList(7L)).willReturn(List.of(

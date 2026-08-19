@@ -32,6 +32,7 @@ public class PlaceFilterCriteria {
     }
 
     private final List<String> regions;
+    private final String keyword;
     private final PlaceType placeType;
 
     /** 고른 반려견 수. 0 이면 마릿수·크기 조건을 걸지 않는다. */

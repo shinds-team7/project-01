@@ -182,6 +182,7 @@ public class PlaceServiceImpl implements PlaceService {
 
         PlaceFilterCriteria.PlaceFilterCriteriaBuilder criteria = PlaceFilterCriteria.builder()
                 .regions(normalizeRegions(request.getRegions()))
+                .keyword(normalizeKeyword(request.getKeyword()))
                 .placeType(request.getPlaceType())
                 .petCount(pets.size())
                 .requiresSmallDog(sizes.contains(Pet.Size.SMALL))
@@ -230,6 +231,14 @@ public class PlaceServiceImpl implements PlaceService {
             }
         }
         return List.copyOf(normalized);
+    }
+
+    /** 앞뒤 공백을 검색 대상에서 빼고, 공백뿐인 값은 키워드 조건을 만들지 않는다. */
+    private static String normalizeKeyword(String keyword) {
+        if (keyword == null || keyword.isBlank()) {
+            return null;
+        }
+        return keyword.trim();
     }
 
     private static String regionLabel(List<String> regions) {

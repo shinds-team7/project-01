@@ -16,6 +16,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 import java.util.Map;
@@ -65,13 +66,26 @@ public class HomeController {
         return "home";
     }
 
-    /**
-     * 하단 네비의 목적지 중 아직 화면이 없는 항목을 채워두는 임시 화면.
-     * 해당 화면이 만들어지면 이 매핑과 함께 지운다.
-     */
+    /** 장소명·소개글·호스트 닉네임으로 공개된 공간을 찾는다. (#264) */
     @GetMapping("/search")
-    public String search(Model model) {
-        return comingSoon(model, "검색", "search");
+    public String search(@RequestParam(required = false) String keyword,
+                         HttpServletRequest request,
+                         Model model) {
+        String normalizedKeyword = keyword == null ? "" : keyword.trim();
+        boolean searched = !normalizedKeyword.isEmpty();
+
+        model.addAttribute("keyword", normalizedKeyword);
+        model.addAttribute("searched", searched);
+        if (!searched) {
+            model.addAttribute("places", List.of());
+            return "places/search";
+        }
+
+        PlaceFilterRequest filter = new PlaceFilterRequest();
+        filter.setKeyword(normalizedKeyword);
+        PlaceSearchResponse result = placeService.searchPlaces(LoginSession.currentUserId(request), filter);
+        model.addAttribute("places", result.getPlaces());
+        return "places/search";
     }
 
     /**

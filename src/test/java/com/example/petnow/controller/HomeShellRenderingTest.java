@@ -122,14 +122,12 @@ class HomeShellRenderingTest {
     }
 
     @Test
-    @DisplayName("아직 화면이 없는 검색·찜은 404 가 아니라 준비 중 화면을 연다")
-    void navDestinationsResolve() throws Exception {
-        for (String path : new String[]{"/search", "/bookmarks"}) {
-            mockMvc.perform(get(path))
-                    .andExpect(status().isOk())
-                    .andExpect(view().name("coming-soon"))
-                    .andExpect(content().string(containsString("화면을 준비하고 있어요")));
-        }
+    @DisplayName("아직 화면이 없는 찜은 404 가 아니라 준비 중 화면을 연다")
+    void unimplementedNavDestinationResolves() throws Exception {
+        mockMvc.perform(get("/bookmarks"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("coming-soon"))
+                .andExpect(content().string(containsString("화면을 준비하고 있어요")));
     }
 
     @Test

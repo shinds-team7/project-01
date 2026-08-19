@@ -189,6 +189,11 @@
         WHERE p.status = 'PUBLISHED'
         AND p.is_visible = TRUE
         AND p.deleted_at IS NULL
+        <if test="keyword != null">
+            AND (p.name LIKE CONCAT('%', #{keyword}, '%')
+            OR p.description LIKE CONCAT('%', #{keyword}, '%')
+            OR p.host_user_nickname LIKE CONCAT('%', #{keyword}, '%'))
+        </if>
         <if test="regions != null and !regions.isEmpty()">
             AND pa.sigungu IN
             <foreach collection="regions" item="region" open="(" close=")" separator=",">
