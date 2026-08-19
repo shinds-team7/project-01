@@ -1,8 +1,11 @@
 package com.example.petnow.controller;
 
 import com.example.petnow.common.controller.HomeController;
+import com.example.petnow.dto.request.PlaceFilterRequest;
 import com.example.petnow.dto.response.PlaceListResponse;
 import com.example.petnow.entity.PlaceType;
+import com.example.petnow.dto.response.PlaceSearchResponse;
+import com.example.petnow.service.PetService;
 import com.example.petnow.service.PlaceService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -37,6 +40,9 @@ class HomeShellRenderingTest {
 
     @MockitoBean
     private PlaceService placeService;
+
+    @MockitoBean
+    private PetService petService;
 
     @Test
     @DisplayName("홈이 앱 셸과 하단 네비를 갖고 그려진다")
@@ -116,20 +122,20 @@ class HomeShellRenderingTest {
     }
 
     @Test
-    @DisplayName("아직 화면이 없는 검색·찜은 404 가 아니라 준비 중 화면을 연다")
-    void navDestinationsResolve() throws Exception {
-        for (String path : new String[]{"/search", "/bookmarks"}) {
-            mockMvc.perform(get(path))
-                    .andExpect(status().isOk())
-                    .andExpect(view().name("coming-soon"))
-                    .andExpect(content().string(containsString("화면을 준비하고 있어요")));
-        }
+    @DisplayName("아직 화면이 없는 찜은 404 가 아니라 준비 중 화면을 연다")
+    void unimplementedNavDestinationResolves() throws Exception {
+        mockMvc.perform(get("/bookmarks"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("coming-soon"))
+                .andExpect(content().string(containsString("화면을 준비하고 있어요")));
     }
 
     @Test
     @DisplayName("내 주변이 준비 중 화면 대신 실제 목록을 그린다")
     void nearbyRendersPlaceList() throws Exception {
-        given(placeService.getPublishedPlaces()).willReturn(List.of(place(3L, "햇살 가득한 마당", 5000)));
+        given(placeService.searchPlaces(org.mockito.ArgumentMatchers.isNull(),
+                org.mockito.ArgumentMatchers.any(PlaceFilterRequest.class)))
+                .willReturn(searchResult(List.of(place(3L, "햇살 가득한 마당", 5000))));
 
         mockMvc.perform(get("/nearby"))
                 .andExpect(status().isOk())
@@ -145,10 +151,17 @@ class HomeShellRenderingTest {
     @Test
     @DisplayName("공개된 장소가 없으면 내 주변도 빈 상태를 그린다")
     void nearbyRendersEmptyState() throws Exception {
-        given(placeService.getPublishedPlaces()).willReturn(List.of());
+        given(placeService.searchPlaces(org.mockito.ArgumentMatchers.isNull(),
+                org.mockito.ArgumentMatchers.any(PlaceFilterRequest.class)))
+                .willReturn(searchResult(List.of()));
 
         mockMvc.perform(get("/nearby"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("주변에 공개된 공간이 없어요")));
+    }
+
+    /** 조건 없이 들어온 검색 결과. 라벨이 모두 비어 있어 필터 칩도 그려지지 않는다. */
+    private PlaceSearchResponse searchResult(List<PlaceListResponse> places) {
+        return PlaceSearchResponse.builder().places(places).build();
     }
 }
