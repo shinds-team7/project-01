@@ -15,25 +15,13 @@ public interface PlaceAvailabilityMapper {
 
     int insertSlots(List<PlaceAvailability> slots);
 
-    int updateSlotsToReserved(@Param("placeId") Long placeId,
-                              @Param("startAt") LocalDateTime startAt,
-                              @Param("endAt") LocalDateTime endAt);
-
     int updateSlotsToOpen(List<Long> slotIds);
-
-    List<Long> findSlotIdsByRange(@Param("placeId") Long placeId,
-                                  @Param("startAt") LocalDateTime startAt,
-                                  @Param("endAt") LocalDateTime endAt);
 
     List<PlaceSlotResponse> findSlotsByPlaceAndPeriod(@Param("placeId") Long placeId,
                                                       @Param("fromAt") LocalDateTime fromAt,
                                                       @Param("toAt") LocalDateTime toAt);
 
     PlaceSlotPeriodResponse findSlotPeriodByPlaceId(Long placeId);
-
-    int countOpenSlotsInRange(@Param("placeId") Long placeId,
-                              @Param("startAt") LocalDateTime startAt,
-                              @Param("endAt") LocalDateTime endAt);
 
     int updateSlotStatus(@Param("placeId") Long placeId,
                          @Param("slotId") Long slotId,

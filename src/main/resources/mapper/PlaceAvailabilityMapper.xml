@@ -11,15 +11,6 @@
         </foreach>
     </insert>
 
-    <update id="updateSlotsToReserved">
-        UPDATE place_availability
-        SET status = 'RESERVED'
-        WHERE place_id = #{placeId}
-        AND status = 'OPEN'
-        AND start_at &gt;= #{startAt}
-        AND end_at &lt;= #{endAt}
-    </update>
-
     <update id="updateSlotsToOpen">
         UPDATE place_availability
         SET status = 'OPEN'
@@ -28,15 +19,6 @@
             #{slotId}
         </foreach>
     </update>
-
-    <select id="findSlotIdsByRange" resultType="java.lang.Long">
-        SELECT id
-        FROM place_availability
-        WHERE place_id = #{placeId}
-        AND start_at &gt;= #{startAt}
-        AND end_at &lt;= #{endAt}
-        ORDER BY start_at ASC
-    </select>
 
     <select id="findSlotsByPlaceAndPeriod"
             resultType="com.example.petnow.dto.response.PlaceSlotResponse">
@@ -59,15 +41,6 @@
         DATE(MAX(start_at)) AS toDate
         FROM place_availability
         WHERE place_id = #{placeId}
-    </select>
-
-    <select id="countOpenSlotsInRange" resultType="int">
-        SELECT COUNT(*)
-        FROM place_availability
-        WHERE place_id = #{placeId}
-        AND status = 'OPEN'
-        AND start_at &gt;= #{startAt}
-        AND end_at &lt;= #{endAt}
     </select>
 
     <update id="updateSlotStatus">
