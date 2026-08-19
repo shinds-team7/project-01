@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.io.InputStream;
 import java.util.Locale;
 
+import com.example.petnow.dto.request.PlaceFilterCriteria;
 import org.apache.ibatis.builder.xml.XMLMapperBuilder;
 import org.apache.ibatis.mapping.MappedStatement;
 import org.apache.ibatis.session.Configuration;
@@ -27,6 +28,9 @@ class PlaceMapperStatementTest {
     private static final String PLACE_MAPPER = "mapper/PlaceMapper.xml";
     private static final String FIND_ALL_PUBLISHED =
             "com.example.petnow.mapper.PlaceMapper.findAllPublished";
+    /** /nearby 가 실제로 타는 쿼리다. 여기에 좌표가 없으면 지도에 마커가 하나도 찍히지 않는다. (#7) */
+    private static final String FIND_BY_FILTER =
+            "com.example.petnow.mapper.PlaceMapper.findByFilter";
 
     private Configuration configuration;
 
@@ -61,11 +65,31 @@ class PlaceMapperStatementTest {
         assertThat(sql).contains("longitude");
     }
 
+    @Test
+    @DisplayName("findByFilter 도 위경도를 실어 준다")
+    void findByFilterSelectsCoordinates() {
+        // 조건 필터링(#7)이 붙은 뒤로 /nearby 는 findAllPublished 가 아니라 이 쿼리를 탄다.
+        // 여기에 좌표를 안 실으면 조건을 걸고 들어온 화면만 조용히 마커가 0개가 된다.
+        String sql = sqlOf(FIND_BY_FILTER, PlaceFilterCriteria.builder()
+                .scheduleMode(PlaceFilterCriteria.ScheduleMode.NONE)
+                .build());
+
+        assertThat(sql).contains("pa.latitude");
+        assertThat(sql).contains("pa.longitude");
+        assertThat(sql).contains("left join place_addresses");
+        assertThat(sql).doesNotContain("inner join place_addresses");
+    }
+
     /** 공백을 하나로 줄이고 소문자로 낮춰 비교한다. 줄바꿈·들여쓰기가 바뀌어도 테스트가 흔들리지 않게. */
     private String sqlOf(String statementId) {
+        return sqlOf(statementId, null);
+    }
+
+    /** 동적 SQL 은 조건 객체가 있어야 {@code <if>} 가 풀린다. */
+    private String sqlOf(String statementId, Object parameter) {
         MappedStatement statement = configuration.getMappedStatement(statementId);
         assertThat(statement).as("%s 를 찾지 못했다", statementId).isNotNull();
-        return statement.getBoundSql(null).getSql()
+        return statement.getBoundSql(parameter).getSql()
                 .replaceAll("\\s+", " ")
                 .toLowerCase(Locale.ROOT);
     }

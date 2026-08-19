@@ -35,16 +35,6 @@ server:
     max-swallow-size: 55MB
 
 app:
-  kakao:
-    map:
-      # 지도 SDK 가 브라우저에서 쓰는 JavaScript 키. HTML 에 그대로 실려 나가는 것이 정상이다.
-      # 숨길 수 없으므로 카카오 개발자 콘솔의 플랫폼 > 웹에 도메인을 등록해 사용처를 제한한다.
-      # http://localhost:8080 과 https://petnow.duckdns.org 을 둘 다 등록해야 로컬·운영이 같이 산다.
-      # 비워 두면 /nearby 는 지도 없이 목록만 그린다. 앱은 그대로 뜬다.
-      javascript-key: ${KAKAO_MAP_JAVASCRIPT_KEY:}
-    # 서버가 주소를 좌표로 바꿀 때 쓰는 REST API 키(#265). 화면으로 절대 내려보내지 않는다.
-    # 여기 적어 두는 이유는 KakaoKeyGuard 가 기동 때 위 JavaScript 키와 같은 값인지 확인하기 때문이다.
-    rest-api-key: ${KAKAO_REST_API_KEY:}
   # 카카오톡 등 외부 크롤러에 노출할 운영 주소. 예: https://petnow.example.com
   # 비워 두면 현재 요청 주소를 사용한다.
   public-url: ${APP_PUBLIC_URL:}
@@ -62,6 +52,24 @@ cloud:
       region: ${AWS_S3_REGION:ap-northeast-2}
       # 비워 두면 https://{bucket}.s3.{region}.amazonaws.com 을 쓴다. CloudFront 로 옮기면 이 값만 바꾼다.
       base-url: ${AWS_S3_BASE_URL:}
+
+kakao:
+  map:
+    # 지도 SDK 가 브라우저에서 쓰는 JavaScript 키. HTML 에 그대로 실려 나가는 것이 정상이다. (#277)
+    # 숨길 수 없으므로 카카오 개발자 콘솔의 플랫폼 > 웹에 도메인을 등록해 사용처를 제한한다.
+    # http://localhost:8080 과 https://petnow.duckdns.org 을 둘 다 등록해야 로컬·운영이 같이 산다.
+    # 비워 두면 /nearby 는 지도 없이 목록만 그린다. 앱은 그대로 뜬다.
+    javascript-key: ${KAKAO_MAP_JAVASCRIPT_KEY:}
+  local-api:
+    # REST API 키는 서버에서만 사용하며 템플릿·JavaScript로 전달하지 않는다.
+    # 아래 키와 위 javascript-key 가 같은 값이면 KakaoKeyGuard 가 기동을 막는다.
+    rest-api-key: ${KAKAO_REST_API_KEY:}
+    base-url: https://dapi.kakao.com
+    connect-timeout: 2s
+    read-timeout: 3s
+    # 기존 주소 좌표를 채울 때만 명시적으로 true로 켜고 실행 후 다시 끈다.
+    backfill-enabled: ${KAKAO_LOCAL_API_BACKFILL_ENABLED:false}
+    backfill-batch-size: ${KAKAO_LOCAL_API_BACKFILL_BATCH_SIZE:100}
 
 mybatis:
   mapper-locations: classpath:mapper/*.xml

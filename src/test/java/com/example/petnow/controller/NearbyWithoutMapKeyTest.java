@@ -1,8 +1,11 @@
 package com.example.petnow.controller;
 
 import com.example.petnow.common.controller.HomeController;
+import com.example.petnow.dto.request.PlaceFilterRequest;
 import com.example.petnow.dto.response.PlaceListResponse;
+import com.example.petnow.dto.response.PlaceSearchResponse;
 import com.example.petnow.entity.PlaceType;
+import com.example.petnow.service.PetService;
 import com.example.petnow.service.PlaceService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -16,6 +19,8 @@ import java.util.List;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -28,7 +33,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * 배포까지 전부 키가 빈 상태다. 그때 화면이 깨지거나 500 이 나면 지도 하나 때문에
  * 목록 기능까지 못 쓰게 된다.
  */
-@WebMvcTest(value = HomeController.class, properties = "app.kakao.map.javascript-key=")
+@WebMvcTest(value = HomeController.class, properties = "kakao.map.javascript-key=")
 class NearbyWithoutMapKeyTest {
 
     @Autowired
@@ -37,16 +42,20 @@ class NearbyWithoutMapKeyTest {
     @MockitoBean
     private PlaceService placeService;
 
+    @MockitoBean
+    private PetService petService;
+
     @Test
     @DisplayName("지도 키가 없으면 SDK 를 부르지 않고 목록만 그린다")
     void rendersListWithoutMapSdk() throws Exception {
-        given(placeService.getPublishedPlaces()).willReturn(List.of(PlaceListResponse.builder()
-                .id(9L)
-                .name("햇살 가득한 마당")
-                .nickname("윤슬")
-                .placeType(PlaceType.APARTMENT)
-                .hourlyPrice(BigDecimal.valueOf(5000))
-                .build()));
+        given(placeService.searchPlaces(isNull(), any(PlaceFilterRequest.class)))
+                .willReturn(searchResult(List.of(PlaceListResponse.builder()
+                        .id(9L)
+                        .name("햇살 가득한 마당")
+                        .nickname("윤슬")
+                        .placeType(PlaceType.APARTMENT)
+                        .hourlyPrice(BigDecimal.valueOf(5000))
+                        .build())));
 
         mockMvc.perform(get("/nearby"))
                 .andExpect(status().isOk())
@@ -60,10 +69,16 @@ class NearbyWithoutMapKeyTest {
     @Test
     @DisplayName("지도 키가 없어도 빈 목록은 빈 상태 안내를 그린다")
     void rendersEmptyStateWithoutMapSdk() throws Exception {
-        given(placeService.getPublishedPlaces()).willReturn(List.of());
+        given(placeService.searchPlaces(isNull(), any(PlaceFilterRequest.class)))
+                .willReturn(searchResult(List.of()));
 
         mockMvc.perform(get("/nearby"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("주변에 공개된 공간이 없어요")));
+    }
+
+    /** 조건 없이 들어온 검색 결과. */
+    private PlaceSearchResponse searchResult(List<PlaceListResponse> places) {
+        return PlaceSearchResponse.builder().places(places).build();
     }
 }

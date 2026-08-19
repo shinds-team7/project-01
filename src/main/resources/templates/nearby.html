@@ -2,8 +2,11 @@
 <!--/*
   내 주변 = 프로토타입의 "NEARBY" 화면 (지도 + 아래에서 올라오는 목록).
 
-  GET /nearby 가 이 화면을 그린다. 하단 탭의 "내 주변"과 장소 목록의
-  "지도 보기" 버튼이 여기로 온다.
+  GET /nearby 가 이 화면을 그린다. 하단 탭의 "내 주변", 장소 목록의 "지도 보기",
+  그리고 홈의 검색 조건 카드가 제출하는 조건 필터링 결과가 모두 여기로 온다. (#7)
+
+  조건 없이 들어오면 공개된 장소 전체가 나오고, 조건이 붙으면 그 조건을 모두 만족하는
+  장소만 나온다. 결과 0건은 오류가 아니라 안내 문구다.
 
   지도(#277) — 카카오맵 JavaScript SDK 를 이 파일에서만 부른다.
   fragments/base.html 에 넣으면 지도를 쓰지 않는 화면까지 SDK 를 내려받는다.
@@ -21,7 +24,13 @@
 <html lang="ko" xmlns:th="http://www.thymeleaf.org"
       th:replace="~{fragments/base :: page('내 주변', 'nearby', ~{::main})}">
 <body>
-<main id="main-content" class="app-main nearby-screen">
+<!--/*
+  data-filtered 는 서버가 판정한 값이다. (#7 의 PlaceSearchResponse.filtered)
+  쿼리 파라미터 유무로는 판별할 수 없다. 빈 폼을 그대로 제출해도 파라미터는 붙고,
+  페이지 이동 같은 무관한 파라미터도 붙기 때문이다.
+*/-->
+<main id="main-content" class="app-main nearby-screen"
+      th:attr="data-filtered=${filtered != null and filtered}">
     <!--/* 지도가 뜨면 JS 가 is-live 를 붙여 도안(.map-pin)을 감춘다. 못 뜨면 도안이 그대로 남는다. */-->
     <div class="media map-preview nearby-map" id="nearby-map" aria-hidden="true">
         <div class="nearby-map-canvas" id="nearby-map-canvas"></div>
@@ -38,15 +47,65 @@
         </div>
 
         <!--/*
+          조건이 잘못됐을 때. 검색을 막고 화면을 다시 그릴 뿐 오류 화면으로 보내지 않는다.
+          문구는 컨트롤러가 폼 에러를 한국어로 바꿔 넘겨 준다.
+        */-->
+        <div class="notice notice-danger" th:if="${!#lists.isEmpty(filterErrors)}">
+            <span class="ico" aria-hidden="true">error</span>
+            <span>
+                <th:block th:each="message : ${filterErrors}">
+                    <span th:text="${message}">조건 안내</span><br>
+                </th:block>
+            </span>
+        </div>
+
+        <!--/* 적용된 조건. 조건을 안 걸었으면 칩 줄 자체가 나오지 않는다. */-->
+        <div class="nearby-filters" th:if="${filtered}">
+            <div class="chip-row filter-row">
+                <span class="chip is-active" th:if="${regionLabel != null}">
+                    <span class="ico" aria-hidden="true">location_on</span>
+                    <span th:text="${regionLabel}">지역</span>
+                </span>
+                <span class="chip is-active" th:if="${dateLabel != null}">
+                    <span class="ico" aria-hidden="true">calendar_today</span>
+                    <span th:text="${dateLabel}">날짜</span>
+                </span>
+                <span class="chip is-active" th:if="${timeLabel != null}">
+                    <span class="ico" aria-hidden="true">schedule</span>
+                    <span th:text="${timeLabel}">시간</span>
+                </span>
+                <span class="chip is-active" th:if="${petLabel != null}">
+                    <span class="ico" aria-hidden="true">pets</span>
+                    <span th:text="${petLabel}">반려동물</span>
+                </span>
+            </div>
+            <a class="nearby-filter-edit" th:href="@{/home}">
+                <span class="ico" aria-hidden="true">tune</span>조건 바꾸기
+            </a>
+        </div>
+
+        <!--/*
           안내 자리. 기본 위치로 떨어졌거나, 좌표가 없어 지도에 못 찍은 장소가 있거나,
           지도를 못 불러왔을 때 JS 가 여기에만 문구를 넣는다. 해당 없으면 비어 있다.
         */-->
         <div class="nearby-status" id="nearby-status" role="status" aria-live="polite"></div>
 
-        <div class="empty" th:if="${places == null or #lists.isEmpty(places)}">
+        <!--/*
+          결과 0건. 조건을 걸었을 때와 아닐 때의 안내가 다르다.
+          조건이 잘못돼 아예 검색하지 못한 경우는 위의 안내 문구가 이미 설명하므로 그리지 않는다.
+        */-->
+        <div class="empty"
+             th:if="${#lists.isEmpty(filterErrors) and (places == null or #lists.isEmpty(places))}">
             <span class="ico" aria-hidden="true">near_me</span>
-            <strong>주변에 공개된 공간이 없어요</strong>
-            <p>공개된 공간이 생기면 여기에서 바로 확인할 수 있어요.</p>
+            <th:block th:if="${filtered}">
+                <strong>조건에 맞는 공간이 없어요</strong>
+                <p>날짜나 지역을 조금 넓혀서 다시 찾아보세요.</p>
+                <a class="btn btn-ghost" th:href="@{/home}">조건 바꾸기</a>
+            </th:block>
+            <th:block th:unless="${filtered}">
+                <strong>주변에 공개된 공간이 없어요</strong>
+                <p>공개된 공간이 생기면 여기에서 바로 확인할 수 있어요.</p>
+            </th:block>
         </div>
 
         <div class="place-list" id="nearby-place-list"
@@ -398,10 +457,11 @@
             /*
              * 필터를 걸고 들어온 경우(#7 흐름)에는 위치를 묻지 않는다. 이미 사용자가 조건으로
              * 고른 결과를 지도에 찍는 화면이기 때문이다.
-             * 필터 파라미터의 이름은 #7 이 정한다. 여기서는 있고 없고만 본다.
+             * 조건이 실제로 걸렸는지는 서버가 판정해 main[data-filtered] 로 내려 준다.
              */
             function enteredWithFilter() {
-                return !new URLSearchParams(window.location.search).keys().next().done;
+                const screen = document.querySelector(".nearby-screen");
+                return Boolean(screen) && screen.dataset.filtered === "true";
             }
 
             function report(located, filtered, withoutPoint, mapDrawn, total) {

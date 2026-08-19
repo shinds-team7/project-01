@@ -1,8 +1,11 @@
 package com.example.petnow.controller;
 
 import com.example.petnow.common.controller.HomeController;
+import com.example.petnow.dto.request.PlaceFilterRequest;
 import com.example.petnow.dto.response.PlaceListResponse;
+import com.example.petnow.dto.response.PlaceSearchResponse;
 import com.example.petnow.entity.PlaceType;
+import com.example.petnow.service.PetService;
 import com.example.petnow.service.PlaceService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -17,6 +20,8 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -33,8 +38,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * </ol>
  */
 @WebMvcTest(value = HomeController.class, properties = {
-        "app.kakao.map.javascript-key=" + NearbyMapRenderingTest.JAVASCRIPT_KEY,
-        "app.kakao.rest-api-key=" + NearbyMapRenderingTest.REST_API_KEY
+        "kakao.map.javascript-key=" + NearbyMapRenderingTest.JAVASCRIPT_KEY,
+        "kakao.local-api.rest-api-key=" + NearbyMapRenderingTest.REST_API_KEY
 })
 class NearbyMapRenderingTest {
 
@@ -48,10 +53,14 @@ class NearbyMapRenderingTest {
     @MockitoBean
     private PlaceService placeService;
 
+    @MockitoBean
+    private PetService petService;
+
     @Test
     @DisplayName("내 주변이 카카오맵 SDK 를 JavaScript 키로 불러온다")
     void loadsKakaoSdkWithJavascriptKey() throws Exception {
-        given(placeService.getPublishedPlaces()).willReturn(List.of(withCoordinates()));
+        given(placeService.searchPlaces(isNull(), any(PlaceFilterRequest.class)))
+                .willReturn(searchResult(List.of(withCoordinates())));
 
         mockMvc.perform(get("/nearby"))
                 .andExpect(status().isOk())
@@ -64,7 +73,8 @@ class NearbyMapRenderingTest {
     @Test
     @DisplayName("서버 전용 REST API 키는 화면에 실리지 않는다")
     void neverLeaksRestApiKey() throws Exception {
-        given(placeService.getPublishedPlaces()).willReturn(List.of(withCoordinates()));
+        given(placeService.searchPlaces(isNull(), any(PlaceFilterRequest.class)))
+                .willReturn(searchResult(List.of(withCoordinates())));
 
         mockMvc.perform(get("/nearby"))
                 .andExpect(status().isOk())
@@ -84,8 +94,8 @@ class NearbyMapRenderingTest {
     @Test
     @DisplayName("좌표가 있는 장소만 카드에 좌표가 붙고, 좌표가 없는 장소도 목록에는 남는다")
     void placesWithoutCoordinatesStayInTheList() throws Exception {
-        given(placeService.getPublishedPlaces())
-                .willReturn(List.of(withCoordinates(), withoutCoordinates()));
+        given(placeService.searchPlaces(isNull(), any(PlaceFilterRequest.class)))
+                .willReturn(searchResult(List.of(withCoordinates(), withoutCoordinates())));
 
         String html = mockMvc.perform(get("/nearby"))
                 .andExpect(status().isOk())
@@ -99,6 +109,35 @@ class NearbyMapRenderingTest {
         // 좌표가 null 이면 Thymeleaf 가 속성 자체를 그리지 않는다. 두 장 중 한 장에만 붙어야 한다.
         assertThat(countOf(html, "data-lat=")).isOne();
         assertThat(countOf(html, "data-place-id=")).isEqualTo(2);
+    }
+
+    @Test
+    @DisplayName("조건을 걸고 들어오면 화면이 그 사실을 서버 판정으로 알 수 있다")
+    void marksFilteredEntryForTheMap() throws Exception {
+        // 조건이 걸린 결과. 라벨이 하나라도 있으면 PlaceSearchResponse.filtered 가 true 다.
+        given(placeService.searchPlaces(isNull(), any(PlaceFilterRequest.class)))
+                .willReturn(PlaceSearchResponse.builder()
+                        .places(List.of(withCoordinates()))
+                        .regionLabel("성동구")
+                        .build());
+
+        // 조건으로 고른 결과에는 위치를 묻지 않는다. 화면이 그 판단을 쿼리 파라미터로 하면
+        // 빈 폼 제출이나 무관한 파라미터에도 걸리므로, 서버가 내려 준 값만 본다.
+        mockMvc.perform(get("/nearby").param("regions", "성동구"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("data-filtered=\"true\"")));
+    }
+
+    @Test
+    @DisplayName("조건 없이 들어오면 필터 진입으로 보지 않는다")
+    void doesNotMarkPlainEntryAsFiltered() throws Exception {
+        given(placeService.searchPlaces(isNull(), any(PlaceFilterRequest.class)))
+                .willReturn(searchResult(List.of(withCoordinates())));
+
+        // 파라미터는 붙었지만 조건으로 해석된 것이 없다. 그래도 필터 진입이면 안 된다.
+        mockMvc.perform(get("/nearby").param("regions", ""))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("data-filtered=\"false\"")));
     }
 
     private static int countOf(String text, String token) {
@@ -118,6 +157,11 @@ class NearbyMapRenderingTest {
 
     private PlaceListResponse withoutCoordinates() {
         return place(2L, "좌표 없는 공간").build();
+    }
+
+    /** 조건 없이 들어온 결과. 라벨이 전부 비어 있어 filtered 가 false 다. */
+    private PlaceSearchResponse searchResult(List<PlaceListResponse> places) {
+        return PlaceSearchResponse.builder().places(places).build();
     }
 
     private PlaceListResponse.PlaceListResponseBuilder place(long id, String name) {

@@ -22,7 +22,7 @@ class KakaoKeyGuardTest {
     void rejectsSwappedKeys() {
         assertThatThrownBy(() -> new KakaoKeyGuard(SAME_KEY, SAME_KEY))
                 .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("app.kakao.map.javascript-key");
+                .hasMessageContaining("kakao.map.javascript-key");
     }
 
     @Test

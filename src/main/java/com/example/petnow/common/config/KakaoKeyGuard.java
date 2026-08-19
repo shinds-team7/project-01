@@ -10,11 +10,11 @@ import lombok.extern.slf4j.Slf4j;
  *
  * <p>카카오는 성격이 완전히 다른 키를 발급한다.
  * <ul>
- *   <li><b>JavaScript 키</b> — {@code app.kakao.map.javascript-key}. 지도 SDK 가 브라우저에서 쓴다.
+ *   <li><b>JavaScript 키</b> — {@code kakao.map.javascript-key}. 지도 SDK 가 브라우저에서 쓴다.
  *       HTML 에 그대로 실려 나가고, 그게 정상이다. 숨길 방법이 없으므로 카카오 개발자 콘솔의
  *       <i>플랫폼 &gt; 웹</i> 에 도메인({@code http://localhost:8080}, {@code https://petnow.duckdns.org})을
  *       등록해 사용처를 제한하는 것으로 막는다.</li>
- *   <li><b>REST API 키</b> — {@code app.kakao.rest-api-key}. 서버가 주소를 좌표로 바꿀 때 쓴다(#265).
+ *   <li><b>REST API 키</b> — {@code kakao.local-api.rest-api-key}. 서버가 주소를 좌표로 바꿀 때 쓴다(#265).
  *       유출되면 우리 쿼터로 아무나 API 를 호출할 수 있다. 브라우저로 내려가면 안 된다.</li>
  * </ul>
  *
@@ -29,21 +29,21 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 public class KakaoKeyGuard {
 
-    public KakaoKeyGuard(@Value("${app.kakao.map.javascript-key:}") String javascriptKey,
-                         @Value("${app.kakao.rest-api-key:}") String restApiKey) {
+    public KakaoKeyGuard(@Value("${kakao.map.javascript-key:}") String javascriptKey,
+                         @Value("${kakao.local-api.rest-api-key:}") String restApiKey) {
         String browserKey = trim(javascriptKey);
         String serverKey = trim(restApiKey);
 
         if (!browserKey.isEmpty() && browserKey.equals(serverKey)) {
             throw new IllegalStateException(
-                    "app.kakao.map.javascript-key 와 app.kakao.rest-api-key 가 같은 값이다. "
+                    "kakao.map.javascript-key 와 kakao.local-api.rest-api-key 가 같은 값이다. "
                             + "JavaScript 키는 브라우저로 내려가므로, 이대로 두면 서버 전용 REST API 키가 "
                             + "모든 방문자에게 노출된다. 카카오 개발자 콘솔에서 두 키를 각각 확인해 다시 넣을 것.");
         }
 
         if (browserKey.isEmpty()) {
             // 키가 없어도 앱은 떠야 한다. /nearby 는 지도 없이 목록만 그리고 안내 문구를 띄운다.
-            log.warn("app.kakao.map.javascript-key 가 비어 있어 내 주변 화면의 지도를 표시하지 않는다.");
+            log.warn("kakao.map.javascript-key 가 비어 있어 내 주변 화면의 지도를 표시하지 않는다.");
         }
     }
 
