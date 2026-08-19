@@ -73,3 +73,69 @@ jobs:
           cache-to: type=gha,mode=max
 
       # --- 여기서부터는 4/5 에서 이어 붙입니다 (EC2 배포 · 스모크 테스트) ---
+      # --- EC2 배포 -----------------------------------------------------
+      - name: Copy compose file to EC2
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: docker-compose.prod.yml
+          target: ~/app/
+
+      - name: Deploy
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script_stop: true
+          script: |
+            set -e
+            mkdir -p ~/app && cd ~/app
+
+            # compose 가 읽을 .env 를 매 배포마다 새로 쓴다.
+            # 서버에 남는 유일한 비밀 파일이라 권한을 좁힌다.
+            #
+            # 구분자를 'EOF' 로 감싸는 게 중요하다. ${{ }} 는 워크플로가 렌더링할 때
+            # 이미 값으로 치환되므로, 안 감싸면 비밀번호에 든 $ 나 백틱을
+            # 서버 쉘이 한 번 더 해석해서 값이 깨진다.
+            umask 077
+            cat > .env <<'EOF'
+            APP_IMAGE=${{ env.IMAGE_NAME }}:${{ github.sha }}
+            DB_USERNAME=${{ secrets.DB_USERNAME }}
+            DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+            DB_ROOT_PASSWORD=${{ secrets.DB_ROOT_PASSWORD }}
+            KAKAO_MAP_JAVASCRIPT_KEY=${{ secrets.KAKAO_MAP_JAVASCRIPT_KEY }}
+            KAKAO_REST_API_KEY=${{ secrets.KAKAO_REST_API_KEY }}
+            FLYWAY_BASELINE_ON_MIGRATE=${{ vars.FLYWAY_BASELINE_ON_MIGRATE || 'false' }}
+            AWS_S3_REGION=${{ vars.AWS_S3_REGION }}
+            AWS_S3_BUCKET=${{ vars.AWS_S3_BUCKET }}
+            AWS_S3_BASE_URL=${{ vars.AWS_S3_BASE_URL }}
+            EOF
+
+            # GHCR 패키지가 private 이라 pull 전에 로그인이 필요하다.
+            # 이 토큰은 이 잡이 끝나면 만료되므로 서버에 장기 자격증명이 남지 않는다.
+            echo "${{ secrets.GITHUB_TOKEN }}" \
+              | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+            # 필수 변수 누락과 Compose 문법을 pull 전에 검사한다. --quiet 이므로 비밀값을 로그에 출력하지 않는다.
+            docker compose -f docker-compose.prod.yml config --quiet
+            docker compose -f docker-compose.prod.yml pull
+            docker compose -f docker-compose.prod.yml up -d
+
+            docker logout ghcr.io
+            docker image prune -f
+
+      # 컨테이너가 떴는지까지 확인해야 "배포 성공"이라고 할 수 있다.
+      - name: Smoke test
+        run: |
+          for i in $(seq 1 30); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' \
+              "${{ vars.SERVICE_BASE_URL }}/nearby" || true)
+            if [ "$code" = "200" ]; then
+              echo "up (HTTP $code)"; exit 0
+            fi
+            echo "waiting... ($i/30, last=$code)"; sleep 5
+          done
+          echo "앱이 2분 안에 응답하지 않음"; exit 1
