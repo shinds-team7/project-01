@@ -34,11 +34,11 @@ class PetDeleteAuthorizationTest {
     private PetService petService;
 
     @Test
-    @DisplayName("비로그인 상태로 삭제를 요청하면 서비스를 호출하지 않고 홈으로 돌려보낸다")
+    @DisplayName("비로그인 상태로 삭제를 요청하면 서비스를 호출하지 않고 로그인 화면으로 보낸다")
     void deleteWithoutSession_doesNotTouchService() throws Exception {
         mockMvc.perform(post("/pet/delete/42"))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/"));
+                .andExpect(redirectedUrl("/auth/login"));
 
         verify(petService, never()).deletePet(any(), any());
     }

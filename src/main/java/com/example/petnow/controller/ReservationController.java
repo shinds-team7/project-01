@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import com.example.petnow.common.constant.SessionConst;
+import com.example.petnow.common.argument.LoginUser;
 import com.example.petnow.dto.request.ReservationCancelRequest;
 import com.example.petnow.dto.request.ReservationRequest;
 
@@ -26,9 +26,13 @@ import com.example.petnow.mapper.PlaceMapper;
 import com.example.petnow.service.PetService;
 import com.example.petnow.service.ReservationService;
 
-import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 
+/**
+ * 예약 화면. {@code /reservation/**} 는 전부 로그인이 필요하며 그 판단은
+ * {@link com.example.petnow.common.config.WebConfig} 의 인터셉터가 한다.
+ * 여기서는 세션을 직접 들여다보지 않고 {@link LoginUser} 로 사용자 id 만 받는다.
+ */
 @Controller
 @RequestMapping("/reservation")
 public class ReservationController {
@@ -44,13 +48,8 @@ public class ReservationController {
 	}
 
 	@PostMapping("/create")
-	public String saveReservation(@Valid @ModelAttribute ReservationRequest request,
-		BindingResult bindingResult, HttpSession session, Model model, RedirectAttributes redirectAttributes) {
-
-		Long userId = (Long) session.getAttribute(SessionConst.LOGIN_USER_ID);
-		if (userId == null) {
-			return "redirect:/";
-		}
+	public String saveReservation(@LoginUser Long userId, @Valid @ModelAttribute ReservationRequest request,
+		BindingResult bindingResult, Model model, RedirectAttributes redirectAttributes) {
 
 		if (bindingResult.hasErrors()) {
 			Long placeId = request.getPlaceId();
@@ -78,14 +77,9 @@ public class ReservationController {
 	}
 
 	@GetMapping("/booking-request")
-	public String bookingRequest(@RequestParam Long placeId, HttpSession session, Model model) {
-		// 비로그인 사용자를 여기서 막는다. 제출 시점(create)에 튕기면 날짜·메모를 다 채운 뒤
-		// 입력이 통째로 날아간다.
-		Long userId = (Long) session.getAttribute(SessionConst.LOGIN_USER_ID);
-		if (userId == null) {
-			return "redirect:/";
-		}
-
+	public String bookingRequest(@LoginUser Long userId, @RequestParam Long placeId, Model model) {
+		// 비로그인 사용자는 인터셉터가 로그인 화면으로 보낸 뒤 이 주소로 되돌려 준다.
+		// 제출 시점(create)까지 통과시키면 날짜·메모를 다 채운 입력이 통째로 날아간다.
 		fillBookingRequestForm(placeId, userId, model);
 		return "booking-request";
 	}
@@ -108,59 +102,39 @@ public class ReservationController {
 	}
 
 	@GetMapping("/detail")
-	public String detailReservation(@RequestParam Long reservationId, HttpSession session, Model model) {
-		Long userId = (Long) session.getAttribute(SessionConst.LOGIN_USER_ID);
-		if (userId == null) {
-			return "redirect:/";
-		}
+	public String detailReservation(@LoginUser Long userId, @RequestParam Long reservationId, Model model) {
 		ReservationDetailResponse reservation = reservationService.detailReservation(reservationId, userId);
 		model.addAttribute("reservation", reservation);
 		return "reservations/reservationDetail";
 	}
 
 	@GetMapping("/list")
-	public String getReservationList(@RequestParam(required = false) String useStatus, HttpSession session, Model model) {
-		Long userId = (Long) session.getAttribute(SessionConst.LOGIN_USER_ID);
-		if (userId == null) {
-			return "redirect:/";
-		}
+	public String getReservationList(@LoginUser Long userId, @RequestParam(required = false) String useStatus,
+		Model model) {
 		List<ReservationListResponse> responseList = reservationService.getReservationList(userId, useStatus);
 		model.addAttribute("reservations", responseList);
 		return "reservations/reservationList";
 	}
 
 	@PostMapping("/cancel")
-	public String cancel(@Valid @ModelAttribute ReservationCancelRequest request, HttpSession session, BindingResult bindingResult) {
+	public String cancel(@LoginUser Long userId, @Valid @ModelAttribute ReservationCancelRequest request,
+		BindingResult bindingResult) {
 		if (bindingResult.hasErrors()) {
 			return "reservations/reservationList";
 		}
 
-		Long userId = (Long)session.getAttribute(SessionConst.LOGIN_USER_ID);
-		if (userId == null) {
-			return "redirect:/";
-		}
 		reservationService.cancelReservation(request.getReservationId(), userId);
 		return "redirect:/reservation/list";
 	}
 
 	@PostMapping("/{reservationId}/approve")
-	public String approve(@PathVariable Long reservationId, HttpSession session) {
-		Long hostUserId = (Long) session.getAttribute(SessionConst.LOGIN_USER_ID);
-		if (hostUserId == null) {
-			return "redirect:/";
-		}
-
+	public String approve(@LoginUser Long hostUserId, @PathVariable Long reservationId) {
 		reservationService.approveReservation(reservationId, hostUserId);
 		return "redirect:/host?tab=booking";
 	}
 
 	@PostMapping("/{reservationId}/reject")
-	public String reject(@PathVariable Long reservationId, HttpSession session) {
-		Long hostUserId = (Long) session.getAttribute(SessionConst.LOGIN_USER_ID);
-		if (hostUserId == null) {
-			return "redirect:/";
-		}
-
+	public String reject(@LoginUser Long hostUserId, @PathVariable Long reservationId) {
 		reservationService.rejectReservation(reservationId, hostUserId);
 		return "redirect:/host?tab=booking";
 	}

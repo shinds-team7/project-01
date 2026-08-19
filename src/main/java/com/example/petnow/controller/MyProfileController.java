@@ -1,10 +1,9 @@
 package com.example.petnow.controller;
 
-import com.example.petnow.common.constant.SessionConst;
+import com.example.petnow.common.argument.LoginUser;
 import com.example.petnow.common.session.LoginSession;
 import com.example.petnow.dto.request.PasswordChangeRequest;
 import com.example.petnow.dto.request.ProfileEditRequest;
-import com.example.petnow.dto.response.LoginUser;
 import com.example.petnow.dto.response.MyProfileResponse;
 import com.example.petnow.dto.response.NicknameAvailabilityResponse;
 import com.example.petnow.exception.BusinessException;
@@ -13,7 +12,6 @@ import com.example.petnow.service.MyProfileService;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -26,6 +24,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+/**
+ * 마이페이지의 내 정보 화면.
+ *
+ * <p>{@code /my/**} 는 {@code WebConfig} 의 보호 목록에 있어 비로그인 요청은 여기까지 오지 않는다.
+ * 그래서 세션을 직접 확인하지 않고 {@link LoginUser} 로 사용자 id 만 받는다.
+ */
 @Controller
 @RequestMapping("/my")
 @RequiredArgsConstructor
@@ -35,62 +39,56 @@ public class MyProfileController {
 
     private final MyProfileService myProfileService;
 
+    // 프로필 상세 조회
     @GetMapping("/profile")
-    public String getProfile(HttpSession session, Model model) {
-        Long userId = getLoginUserId(session);
-        if (userId == null) {
-            return "redirect:/auth/login";
-        }
+    public String getProfile(@LoginUser Long loginUserId, Model model) {
 
-        addProfileModel(userId, model);
+        addProfileModel(loginUserId, model);
+
         return "mypage/profile";
     }
 
     @GetMapping("/profile/edit")
-    public String editProfileForm(HttpSession session, Model model) {
-        Long userId = getLoginUserId(session);
-        if (userId == null) {
-            return "redirect:/auth/login";
-        }
+    public String editProfileForm(@LoginUser Long loginUserId, Model model) {
 
-        MyProfileResponse profile = addProfileModel(userId, model);
+        MyProfileResponse profile = addProfileModel(loginUserId, model);
+
         ProfileEditRequest request = new ProfileEditRequest();
         request.setNickname(profile.getNickname());
         request.setPhone(profile.getPhone());
         model.addAttribute("profileEditRequest", request);
+
         return "mypage/profileEdit";
     }
 
     @PostMapping("/profile/edit")
     public String updateProfile(@Valid @ModelAttribute ProfileEditRequest profileEditRequest,
                                 BindingResult bindingResult,
+                                @LoginUser Long loginUserId,
                                 HttpSession session,
                                 Model model,
                                 RedirectAttributes redirectAttributes) {
-        Long userId = getLoginUserId(session);
-        if (userId == null) {
-            return "redirect:/auth/login";
-        }
 
         if (bindingResult.hasErrors()) {
-            addProfileModel(userId, model);
+            addProfileModel(loginUserId, model);
             return "mypage/profileEdit";
         }
 
         MyProfileResponse updatedProfile;
         try {
-            updatedProfile = myProfileService.updateProfile(userId, profileEditRequest);
+            updatedProfile = myProfileService.updateProfile(loginUserId, profileEditRequest);
         } catch (BusinessException e) {
             if (e.getErrorCode() != UserErrorCode.DUPLICATE_NICKNAME) {
                 throw e;
             }
             bindingResult.rejectValue("nickname", "duplicateNickname", e.getMessage());
-            addProfileModel(userId, model);
+            addProfileModel(loginUserId, model);
             return "mypage/profileEdit";
         }
 
-        LoginSession.set(session, LoginUser.builder()
-                .id(userId)
+        // 화면에 그려지는 표시용 값은 로그인 시점 스냅샷이라, 저장 직후 다시 채워 넣어야 낡지 않는다.
+        LoginSession.set(session, com.example.petnow.dto.response.LoginUser.builder()
+                .id(loginUserId)
                 .nickname(updatedProfile.getNickname())
                 .email(updatedProfile.getEmail())
                 .build());
@@ -102,11 +100,7 @@ public class MyProfileController {
     @ResponseBody
     public ResponseEntity<NicknameAvailabilityResponse> nicknameAvailability(
             @RequestParam String nickname,
-            HttpSession session) {
-        Long userId = getLoginUserId(session);
-        if (userId == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
+            @LoginUser Long loginUserId) {
 
         String normalizedNickname = nickname.trim();
         if (normalizedNickname.isEmpty()) {
@@ -116,29 +110,21 @@ public class MyProfileController {
             return ResponseEntity.ok(new NicknameAvailabilityResponse(false, "닉네임은 20자 이하로 입력해주세요."));
         }
 
-        boolean available = myProfileService.isNicknameAvailable(userId, normalizedNickname);
+        boolean available = myProfileService.isNicknameAvailable(loginUserId, normalizedNickname);
         String message = available ? "사용 가능한 닉네임입니다." : "이미 사용 중인 닉네임입니다.";
         return ResponseEntity.ok(new NicknameAvailabilityResponse(available, message));
     }
 
     @GetMapping("/password")
-    public String passwordForm(@ModelAttribute PasswordChangeRequest passwordChangeRequest,
-                               HttpSession session) {
-        if (getLoginUserId(session) == null) {
-            return "redirect:/auth/login";
-        }
+    public String passwordForm(@ModelAttribute PasswordChangeRequest passwordChangeRequest) {
         return "mypage/passwordEdit";
     }
 
     @PostMapping("/password")
     public String changePassword(@Valid @ModelAttribute PasswordChangeRequest passwordChangeRequest,
                                  BindingResult bindingResult,
-                                 HttpSession session,
+                                 @LoginUser Long loginUserId,
                                  RedirectAttributes redirectAttributes) {
-        Long userId = getLoginUserId(session);
-        if (userId == null) {
-            return "redirect:/auth/login";
-        }
 
         if (bindingResult.hasErrors()) {
             return "mypage/passwordEdit";
@@ -152,7 +138,7 @@ public class MyProfileController {
         }
 
         try {
-            myProfileService.changePassword(userId, passwordChangeRequest);
+            myProfileService.changePassword(loginUserId, passwordChangeRequest);
         } catch (BusinessException e) {
             if (e.getErrorCode() != UserErrorCode.INVALID_CURRENT_PASSWORD) {
                 throw e;
@@ -166,25 +152,18 @@ public class MyProfileController {
     }
 
     @PostMapping("/withdraw")
-    public String withdraw(HttpSession session) {
-        Long userId = getLoginUserId(session);
-        if (userId == null) {
-            return "redirect:/auth/login";
-        }
+    public String withdraw(@LoginUser Long loginUserId, HttpSession session) {
 
-        myProfileService.withdraw(userId);
+        myProfileService.withdraw(loginUserId);
+
         LoginSession.clear(session);
         return "redirect:/home";
     }
 
-    private MyProfileResponse addProfileModel(Long userId, Model model) {
-        MyProfileResponse profile = myProfileService.getProfile(userId);
+    private MyProfileResponse addProfileModel(Long loginUserId, Model model) {
+        MyProfileResponse profile = myProfileService.getProfile(loginUserId);
         model.addAttribute("profile", profile);
         model.addAttribute("profileImageUrl", profile.getProfileImageUrl());
         return profile;
-    }
-
-    private Long getLoginUserId(HttpSession session) {
-        return (Long) session.getAttribute(SessionConst.LOGIN_USER_ID);
     }
 }

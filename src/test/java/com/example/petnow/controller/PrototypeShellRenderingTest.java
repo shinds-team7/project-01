@@ -32,8 +32,11 @@ import java.util.List;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -173,12 +176,12 @@ class PrototypeShellRenderingTest {
     }
 
     @Test
-    @DisplayName("비로그인 사용자는 예약 요청 화면에 들어가기 전에 홈으로 보내진다")
+    @DisplayName("비로그인 사용자는 예약 요청 화면에 들어가기 전에 로그인 화면으로 보내진다")
     void bookingRequestRedirectsAnonymousUser() throws Exception {
         // 제출 시점에 튕기면 날짜·메모를 다 채운 뒤 입력이 통째로 날아간다.
         mockMvc.perform(get("/reservation/booking-request").param("placeId", "1"))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/"));
+                .andExpect(redirectedUrl("/auth/login"));
     }
 
     @Test
@@ -227,9 +230,22 @@ class PrototypeShellRenderingTest {
     }
 
     @Test
+    @DisplayName("비로그인 상태의 장소 등록 제출은 서비스를 건드리지 않고 로그인 화면으로 간다")
+    void placeCreateRejectsAnonymousUser() throws Exception {
+        // 등록 제출 주소를 POST /places 가 아니라 /places/create 로 둔 이유가 이것이다.
+        // 공개 목록 GET /places 와 주소가 갈려야 인터셉터가 등록만 골라 막을 수 있다.
+        mockMvc.perform(post("/places/create"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/auth/login"));
+
+        then(placeService).should(never()).createPlace(any(), any());
+    }
+
+    @Test
     @DisplayName("장소 등록 완료가 앱 셸로 그려진다")
     void hostSuccessRendersWithAppShell() throws Exception {
-        mockMvc.perform(get("/places/success"))
+        // 등록 완료 화면도 등록 흐름의 일부라 로그인 상태에서만 열린다.
+        mockMvc.perform(get("/places/success").session(loggedIn()))
                 .andExpect(status().isOk())
                 .andExpect(view().name("places/success"))
                 .andExpect(content().string(containsString("/css/app.css")))

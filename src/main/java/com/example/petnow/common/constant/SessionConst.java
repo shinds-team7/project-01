@@ -11,5 +11,13 @@ public class SessionConst {
      */
     public static final String LOGIN_USER = "loginUser";
 
+    /**
+     * 로그인 때문에 중단된 원래 목적지.
+     *
+     * <p>쿼리 파라미터가 아니라 세션에 두는 이유는
+     * {@link com.example.petnow.common.session.LoginRedirect} 의 주석에 적어 뒀다.
+     */
+    public static final String REDIRECT_URI = "redirectUri";
+
     private SessionConst() {}
 }

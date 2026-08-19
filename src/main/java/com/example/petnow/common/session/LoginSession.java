@@ -2,6 +2,7 @@ package com.example.petnow.common.session;
 
 import com.example.petnow.common.constant.SessionConst;
 import com.example.petnow.dto.response.LoginUser;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 
 /**
@@ -31,5 +32,22 @@ public final class LoginSession {
     /** 로그아웃. 세션 자체를 버려 다른 잔여 속성도 함께 정리한다. */
     public static void clear(HttpSession session) {
         session.invalidate();
+    }
+
+    /**
+     * 지금 요청을 보낸 사람의 id. 로그인 상태가 아니면 {@code null}.
+     *
+     * <p>없는 세션을 새로 만들지 않는다. 비로그인 방문자에게까지 JSESSIONID 를 발급하면
+     * 서버가 쓰지도 않을 세션을 떠안는다.
+     */
+    public static Long currentUserId(HttpServletRequest request) {
+        HttpSession session = request.getSession(false);
+
+        return session == null ? null : (Long) session.getAttribute(SessionConst.LOGIN_USER_ID);
+    }
+
+    /** 로그인 상태인지. "로그인했다"의 판정을 이 클래스 밖에서 따로 쓰지 않기 위한 통로다. */
+    public static boolean isLoggedIn(HttpServletRequest request) {
+        return currentUserId(request) != null;
     }
 }
