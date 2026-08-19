@@ -61,10 +61,10 @@
         WHERE res.place_id = #{placeId}
             AND r.deleted_at IS NULL
         <choose>
-            <when test="sort == 'RATING_DESC'">
+            <when test="sort.name() == 'RATING_DESC'">
                 ORDER BY r.rating DESC, r.created_at DESC
             </when>
-            <when test="sort == 'RATING_ASC'">
+            <when test="sort.name() == 'RATING_ASC'">
                 ORDER BY r.rating ASC, r.created_at DESC
             </when>
             <otherwise>
