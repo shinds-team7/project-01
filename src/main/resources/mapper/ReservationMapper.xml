@@ -52,6 +52,11 @@
         </foreach>
     </insert>
 
+    <delete id="deleteReservationPets">
+        DELETE FROM reservation_pets
+        WHERE reservation_id = #{reservationId}
+    </delete>
+
     <select id="detailReservation" resultMap="ReservationDetailResponseMap">
         SELECT
             r.id AS reservation_id,
