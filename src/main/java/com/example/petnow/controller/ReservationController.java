@@ -31,6 +31,11 @@ import com.example.petnow.service.ReservationService;
 
 import jakarta.validation.Valid;
 
+/**
+ * 예약 화면. {@code /reservation/**} 는 전부 로그인이 필요하며 그 판단은
+ * {@link com.example.petnow.common.config.WebConfig} 의 인터셉터가 한다.
+ * 여기서는 세션을 직접 들여다보지 않고 {@link LoginUser} 로 사용자 id 만 받는다.
+ */
 @Controller
 @RequestMapping("/reservation")
 public class ReservationController {

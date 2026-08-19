@@ -5,13 +5,17 @@
 <main id="main-content" class="app-main my-page">
     <div class="my-page-content">
         <section class="my-profile" aria-labelledby="my-profile-name">
-            <span class="my-profile-avatar" aria-hidden="true">
-                <span class="ico is-filled">person</span>
-            </span>
-            <div>
-                <h1 id="my-profile-name" th:text="${user.nickname}">김하늘</h1>
-                <p th:text="${user.email}">sky@example.com</p>
-            </div>
+            <!--/* 내 정보 화면(/my/profile)이 내 정보 수정·비밀번호 변경으로 들어가는 입구다. */-->
+            <a class="my-profile-link" th:href="@{/my/profile}">
+                <span class="my-profile-avatar" aria-hidden="true">
+                    <span class="ico is-filled">person</span>
+                </span>
+                <div>
+                    <h1 id="my-profile-name" th:text="${user.nickname}">김하늘</h1>
+                    <p th:text="${user.email}">sky@example.com</p>
+                </div>
+                <span class="ico my-profile-chevron" aria-hidden="true">chevron_right</span>
+            </a>
         </section>
 
         <section class="my-pets" aria-labelledby="my-pets-title">
