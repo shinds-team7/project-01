@@ -35,3 +35,22 @@ $env:KAKAO_REST_API_KEY = "발급받은-REST-API-키"
 $env:KAKAO_LOCAL_API_BACKFILL_ENABLED = "true"
 ./gradlew.bat bootRun
 ```
+
+운영(EC2)에서는 `~/app/.env`에 아래 한 줄을 넣고 다시 올린 뒤, 로그로 결과를 확인하고
+그 줄을 지워 다시 올린다. 배포 워크플로는 이 값을 내보내지 않으므로 `.env`가 그대로 적용된다.
+
+```bash
+echo 'KAKAO_LOCAL_API_BACKFILL_ENABLED=true' >> ~/app/.env
+docker compose -f docker-compose.prod.yml up -d
+docker compose -f docker-compose.prod.yml logs app | grep 백필
+```
+
+## 카카오 지도 (내 주변)
+
+`/nearby`의 지도는 **JavaScript 키**를 `KAKAO_MAP_JAVASCRIPT_KEY`로 받는다. 이 키는 HTML에
+그대로 실려 나가는 것이 정상이라 숨길 수 없고, 카카오 개발자 콘솔의 **플랫폼 > Web > 사이트 도메인**에
+`http://localhost:8080`과 `https://petnow.duckdns.org`를 등록해 사용처를 제한하는 것으로 막는다.
+키가 비어 있으면 지도 없이 목록만 그린다. 앱은 그대로 뜬다.
+
+REST API 키를 이 자리에 잘못 넣으면 서버 전용 키가 모든 방문자에게 노출되므로,
+두 키가 같은 값이면 `KakaoKeyGuard`가 기동을 막는다.
