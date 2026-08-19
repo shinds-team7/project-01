@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum ReservationErrorCode implements ErrorCode {
 
+    PET_CAPACITY_EXCEEDED(HttpStatus.BAD_REQUEST, "PET_CAPACITY_EXCEEDED", "수용 가능 마리 수를 초과했습니다."),
     SLOT_ALREADY_TAKEN(HttpStatus.CONFLICT, "SLOT_ALREADY_TAKEN", "다른 사용자가 먼저 예약한 시간이 있습니다. 다시 선택해주세요."),
 	SLOT_NOT_AVAILABLE(HttpStatus.BAD_REQUEST, "SLOT_NOT_AVAILABLE", "선택한 시간은 예약할 수 없습니다."),
 	UNSUPPORTED_RESERVATION_TYPE(HttpStatus.BAD_REQUEST, "UNSUPPORTED_RESERVATION_TYPE", "이 장소가 지원하지 않는 예약 유형입니다."),
