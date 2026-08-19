@@ -2,6 +2,7 @@ package com.example.petnow.mapper;
 
 import com.example.petnow.dto.response.ReviewResponse;
 import com.example.petnow.entity.Review;
+import com.example.petnow.entity.ReviewSortType;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -23,7 +24,7 @@ public interface ReviewMapper {
     List<ReviewResponse> findReviewsByMemberId(@Param("memberId") Long memberId);
 
     // 특정 장소의 리뷰 목록 조회 (reservation과 조인)
-    List<ReviewResponse> findReviewsByPlaceId(@Param("placeId") Long placeId);
+    List<ReviewResponse> findReviewsByPlaceId(@Param("placeId") Long placeId, @Param("sort") ReviewSortType sort);
 
     // 특정 예약의 placeId 조회
     Long findPlaceIdByReservationId(@Param("reservationId") Long reservationId);
