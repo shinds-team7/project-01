@@ -199,6 +199,6 @@ public class ReservationController {
     @PostMapping("/{reservationId}/edit")
     public String editReservation(@LoginUser Long userId, @PathVariable Long reservationId, @RequestParam List<Long> petIds) {
         reservationService.changeReservationPet(reservationId, petIds, userId);
-        return "reservations/reservationDetail";
+        return "redirect:/reservation/detail?reservationId=" + reservationId;
     }
 }
