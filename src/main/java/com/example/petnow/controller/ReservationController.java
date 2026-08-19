@@ -8,6 +8,7 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -194,4 +195,10 @@ public class ReservationController {
 		reservationService.rejectReservation(reservationId, hostUserId);
 		return "redirect:/host?tab=booking";
 	}
+
+    @PostMapping("/{reservationId}/edit")
+    public String editReservation(@LoginUser Long userId, @PathVariable Long reservationId, @RequestParam List<Long> petIds) {
+        reservationService.changeReservationPet(reservationId, petIds, userId);
+        return "reservations/reservationDetail";
+    }
 }
