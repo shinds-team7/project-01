@@ -1,4 +1,4 @@
-package com.example.petnow.common.config;
+package com.example.petnow.config;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -12,5 +12,6 @@ import org.springframework.stereotype.Component;
 public class KakaoProperties {
 
     private String clientId;
+    private String ClientSecret;
     private String redirectUri;
 }
