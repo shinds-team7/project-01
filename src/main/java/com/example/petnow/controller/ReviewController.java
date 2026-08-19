@@ -5,6 +5,7 @@ import com.example.petnow.dto.request.ReviewCreateRequest;
 import com.example.petnow.dto.request.ReviewUpdateRequest;
 import com.example.petnow.dto.response.ReservationDetailResponse;
 import com.example.petnow.dto.response.ReviewResponse;
+import com.example.petnow.entity.ReviewSortType;
 import com.example.petnow.service.ReservationService;
 import com.example.petnow.service.ReviewService;
 import jakarta.validation.Valid;
@@ -108,10 +109,13 @@ public class ReviewController {
      * -> templates/review/place-list.html
      */
     @GetMapping("/place/{placeId}")
-    public String reviewsByPlace(@PathVariable Long placeId, Model model) {
-        List<ReviewResponse> reviews = reviewService.getReviewsByPlace(placeId);
+    public String reviewsByPlace(@PathVariable Long placeId,
+                                 @RequestParam(defaultValue = "LATEST") ReviewSortType sort,
+                                 Model model) {
+        List<ReviewResponse> reviews = reviewService.getReviewsByPlace(placeId, sort);
         model.addAttribute("placeId", placeId);
         model.addAttribute("reviews", reviews);
+        model.addAttribute("currentSort", sort);
         return "reviews/list";     // 테스트용. 장소별 리뷰 목록으로 바꿔야함
     }
 

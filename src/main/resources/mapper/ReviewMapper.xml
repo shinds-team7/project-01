@@ -60,7 +60,17 @@
             ON res.place_id = p.id
         WHERE res.place_id = #{placeId}
             AND r.deleted_at IS NULL
-        ORDER BY r.created_at DESC
+        <choose>
+            <when test="sort.name() == 'RATING_DESC'">
+                ORDER BY r.rating DESC, r.created_at DESC
+            </when>
+            <when test="sort.name() == 'RATING_ASC'">
+                ORDER BY r.rating ASC, r.created_at DESC
+            </when>
+            <otherwise>
+                ORDER BY r.created_at DESC
+            </otherwise>
+        </choose>
     </select>
 
     <select id="findPlaceIdByReservationId" resultType="Long">
