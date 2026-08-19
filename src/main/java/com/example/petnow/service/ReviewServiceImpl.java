@@ -89,9 +89,9 @@ public class ReviewServiceImpl implements ReviewService {
             throw new BusinessException(ReviewErrorCode.REVIEW_ACCESS_DENIED);
         }
 
-        reviewMapper.updateReview(reviewId, request.getRating(), request.getContent());
-
         Long placeId = reviewMapper.findPlaceIdByReviewId(reviewId);
+
+        reviewMapper.updateReview(reviewId, request.getRating(), request.getContent());
         placeMapper.updateAvgRating(placeId);
     }
 
@@ -107,9 +107,9 @@ public class ReviewServiceImpl implements ReviewService {
             throw new BusinessException(ReviewErrorCode.REVIEW_ACCESS_DENIED);
         }
 
-        reviewMapper.deleteReview(reviewId, LocalDateTime.now());
-
         Long placeId = reviewMapper.findPlaceIdByReviewId(reviewId);
+
+        reviewMapper.deleteReview(reviewId, LocalDateTime.now());
         placeMapper.updateAvgRating(placeId);
     }
 }
