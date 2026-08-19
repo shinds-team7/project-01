@@ -1,5 +1,6 @@
 package com.example.petnow.controller;
 
+import com.example.petnow.common.config.KakaoProperties;
 import com.example.petnow.common.session.LoginRedirect;
 import com.example.petnow.common.session.LoginSession;
 import com.example.petnow.dto.request.UserLoginRequest;
@@ -14,10 +15,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 /**
@@ -35,6 +33,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class AuthController {
 
     private final AuthService authService;
+    private final KakaoProperties kakaoProperties;
 
     // ────────────────────────── 화면 ──────────────────────────
 
@@ -117,6 +116,27 @@ public class AuthController {
 
         // 로그인 때문에 끊겼던 화면이 있으면 그리로, 없으면 홈으로.
         return "redirect:" + LoginRedirect.pop(session);
+    }
+
+    // 카카오 로그인
+    @GetMapping("/kakao")
+    public String kakakoLogin() {
+        String kakaoAuthUrl =
+            "https://kauth.kakao.com/oauth/authorize"
+                + "?client_id=" + kakaoProperties.getClientId()
+                + "&redirect_uri=" + kakaoProperties.getRedirectUri()
+                + "&response_type=code";
+
+        return "redirect:" + kakaoAuthUrl;
+    }
+
+    // 카카오 로그인 결과
+    @GetMapping("/kakao/callback")
+    public String kakaoCallback(@RequestParam String code) {
+
+        System.out.println("카카오 인가 코드 = " + code);
+
+        return "redirect:/home";
     }
 
     /**
