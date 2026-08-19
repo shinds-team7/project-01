@@ -46,7 +46,8 @@
             </div>
 
             <div class="list" th:unless="${#lists.isEmpty(reservations)}">
-                <div class="card list-row" th:each="r : ${reservations}">
+                <a class="card list-row" th:each="r : ${reservations}"
+                   th:href="@{/reservation/{id}(id=${r.reservationId})}">
             <span class="list-row-label">
                 <strong th:text="${r.placeName}">연남동 윤슬 호스트</strong>
                 <small th:text="${#temporals.format(r.checkIn, 'M월 d일 HH:mm')} + ' ~ ' + ${#temporals.format(r.checkOut, 'M월 d일 HH:mm')}">
@@ -55,12 +56,12 @@
             </span>
                     <span class="badge"
                           th:classappend="${r.reservationStatus.name() == 'CONFIRMED' ? 'badge-green'
-                          : (r.reservationStatus.name() == 'CANCELED' ? 'badge-danger' : 'badge-warn')}"
+                  : (r.reservationStatus.name() == 'CANCELED' ? 'badge-danger' : 'badge-warn')}"
                           th:text="${r.reservationStatus.name() == 'CONFIRMED' ? '예약 확정'
-                   : (r.reservationStatus.name() == 'CANCELED' ? '취소됨' : '응답 대기')}">
+           : (r.reservationStatus.name() == 'CANCELED' ? '취소됨' : '응답 대기')}">
                 응답 대기
             </span>
-                </div>
+                </a>
             </div>
         </div>
 
