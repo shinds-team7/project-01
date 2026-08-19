@@ -22,4 +22,6 @@ public interface ReviewService {
     // 리뷰 수정
     void updateReview(Long memberId, Long reviewId, ReviewUpdateRequest request);
 
+    // 리뷰 삭제
+    void deleteReview(Long memberId, Long reviewId);
 }

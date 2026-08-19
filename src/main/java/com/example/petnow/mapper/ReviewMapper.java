@@ -5,6 +5,7 @@ import com.example.petnow.entity.Review;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -36,4 +37,7 @@ public interface ReviewMapper {
 
     // 리뷰 수정
     void updateReview(@Param("reviewId") Long reviewId, @Param("rating") Integer rating, @Param("content") String content);
+
+    // 리뷰 삭제
+    void deleteReview(@Param("reviewId") Long reviewId, @Param("deletedAt") LocalDateTime deletedAt);
 }

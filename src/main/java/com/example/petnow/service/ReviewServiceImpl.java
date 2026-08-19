@@ -13,6 +13,7 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -83,14 +84,32 @@ public class ReviewServiceImpl implements ReviewService {
         }
 
         // 본인이 작성한 리뷰인지 검증
-        int count = reviewMapper.countReviewOwnedByMember(reviewId, memberId);
+        int count = reviewMapper.countReviewOwnedByMember(memberId, reviewId);
         if (count == 0) {
-            throw new BusinessException(ReviewErrorCode.REVIEW_FORBIDDEN);
+            throw new BusinessException(ReviewErrorCode.REVIEW_ACCESS_DENIED);
         }
 
+        Long placeId = reviewMapper.findPlaceIdByReviewId(reviewId);
+
         reviewMapper.updateReview(reviewId, request.getRating(), request.getContent());
+        placeMapper.updateAvgRating(placeId);
+    }
+
+    // 리뷰 삭제 (soft delete)
+    @Transactional
+    public void deleteReview(Long memberId, Long reviewId) {
+        if (reviewMapper.countReviewById(reviewId) == 0) {
+            throw new BusinessException(ReviewErrorCode.REVIEW_NOT_FOUND);
+        }
+
+        int count = reviewMapper.countReviewOwnedByMember(memberId, reviewId);
+        if (count == 0) {
+            throw new BusinessException(ReviewErrorCode.REVIEW_ACCESS_DENIED);
+        }
 
         Long placeId = reviewMapper.findPlaceIdByReviewId(reviewId);
+
+        reviewMapper.deleteReview(reviewId, LocalDateTime.now());
         placeMapper.updateAvgRating(placeId);
     }
 }
