@@ -138,8 +138,8 @@ class HomeShellRenderingTest {
                 .andExpect(content().string(containsString("햇살 가득한 마당")))
                 .andExpect(content().string(containsString("class=\"is-type\">아파트")))
                 .andExpect(content().string(containsString("/places/3")))
-                // 거리순·지도는 좌표가 없어 아직 못 한다는 사실을 화면이 알려야 한다
-                .andExpect(content().string(containsString("거리순 정렬과 지도 표시는 준비 중")));
+                // 지도가 붙었으므로(#277) 준비 중 안내는 화면에서 사라졌다
+                .andExpect(content().string(not(containsString("거리순 정렬과 지도 표시는 준비 중"))));
     }
 
     @Test

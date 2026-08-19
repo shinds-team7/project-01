@@ -5,20 +5,26 @@
   GET /nearby 가 이 화면을 그린다. 하단 탭의 "내 주변"과 장소 목록의
   "지도 보기" 버튼이 여기로 온다.
 
-  이식하면서 예전에 쓰던 place.distanceLabel · regionLabel · averageRating ·
-  reviewCount · liked 처럼 서버에 없는 값을 걷어내고
-  /places 가 쓰는 PlaceListResponse 에 맞췄다.
+  지도(#277) — 카카오맵 JavaScript SDK 를 이 파일에서만 부른다.
+  fragments/base.html 에 넣으면 지도를 쓰지 않는 화면까지 SDK 를 내려받는다.
 
-  거리순 정렬과 실제 지도는 아직 불가능하다.
-    - place_addresses 테이블에 latitude·longitude 컬럼이 있지만
-      엔티티·매퍼가 없어 자바 쪽에서 주소와 좌표를 읽지 못한다.
-    - 지도 SDK 도 붙어 있지 않아 지도 자리는 도안으로 둔다.
+  이 화면이 지키는 세 가지.
+    1. 키 — 여기 실리는 건 JavaScript 키다. 브라우저에 노출되는 게 정상이고
+       카카오 콘솔의 플랫폼 > 웹 도메인 등록으로 사용처를 막는다.
+       서버가 쓰는 REST API 키(#265)는 모델에 담기지도 않는다.
+    2. 위치 — 동의 거부·실패·미지원·평문 HTTP 어디서 걸리든 기본 위치(서울시청)로
+       떨어지고 오류 화면을 띄우지 않는다.
+    3. 좌표 없는 장소 — 지도에서만 빠지고 목록에는 남는다. 지도와 목록이 같이 죽지 않게 한다.
+
+  JS 가 없거나 SDK 를 못 받아도 목록은 서버가 그린 순서 그대로 보인다.
 */-->
 <html lang="ko" xmlns:th="http://www.thymeleaf.org"
       th:replace="~{fragments/base :: page('내 주변', 'nearby', ~{::main})}">
 <body>
 <main id="main-content" class="app-main nearby-screen">
-    <div class="media map-preview nearby-map" aria-hidden="true">
+    <!--/* 지도가 뜨면 JS 가 is-live 를 붙여 도안(.map-pin)을 감춘다. 못 뜨면 도안이 그대로 남는다. */-->
+    <div class="media map-preview nearby-map" id="nearby-map" aria-hidden="true">
+        <div class="nearby-map-canvas" id="nearby-map-canvas"></div>
         <span class="map-pin"><span class="ico" aria-hidden="true">pets</span></span>
     </div>
 
@@ -31,10 +37,11 @@
                   th:text="'총 ' + ${places == null ? 0 : #lists.size(places)} + '곳'">총 0곳</span>
         </div>
 
-        <div class="notice" style="margin-top:12px">
-            <span class="ico" aria-hidden="true">info</span>
-            <span>주소·좌표가 아직 서버에 연결되지 않아 거리순 정렬과 지도 표시는 준비 중이에요.</span>
-        </div>
+        <!--/*
+          안내 자리. 기본 위치로 떨어졌거나, 좌표가 없어 지도에 못 찍은 장소가 있거나,
+          지도를 못 불러왔을 때 JS 가 여기에만 문구를 넣는다. 해당 없으면 비어 있다.
+        */-->
+        <div class="nearby-status" id="nearby-status" role="status" aria-live="polite"></div>
 
         <div class="empty" th:if="${places == null or #lists.isEmpty(places)}">
             <span class="ico" aria-hidden="true">near_me</span>
@@ -42,10 +49,18 @@
             <p>공개된 공간이 생기면 여기에서 바로 확인할 수 있어요.</p>
         </div>
 
-        <div class="place-list" th:unless="${places == null or #lists.isEmpty(places)}">
+        <div class="place-list" id="nearby-place-list"
+             th:unless="${places == null or #lists.isEmpty(places)}">
+            <!--/*
+              data-lat·data-lng 는 좌표가 있는 장소에만 붙는다. Thymeleaf 는 값이 null 인
+              속성을 아예 그리지 않으므로, 좌표가 없으면 속성 없는 카드가 된다.
+            */-->
             <a class="place-card" th:each="place : ${places}"
                th:href="@{/places/{id}(id=${place.id})}"
-               th:aria-label="|${place.name} 상세보기|">
+               th:aria-label="|${place.name} 상세보기|"
+               th:attr="data-place-id=${place.id},
+                        data-lat=${place.latitude},
+                        data-lng=${place.longitude}">
                 <div class="media">
                     <span class="ico" aria-hidden="true">weekend</span>
                 </div>
@@ -64,6 +79,11 @@
                         <span class="ico" aria-hidden="true">person</span>
                         <span th:text="${place.nickname}">호스트 닉네임</span>
                     </p>
+                    <!--/* 내 위치를 실제로 얻었을 때만 JS 가 채우고 hidden 을 뗀다. */-->
+                    <p class="place-distance" hidden>
+                        <span class="ico" aria-hidden="true">near_me</span>
+                        <span data-distance-text></span>
+                    </p>
                     <p class="place-price" th:if="${place.hourlyPrice != null}">
                         <span th:text="${#numbers.formatInteger(place.hourlyPrice, 0, 'COMMA')} + '원'">시간당 가격</span>
                         <small>/ 시간당</small>
@@ -72,6 +92,377 @@
             </a>
         </div>
     </div>
+
+    <!--/*
+      위치 동의 안내. modal.js 의 data-modal-open 위임 처리를 그대로 쓰려고
+      숨은 버튼을 두고 JS 가 click() 한다. 모달 여닫는 코드를 다시 만들지 않기 위해서다.
+    */-->
+    <button type="button" id="geo-consent-opener" class="sr-only" hidden
+            data-modal-open aria-controls="geo-consent">위치 사용 안내 열기</button>
+
+    <dialog class="modal" id="geo-consent" aria-labelledby="geo-consent-title">
+        <form method="dialog" class="modal-inner">
+            <h2 id="geo-consent-title">내 위치로 주변 호스트를 찾을까요?</h2>
+            <p>지금 계신 곳을 기준으로 가까운 순서대로 보여드려요.<br>
+                위치는 이 화면을 그리는 데만 쓰고 저장하지 않아요.</p>
+            <div class="modal-actions">
+                <button class="btn btn-ghost" type="submit" value="decline">나중에</button>
+                <button class="btn btn-primary" type="submit" value="allow">위치 사용</button>
+            </div>
+        </form>
+    </dialog>
+
+    <script th:src="@{/js/modal.js}"></script>
+    <!--/* autoload=false 로 받아 두고 필요한 순간에 kakao.maps.load 로 켠다. */-->
+    <script th:if="${kakaoMapEnabled}" id="kakao-map-sdk"
+            th:src="@{https://dapi.kakao.com/v2/maps/sdk.js(autoload=false,appkey=${kakaoMapJavascriptKey})}"></script>
+    <script th:inline="none">
+        /*
+         * 내 주변 지도. (#277)
+         *
+         * 순서 — (1) 위치 확보: 동의 → geolocation → 실패하면 기본 위치
+         *        (2) 목록에 거리 표기·정렬
+         *        (3) 지도와 마커
+         *
+         * (2)를 (3)보다 먼저 한다. 지도가 죽어도 목록은 살아야 하기 때문이다.
+         */
+        (() => {
+            "use strict";
+
+            /* 위치를 못 얻었을 때 지도 중심으로 쓸 좌표(서울시청). 오류 화면 대신 여기로 떨어진다. */
+            const DEFAULT_CENTER = { lat: 37.5665, lng: 126.9780 };
+            /* 브라우저 geolocation 에 넘기는 제한 시간. */
+            const GEO_TIMEOUT_MS = 8000;
+            /*
+             * 자체 감시 타이머. 권한 창을 띄운 채 사용자가 아무것도 누르지 않으면 위 timeout 은
+             * 돌지 않는다. 명세상 사용자를 기다리는 시간은 timeout 에 포함되지 않기 때문이다.
+             * 이게 없으면 화면이 영원히 위치를 기다린다.
+             */
+            const GEO_WATCHDOG_MS = 12000;
+            /* 마커가 없을 때 쓰는 확대 수준과, 마커에 맞춰 축소될 때의 한계. */
+            const DEFAULT_LEVEL = 5;
+            const MAX_LEVEL = 9;
+            const CONSENT_KEY = "petnow.nearby.geo-consent";
+
+            const mapBox = document.getElementById("nearby-map");
+            const canvas = document.getElementById("nearby-map-canvas");
+            const listBox = document.getElementById("nearby-place-list");
+            const statusBox = document.getElementById("nearby-status");
+            const cards = listBox ? Array.from(listBox.querySelectorAll(".place-card")) : [];
+
+            /* ───────────────── 좌표 읽기 ───────────────── */
+
+            /*
+             * 카드에 붙은 좌표를 숫자로 바꾼다. 속성이 없거나, 비었거나, 숫자가 아니거나,
+             * 범위를 벗어나면 null 이다. 여기서 걸러야 지도가 엉뚱한 곳으로 튀지 않는다.
+             * 위경도 중 한쪽만 있는 것도 좌표가 없는 것으로 본다.
+             */
+            function readPoint(el) {
+                const lat = toNumber(el.dataset.lat);
+                const lng = toNumber(el.dataset.lng);
+                if (lat === null || lng === null) return null;
+                if (lat < -90 || lat > 90 || lng < -180 || lng > 180) return null;
+                /* 지오코딩에 실패한 행이 0,0 으로 들어온 경우. 아프리카 앞바다에 마커를 찍지 않는다. */
+                if (lat === 0 && lng === 0) return null;
+                return { lat: lat, lng: lng };
+            }
+
+            function toNumber(raw) {
+                if (raw === undefined || raw === null) return null;
+                const text = String(raw).trim();
+                if (text === "") return null;
+                const value = Number(text);
+                return Number.isFinite(value) ? value : null;
+            }
+
+            /* ───────────────── 거리 ───────────────── */
+
+            function distanceInMeters(from, to) {
+                const R = 6371000;
+                const rad = (deg) => (deg * Math.PI) / 180;
+                const dLat = rad(to.lat - from.lat);
+                const dLng = rad(to.lng - from.lng);
+                const h = Math.sin(dLat / 2) * Math.sin(dLat / 2)
+                    + Math.cos(rad(from.lat)) * Math.cos(rad(to.lat))
+                    * Math.sin(dLng / 2) * Math.sin(dLng / 2);
+                return 2 * R * Math.asin(Math.min(1, Math.sqrt(h)));
+            }
+
+            function formatDistance(meters) {
+                if (meters < 1000) return Math.max(10, Math.round(meters / 10) * 10) + "m";
+                if (meters < 10000) return (meters / 1000).toFixed(1) + "km";
+                return Math.round(meters / 1000) + "km";
+            }
+
+            /* ───────────────── 위치 동의 ───────────────── */
+
+            function rememberedConsent() {
+                try {
+                    return window.localStorage.getItem(CONSENT_KEY);
+                } catch (error) {
+                    /* 사생활 보호 모드에서는 접근 자체가 막힌다. 기억을 못 할 뿐 흐름은 그대로다. */
+                    return null;
+                }
+            }
+
+            function rememberConsent(answer) {
+                try {
+                    window.localStorage.setItem(CONSENT_KEY, answer);
+                } catch (error) {
+                    /* 저장하지 못해도 이번 방문은 정상 동작한다. */
+                }
+            }
+
+            /*
+             * 위치를 써도 되는지 먼저 묻는다. 브라우저 권한 창을 예고 없이 띄우지 않기 위해서다.
+             * 모달을 열 수 없으면(구형 브라우저, modal.js 미로딩) 거부와 같게 보고 기본 위치로 간다.
+             */
+            function askConsent() {
+                const answer = rememberedConsent();
+                if (answer === "allow") return Promise.resolve(true);
+                if (answer === "decline") return Promise.resolve(false);
+
+                const dialog = document.getElementById("geo-consent");
+                const opener = document.getElementById("geo-consent-opener");
+                if (!dialog || !opener || typeof dialog.showModal !== "function") {
+                    return Promise.resolve(false);
+                }
+
+                return new Promise((resolve) => {
+                    dialog.addEventListener("close", () => {
+                        /* Esc 로 닫으면 returnValue 가 빈 문자열이다. 거부로 본다. */
+                        const allowed = dialog.returnValue === "allow";
+                        rememberConsent(allowed ? "allow" : "decline");
+                        resolve(allowed);
+                    }, { once: true });
+
+                    opener.click();
+                    if (!dialog.open) resolve(false);
+                });
+            }
+
+            /*
+             * 실제 좌표를 받아 온다. 어떤 이유로 실패하든 예외를 던지지 않고 null 로 끝낸다.
+             * 거부(PERMISSION_DENIED)·실패(POSITION_UNAVAILABLE)·시간초과·미지원·평문 HTTP 가
+             * 전부 같은 자리로 모인다.
+             */
+            function locate() {
+                return new Promise((resolve) => {
+                    /* HTTPS(와 localhost)가 아니면 브라우저가 API 자체를 막는다. 부르지 않는다. */
+                    if (!("geolocation" in navigator) || !window.isSecureContext) {
+                        resolve(null);
+                        return;
+                    }
+
+                    let settled = false;
+                    let watchdog = 0;
+                    const finish = (value) => {
+                        if (settled) return;
+                        settled = true;
+                        window.clearTimeout(watchdog);
+                        resolve(value);
+                    };
+                    watchdog = window.setTimeout(() => finish(null), GEO_WATCHDOG_MS);
+
+                    try {
+                        navigator.geolocation.getCurrentPosition(
+                            (position) => finish({
+                                lat: position.coords.latitude,
+                                lng: position.coords.longitude
+                            }),
+                            () => finish(null),
+                            { enableHighAccuracy: false, timeout: GEO_TIMEOUT_MS, maximumAge: 300000 }
+                        );
+                    } catch (error) {
+                        finish(null);
+                    }
+                });
+            }
+
+            /* ───────────────── 목록 ───────────────── */
+
+            /*
+             * 거리 표기와 정렬. 내 위치를 실제로 얻었을 때만 한다.
+             * 기본 위치로 떨어진 상태에서 "1.2km" 를 적으면 부산에 있는 사용자에게 사실이 아닌
+             * 값을 보여주게 된다. 그럴 땐 서버가 준 순서를 그대로 둔다.
+             */
+            function applyDistances(origin, entries) {
+                entries.forEach((entry) => {
+                    if (!entry.point) return;
+                    entry.distance = distanceInMeters(origin, entry.point);
+
+                    const box = entry.card.querySelector(".place-distance");
+                    const text = box ? box.querySelector("[data-distance-text]") : null;
+                    if (!box || !text) return;
+                    text.textContent = formatDistance(entry.distance);
+                    box.hidden = false;
+                });
+
+                if (!listBox) return;
+
+                /* 좌표가 없는 장소는 목록에서 빼지 않고 뒤로만 민다. 저희끼리의 순서는 유지한다. */
+                const sorted = entries.slice().sort((a, b) => {
+                    if (a.distance === null && b.distance === null) return a.index - b.index;
+                    if (a.distance === null) return 1;
+                    if (b.distance === null) return -1;
+                    return a.distance - b.distance;
+                });
+
+                const fragment = document.createDocumentFragment();
+                sorted.forEach((entry) => fragment.appendChild(entry.card));
+                listBox.appendChild(fragment);
+            }
+
+            function notice(message) {
+                if (!statusBox) return;
+                const line = document.createElement("div");
+                line.className = "notice";
+                const icon = document.createElement("span");
+                icon.className = "ico";
+                icon.setAttribute("aria-hidden", "true");
+                icon.textContent = "info";
+                const text = document.createElement("span");
+                text.textContent = message;
+                line.appendChild(icon);
+                line.appendChild(text);
+                statusBox.appendChild(line);
+            }
+
+            /* ───────────────── 지도 ───────────────── */
+
+            function highlight(card) {
+                const still = window.matchMedia
+                    && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+                card.scrollIntoView({ behavior: still ? "auto" : "smooth", block: "center" });
+                card.classList.add("is-focused");
+                window.setTimeout(() => card.classList.remove("is-focused"), 1600);
+            }
+
+            /*
+             * 지도를 띄우고 마커를 찍는다. 실패하면 false 를 돌려주고 지도 자리는 도안으로 남는다.
+             * 목록은 이미 그려진 뒤라 여기서 무슨 일이 나도 목록에는 영향이 없다.
+             */
+            function drawMap(origin, located, entries) {
+                if (!mapBox || !canvas) return false;
+                if (!window.kakao || !window.kakao.maps) return false;
+
+                const kakao = window.kakao;
+                const map = new kakao.maps.Map(canvas, {
+                    center: new kakao.maps.LatLng(origin.lat, origin.lng),
+                    level: DEFAULT_LEVEL
+                });
+                mapBox.classList.add("is-live");
+
+                const bounds = new kakao.maps.LatLngBounds();
+                let plotted = 0;
+
+                entries.forEach((entry) => {
+                    if (!entry.point) return;
+                    const position = new kakao.maps.LatLng(entry.point.lat, entry.point.lng);
+                    const marker = new kakao.maps.Marker({ position: position, map: map, title: entry.name });
+                    kakao.maps.event.addListener(marker, "click", () => highlight(entry.card));
+                    bounds.extend(position);
+                    plotted += 1;
+                });
+
+                if (located) {
+                    const here = new kakao.maps.LatLng(origin.lat, origin.lng);
+                    const dot = document.createElement("span");
+                    dot.className = "map-me";
+                    new kakao.maps.CustomOverlay({ map: map, position: here, content: dot, zIndex: 1 });
+                    bounds.extend(here);
+                }
+
+                if (plotted > 0) {
+                    map.setBounds(bounds);
+                    /* 멀리 떨어진 장소 하나 때문에 전국 지도가 되는 것을 막는다. */
+                    if (map.getLevel() > MAX_LEVEL) map.setLevel(MAX_LEVEL);
+                }
+
+                /* 화면을 돌리면 지도 크기가 바뀐다. 중심은 유지한 채 다시 그린다. */
+                let resizeTimer = 0;
+                window.addEventListener("resize", () => {
+                    window.clearTimeout(resizeTimer);
+                    resizeTimer = window.setTimeout(() => {
+                        const center = map.getCenter();
+                        map.relayout();
+                        map.setCenter(center);
+                    }, 200);
+                });
+
+                return true;
+            }
+
+            /* ───────────────── 실행 ───────────────── */
+
+            /*
+             * 필터를 걸고 들어온 경우(#7 흐름)에는 위치를 묻지 않는다. 이미 사용자가 조건으로
+             * 고른 결과를 지도에 찍는 화면이기 때문이다.
+             * 필터 파라미터의 이름은 #7 이 정한다. 여기서는 있고 없고만 본다.
+             */
+            function enteredWithFilter() {
+                return !new URLSearchParams(window.location.search).keys().next().done;
+            }
+
+            function report(located, filtered, withoutPoint, mapDrawn, total) {
+                if (!mapDrawn) {
+                    notice("지도를 불러오지 못했어요. 목록은 그대로 보실 수 있어요.");
+                } else if (total > 0 && withoutPoint === total) {
+                    notice("아직 위치가 등록된 공간이 없어 지도에는 표시하지 못했어요.");
+                } else if (withoutPoint > 0) {
+                    notice("위치가 등록되지 않은 " + withoutPoint + "곳은 지도에 표시되지 않았어요.");
+                }
+
+                if (!located && !filtered) {
+                    notice("위치를 사용할 수 없어 서울 도심을 기준으로 보여드리고 있어요.");
+                }
+            }
+
+            function run() {
+                const entries = cards.map((card, index) => {
+                    const title = card.querySelector(".place-card-title");
+                    return {
+                        card: card,
+                        index: index,
+                        point: readPoint(card),
+                        distance: null,
+                        name: title ? title.textContent : ""
+                    };
+                });
+                const withoutPoint = entries.filter((entry) => !entry.point).length;
+                const filtered = enteredWithFilter();
+
+                const resolved = filtered
+                    ? Promise.resolve(null)
+                    : askConsent().then((allowed) => (allowed ? locate() : null));
+
+                resolved.then((here) => {
+                    const origin = here || DEFAULT_CENTER;
+
+                    /* 목록이 먼저다. 지도가 어떻게 되든 여기까지는 이미 끝나 있다. */
+                    if (here) applyDistances(here, entries);
+
+                    if (!window.kakao || !window.kakao.maps || typeof window.kakao.maps.load !== "function") {
+                        report(Boolean(here), filtered, withoutPoint, false, entries.length);
+                        return;
+                    }
+
+                    window.kakao.maps.load(() => {
+                        let drawn = false;
+                        try {
+                            drawn = drawMap(origin, Boolean(here), entries);
+                        } catch (error) {
+                            /* 지도만 포기한다. 목록은 그대로 둔다. */
+                            drawn = false;
+                        }
+                        report(Boolean(here), filtered, withoutPoint, drawn, entries.length);
+                    });
+                });
+            }
+
+            run();
+        })();
+    </script>
 </main>
 </body>
 </html>

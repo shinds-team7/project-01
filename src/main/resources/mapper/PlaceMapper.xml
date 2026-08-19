@@ -70,25 +70,34 @@
     </select>
     <select id="findAllPublished"
             resultType="com.example.petnow.dto.response.PlaceListResponse">
+        <!--
+          좌표는 LEFT JOIN 으로 가져온다. (#277)
+          INNER JOIN 으로 바꾸면 주소 행이 없거나 아직 지오코딩되지 않은 장소가 목록에서 통째로
+          사라진다. 지도에 못 찍는 것과 목록에 없는 것은 다른 문제다.
+          place_addresses.place_id 에 UNIQUE 가 걸려 있어 조인으로 행이 늘어나지는 않는다.
+        -->
         SELECT
-        id,
-        host_user_nickname AS nickname,
-        name,
-        description,
-        place_type AS placeType,
-        allows_small_dog AS allowsSmallDog,
-        allows_medium_dog AS allowsMediumDog,
-        allows_large_dog AS allowsLargeDog,
-        provides_home_camera AS providesHomeCamera,
-        provides_realtime_photo AS providesRealtimePhoto,
-        provides_yard AS providesYard,
-        provides_walk AS providesWalk,
-        hourly_price AS hourlyPrice
-        FROM places
-        WHERE status = 'PUBLISHED'
-        AND is_visible = TRUE
-        AND deleted_at IS NULL
-        ORDER BY id DESC
+        p.id,
+        p.host_user_nickname AS nickname,
+        p.name,
+        p.description,
+        p.place_type AS placeType,
+        p.allows_small_dog AS allowsSmallDog,
+        p.allows_medium_dog AS allowsMediumDog,
+        p.allows_large_dog AS allowsLargeDog,
+        p.provides_home_camera AS providesHomeCamera,
+        p.provides_realtime_photo AS providesRealtimePhoto,
+        p.provides_yard AS providesYard,
+        p.provides_walk AS providesWalk,
+        p.hourly_price AS hourlyPrice,
+        pa.latitude AS latitude,
+        pa.longitude AS longitude
+        FROM places p
+        LEFT JOIN place_addresses pa ON pa.place_id = p.id
+        WHERE p.status = 'PUBLISHED'
+        AND p.is_visible = TRUE
+        AND p.deleted_at IS NULL
+        ORDER BY p.id DESC
     </select>
     <select id="findDetailById"
             resultType="com.example.petnow.dto.response.PlaceDetailResponse">
