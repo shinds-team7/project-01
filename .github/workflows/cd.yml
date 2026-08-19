@@ -83,7 +83,6 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
-          fingerprint: ${{ secrets.EC2_HOST_FINGERPRINT }}
           source: docker-compose.prod.yml
           target: ~/app/
 
@@ -107,7 +106,6 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
-          fingerprint: ${{ secrets.EC2_HOST_FINGERPRINT }}
           script_stop: true
 
           envs: DB_USERNAME,DB_PASSWORD,DB_ROOT_PASSWORD,KAKAO_MAP_JAVASCRIPT_KEY,KAKAO_REST_API_KEY,AWS_S3_REGION,AWS_S3_BUCKET,AWS_S3_BASE_URL,FLYWAY_BASELINE_ON_MIGRATE,APP_IMAGE,GHCR_TOKEN,GHCR_USERNAME
