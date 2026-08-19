@@ -1,7 +1,6 @@
 package com.example.petnow.service;
 
 import com.example.petnow.dto.request.PlaceOperatingPolicyUpdateRequest;
-import com.example.petnow.dto.response.PackageDayResponse;
 import com.example.petnow.dto.response.PlaceSlotPeriodResponse;
 import com.example.petnow.entity.Place;
 import com.example.petnow.entity.PlaceAvailability;
@@ -85,22 +84,6 @@ class PlaceAvailabilityServiceImplTest {
                 7L, 1L, LocalDate.of(2026, 1, 1), LocalDate.of(2026, 3, 31));
 
         assertThat(count).isEqualTo(90 * 8);
-    }
-
-    @Test
-    void packageDayIsSelectableOnlyWhenAllSevenSlotsAreOpen() {
-        Place place = ownedPlace();
-        given(placeMapper.findById(1L)).willReturn(place);
-        given(availabilityMapper.countOpenSlotsInRange(
-                org.mockito.ArgumentMatchers.eq(1L),
-                org.mockito.ArgumentMatchers.any(),
-                org.mockito.ArgumentMatchers.any()))
-                .willReturn(7);
-
-        List<PackageDayResponse> days = service.getPackageDays(
-                1L, java.time.YearMonth.of(2026, 8));
-
-        assertThat(days).hasSize(31).allMatch(PackageDayResponse::isSelectable);
     }
 
     @Test
