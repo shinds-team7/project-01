@@ -2,6 +2,7 @@ package com.example.petnow.mapper;
 
 import com.example.petnow.entity.User;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 @Mapper
 public interface AuthMapper {
@@ -19,4 +20,11 @@ public interface AuthMapper {
 
     // 마이페이지에서 바로 보여지는 내정보 처리 (상세정보X)
     User findById(Long userId);
+
+    User findByProviderAndProviderId(
+        @Param("provider") String provider,
+        @Param("providerId") String providerId
+    );
+
+    void signupKakao(User user);
 }
