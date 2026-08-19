@@ -150,22 +150,6 @@ jobs:
 
             docker image prune -f
 
-        env:
-          DB_USERNAME: ${{ secrets.DB_USERNAME }}
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-          DB_ROOT_PASSWORD: ${{ secrets.DB_ROOT_PASSWORD }}
-          KAKAO_MAP_JAVASCRIPT_KEY: ${{ secrets.KAKAO_MAP_JAVASCRIPT_KEY }}
-          KAKAO_REST_API_KEY: ${{ secrets.KAKAO_REST_API_KEY }}
-          AWS_S3_REGION: ${{ vars.AWS_S3_REGION }}
-          AWS_S3_BUCKET: ${{ vars.AWS_S3_BUCKET }}
-          AWS_S3_BASE_URL: ${{ vars.AWS_S3_BASE_URL }}
-          FLYWAY_BASELINE_ON_MIGRATE: ${{ vars.FLYWAY_BASELINE_ON_MIGRATE || 'false' }}
-          APP_IMAGE: ${{ env.IMAGE_NAME }}:${{ github.sha }}
-
-          # GHCR 로그인 정보
-          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GHCR_USERNAME: ${{ github.actor }}
-
       # 컨테이너가 실제로 HTTP 응답을 하는지 확인한다.
       - name: Smoke test
         run: |
