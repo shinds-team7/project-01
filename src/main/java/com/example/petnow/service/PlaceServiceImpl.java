@@ -3,6 +3,7 @@ package com.example.petnow.service;
 import com.example.petnow.dto.request.PlaceCreateRequest;
 import com.example.petnow.dto.request.PlaceFilterCriteria;
 import com.example.petnow.dto.request.PlaceFilterRequest;
+import com.example.petnow.dto.request.PlaceUpdateRequest;
 import com.example.petnow.dto.response.PlaceDetailResponse;
 import com.example.petnow.dto.response.PetListResponse;
 import com.example.petnow.dto.response.PlaceListResponse;
@@ -80,6 +81,28 @@ public class PlaceServiceImpl implements PlaceService {
         if (addressResult != 1) {
             throw new BusinessException(PlaceErrorCode.PLACE_CREATE_FAILED);
         }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PlaceUpdateRequest getUpdateForm(Long userId, Long placeId) {
+        validateOwner(userId, placeId);
+        PlaceUpdateRequest request = placeMapper.findUpdateForm(placeId);
+        if (request == null) {
+            throw new BusinessException(PlaceErrorCode.PLACE_NOT_FOUND);
+        }
+        return request;
+    }
+
+    @Override
+    @Transactional
+    public void updatePlace(Long userId, Long placeId, PlaceUpdateRequest request) {
+        validateOwner(userId, placeId);
+        String otherOptions = request.isOtherOptionsEnabled() ? request.getOtherOptions() : null;
+        if (placeMapper.update(placeId, userId, request, otherOptions) != 1) {
+            throw new BusinessException(PlaceErrorCode.PLACE_UPDATE_FAILED);
+        }
+        placeMapper.upsertAddress(placeId, SEOUL, request.getSigungu(), request.getRoadAddress());
     }
 
     @Override
@@ -278,5 +301,15 @@ public class PlaceServiceImpl implements PlaceService {
         }
         String first = pets.get(0).getName();
         return pets.size() == 1 ? first : first + " 외 " + (pets.size() - 1) + "마리";
+    }
+
+    private void validateOwner(Long userId, Long placeId) {
+        Place place = placeMapper.findById(placeId);
+        if (place == null) {
+            throw new BusinessException(PlaceErrorCode.PLACE_NOT_FOUND);
+        }
+        if (userId == null || !userId.equals(place.getHostUserId())) {
+            throw new BusinessException(PlaceErrorCode.PLACE_ACCESS_DENIED);
+        }
     }
 }
