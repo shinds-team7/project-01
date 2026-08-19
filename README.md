@@ -19,3 +19,19 @@
    ```
    ./gradlew bootRun
    ```
+
+## 카카오 주소 지오코딩
+
+장소 등록 시 도로명 주소를 좌표로 변환하려면 카카오 개발자 콘솔의 **REST API 키**를
+`KAKAO_REST_API_KEY` 환경변수로 주입한다. 이 키는 서버 전용이며 HTML이나 JavaScript에
+노출하면 안 된다. 키가 없거나 카카오 API 호출이 실패해도 장소 등록은 성공하고 좌표만 비워 둔다.
+
+기존 `place_addresses`의 빈 좌표는 아래처럼 백필을 명시적으로 켠 한 번의 실행에서 채운다.
+기본 배치 크기는 100건이며 `KAKAO_LOCAL_API_BACKFILL_BATCH_SIZE`로 최대 1,000건까지 조절할 수 있다.
+카카오 일일 쿼터를 확인한 뒤 실행하고, 완료 후 `KAKAO_LOCAL_API_BACKFILL_ENABLED`를 반드시 끈다.
+
+```powershell
+$env:KAKAO_REST_API_KEY = "발급받은-REST-API-키"
+$env:KAKAO_LOCAL_API_BACKFILL_ENABLED = "true"
+./gradlew.bat bootRun
+```
