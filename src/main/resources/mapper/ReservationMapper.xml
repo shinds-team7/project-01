@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.petnow.mapper.ReservationMapper">
+
+    <resultMap id="ReservationDetailMap" type="com.example.petnow.entity.Reservation">
+        <id property="id" column="id"/>
+        <result property="userId" column="guest_user_id"/>
+        <result property="placeId" column="place_id"/>
+        <result property="reservationType" column="reservation_type" typeHandler="com.example.petnow.mapper.handler.ReservationTypeHandler"/>
+        <result property="reservationNo" column="reservation_no"/>
+        <result property="checkIn" column="check_in_at"/>
+        <result property="checkOut" column="check_out_at"/>
+        <result property="status" column="status"/>
+        <result property="memo" column="request_message"/>
+        <result property="totalPrice" column="total_price"/>
+        <result property="respondedAt" column="responded_at"/>
+        <result property="canceledAt" column="canceled_at"/>
+        <result property="cancelReason" column="cancel_reason"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <resultMap id="ReservationDetailResponseMap" type="com.example.petnow.dto.response.ReservationDetailResponse">
+        <id property="reservationId" column="reservation_id"/>
+        <result property="status" column="status"/>
+        <result property="reservationNo" column="reservation_no"/>
+        <result property="checkIn" column="check_in_at"/>
+        <result property="checkOut" column="check_out_at"/>
+        <result property="userName" column="user_name"/>
+        <result property="placeName" column="place_name"/>
+
+        <collection property="pets" ofType="com.example.petnow.dto.response.ReservationDetailResponse$PetDetail">
+            <result property="petId" column="pet_id"/>
+            <result property="petName" column="pet_name"/>
+            <result property="weight" column="pet_weight"/>
+            <result property="size" column="pet_size"/>
+        </collection>
+    </resultMap>
+
+    <insert id="save" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO reservations
+        (guest_user_id, place_id, reservation_no, reservation_type, check_in_at, check_out_at, status, request_message, total_price)
+        VALUES
+        (#{userId}, #{placeId}, #{reservationNo},#{reservationType, typeHandler=com.example.petnow.mapper.handler.ReservationTypeHandler}, #{checkIn}, #{checkOut}, #{status}, #{memo}, #{totalPrice})
+    </insert>
+
+    <insert id="saveReservationPets">
+        INSERT INTO reservation_pets (reservation_id, pet_id)
+        VALUES
+        <foreach collection="petIds" item="petId" separator=",">
+            (#{reservationId}, #{petId})
+        </foreach>
+    </insert>
+
+    <select id="detailReservation" resultMap="ReservationDetailResponseMap">
+        SELECT
+            r.id AS reservation_id,
+            r.status AS status,
+            r.reservation_no AS reservation_no,
+            r.check_in_at AS check_in_at,
+            r.check_out_at AS check_out_at,
+            u.nickname AS user_name,
+            pl.name AS place_name,
+            p.id AS pet_id,
+            p.name AS pet_name,
+            p.weight AS pet_weight,
+            LOWER(p.size) AS pet_size
+        FROM reservations r
+            INNER JOIN users u ON r.guest_user_id = u.id
+            INNER JOIN places pl ON r.place_id = pl.id
+            LEFT JOIN reservation_pets rp ON r.id = rp.reservation_id
+            LEFT JOIN pets p ON rp.pet_id = p.id
+        WHERE r.id = #{reservationId}
+    </select>
+
+    <select id="findById" resultMap="ReservationDetailMap">
+        SELECT * FROM reservations WHERE id = #{reservationId}
+    </select>
+
+    <select id="viewReservationList" resultType="com.example.petnow.dto.response.ReservationListResponse">
+        SELECT
+        r.id AS reservationId,
+        pl.name AS placeName,
+        r.total_price AS totalPrice,
+        r.status AS reservationStatus,
+        r.check_in_at AS checkIn,
+        r.check_out_at AS checkOut
+        FROM reservations r
+        LEFT JOIN places pl ON r.place_id = pl.id
+        <where>
+            r.guest_user_id = #{userId}
+
+            <if test="beforeUse != null and beforeUse">
+                AND r.status = 'CONFIRMED'
+                AND r.check_in_at &gt; NOW()
+            </if>
+
+            <if test="inUse != null and inUse">
+                AND r.status = 'CONFIRMED'
+                AND NOW() BETWEEN r.check_in_at AND r.check_out_at
+            </if>
+
+            <if test="afterUse != null and afterUse">
+                AND r.status = 'CONFIRMED'
+                AND r.check_out_at &lt; NOW()
+            </if>
+        </where>
+        ORDER BY r.check_in_at DESC
+    </select>
+
+    <select id="viewReservationListByHost" resultType="com.example.petnow.dto.response.ReservationListResponse">
+        SELECT
+            r.id AS reservationId,
+            pl.name AS placeName,
+            r.total_price AS totalPrice,
+            r.status AS reservationStatus,
+            r.check_in_at AS checkIn,
+            r.check_out_at AS checkOut
+        FROM reservations r
+        INNER JOIN places pl ON r.place_id = pl.id
+        <where>
+            pl.host_user_id = #{loginUserId}
+            <if test="status != null">
+                AND r.status = #{status}
+            </if>
+        </where>
+        ORDER BY r.check_in_at DESC;
+    </select>
+
+    <update id="cancelReservation">
+        UPDATE reservations
+        SET status='CANCELED', updated_at=CURRENT_TIMESTAMP
+        WHERE id = #{reservationId} AND
+        status != 'CANCELED'
+    </update>
+
+    <update id="approveReservation">
+        UPDATE reservations
+        SET status='CONFIRMED', responded_at=CURRENT_TIMESTAMP
+        WHERE id = #{reservationId} AND status='PENDING'
+    </update>
+
+    <update id="rejectReservation">
+        UPDATE reservations
+        SET status='CANCELED', responded_at=CURRENT_TIMESTAMP
+        WHERE id = #{reservationId} AND status='PENDING'
+    </update>
+
+    <insert id="insertReservationSlots">
+        INSERT INTO reservation_slots (reservation_id, availability_id)
+        VALUES
+        <foreach collection="slotIds" item="slotId" separator=",">
+            (#{reservationId}, #{slotId})
+        </foreach>
+    </insert>
+
+    <select id="findSlotIdsByReservationId" resultType="java.lang.Long">
+        SELECT availability_id
+        FROM reservation_slots
+        WHERE reservation_id = #{reservationId}
+    </select>
+
+    <delete id="deleteReservationSlotsByReservationId">
+        DELETE FROM reservation_slots
+        WHERE reservation_id = #{reservationId}
+    </delete>
+</mapper>

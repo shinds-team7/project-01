@@ -22,3 +22,60 @@
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 replay_pid*
+
+# petNow project
+HELP.md
+.gradle
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+# 로컬 전용 설정 (팀원별 DB 계정이 들어가므로 커밋 금지)
+# 경로 없이 적으면 어느 깊이에 있든 걸린다. src/main/resources/ 아래도 여기서 함께 처리된다.
+# 생성 방법은 docs/LOCAL_SETUP.md 참고
+application-local.yaml
+application-local.yml
+application-local.properties
+
+# docker-compose secrets
+.env
+
+# 개인 로컬 환경용 compose 오버라이드 (포트 충돌 회피 등). 커밋 금지
+docker-compose.override.yml
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+bin/
+!**/src/main/**/bin/
+!**/src/test/**/bin/
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+out/
+!**/src/main/**/out/
+!**/src/test/**/out/
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+### VS Code ###
+.vscode/
+
+### 로컬 업로드 이미지 (커밋 금지) ###
+# LocalFileStorage 가 local 프로필에서 이미지를 저장하는 디렉터리.
+# 경로는 application.yaml 의 app.storage.local.directory 로 바꿀 수 있다.
+/uploads/

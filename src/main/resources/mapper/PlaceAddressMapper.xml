@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.petnow.mapper.PlaceAddressMapper">
+    <sql id="placeAddressColumns">
+        id,
+        place_id AS placeId,
+        address_code AS addressCode,
+        sido,
+        sigungu,
+        eupmyeondong,
+        road_address AS roadAddress,
+        detail_address AS detailAddress,
+        postal_code AS postalCode,
+        latitude,
+        longitude,
+        created_at AS createdAt,
+        updated_at AS updatedAt
+    </sql>
+
+    <select id="findByPlaceId" resultType="com.example.petnow.entity.PlaceAddress">
+        SELECT
+        <include refid="placeAddressColumns" />
+        FROM place_addresses
+        WHERE place_id = #{placeId}
+    </select>
+
+    <select id="findWithoutCoordinates" resultType="com.example.petnow.entity.PlaceAddress">
+        SELECT
+        <include refid="placeAddressColumns" />
+        FROM place_addresses
+        WHERE latitude IS NULL
+           OR longitude IS NULL
+        ORDER BY id
+        LIMIT #{limit}
+    </select>
+
+    <update id="updateCoordinates">
+        UPDATE place_addresses
+        SET latitude = #{latitude},
+            longitude = #{longitude}
+        WHERE place_id = #{placeId}
+    </update>
+</mapper>

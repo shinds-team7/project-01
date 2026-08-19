@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/base :: page('반려동물 정보 수정', 'none', ~{::main})}">
+<body>
+<main id="main-content" class="app-main no-nav pet-editor-page">
+    <div class="topbar has-line pet-editor-topbar">
+        <a class="topbar-back" th:href="@{/mypage}" aria-label="마이페이지로 돌아가기">
+            <span class="ico" aria-hidden="true">arrow_back_ios_new</span>
+        </a>
+        <h1>반려동물 정보 수정</h1>
+    </div>
+
+    <!--/*
+      파일을 보내려면 enctype 이 반드시 multipart/form-data 여야 한다.
+      빠뜨리면 파일이 아니라 파일명 문자열만 넘어간다 (docs/CONVENTIONS.md §9.2).
+    */-->
+    <form class="pet-editor" th:action="@{/pet/update}" method="post"
+          enctype="multipart/form-data">
+        <input type="hidden" name="petId" th:value="${petId}">
+
+        <section class="pet-editor-intro is-edit" aria-labelledby="pet-update-title">
+            <span class="pet-editor-portrait" aria-hidden="true">
+                <span class="ico is-filled">pets</span>
+                <i class="ico">photo_camera</i>
+            </span>
+            <div>
+                <span class="pet-editor-kicker">CARE PROFILE</span>
+                <h2 id="pet-update-title"><span th:text="${pet.name}">초코</span>의<br>정보를 다듬어요</h2>
+                <p>달라진 체중과 돌봄 메모를 최신 상태로 유지해 주세요.</p>
+            </div>
+        </section>
+
+        <div class="pet-editor-fields">
+            <!--/*
+              사진 1장 (ImageCategory.PET 의 maxCount).
+
+              th:field 를 쓰지 않는 이유는 pet-form.html 과 같다. PetUpdateRequest 에
+              MultipartFile image 가 추가되면 name 바인딩이 그대로 동작한다.
+
+              현재 사진은 ${petPhotoUrl} 로 그린다. ${pet.photoUrl} 처럼 객체 프로퍼티로
+              읽으면 Pet 에 그 필드가 생기기 전까지 이 화면이 예외로 죽는다. 모델에 없는
+              변수는 null 로 평가될 뿐이라 아래 th:if 는 지금도 안전하게 넘어간다.
+              → 서버 작업자는 pet_photos 에서 찾은 URL 을 petPhotoUrl 로 넣어주면 된다.
+
+              수정 정책은 단일이므로 '교체' 다 (#228). 파일을 고르지 않으면 기존 사진을
+              그대로 두고, 새로 고르면 예전 URL 을 deleteImage 로 정리한다.
+            */-->
+            <div class="field">
+                <label class="field-label" for="update-image">사진 <span class="opt">선택</span></label>
+
+                <!--/*
+                  현재 사진. 공통 스크립트가 건드리는 것은 [data-image-upload] 안쪽뿐이므로
+                  이 목록은 밖에 둔다. 안에 두면 초기 render() 가 지워 버린다.
+                  새 클래스를 만들지 않고 image-upload.css 의 썸네일 스타일을 그대로 쓴다.
+                */-->
+                <ul class="image-upload-list" th:if="${petPhotoUrl != null}">
+                    <li class="image-upload-item">
+                        <img th:src="${petPhotoUrl}" alt="현재 등록된 사진">
+                    </li>
+                </ul>
+
+                <div class="image-upload" data-image-upload data-max-files="1" data-max-size-mb="5">
+                    <input class="image-upload-input" type="file" id="update-image" name="image"
+                           accept="image/jpeg,image/png,image/webp" data-image-upload-input>
+                    <label class="image-upload-trigger" for="update-image">
+                        <span class="ico" aria-hidden="true">photo_camera</span>
+                        <b data-image-upload-label>사진 추가</b>
+                        <small data-image-upload-guide></small>
+                    </label>
+                    <ul class="image-upload-list" data-image-upload-list></ul>
+                    <p class="image-upload-error" role="alert" data-image-upload-error></p>
+                </div>
+                <p class="field-hint">고르지 않으면 지금 사진을 그대로 둡니다.</p>
+            </div>
+
+            <div class="field pet-editor-name">
+                <label for="update-name">이름 <span class="req">필수</span></label>
+                <input class="control" id="update-name" name="name" type="text"
+                       th:value="${pet.name}" maxlength="20" autocomplete="off" required>
+            </div>
+
+            <fieldset class="field pet-editor-fieldset">
+                <legend class="field-label">크기 <span class="req">필수</span></legend>
+                <div class="choice-row pet-size-choices">
+                    <label class="choice">
+                        <input type="radio" name="size" value="SMALL" required
+                               th:checked="${pet.size != null and pet.size.name() == 'SMALL'}">
+                        <span><i class="ico" aria-hidden="true">pets</i><b>소형</b><small>10kg 미만</small></span>
+                    </label>
+                    <label class="choice">
+                        <input type="radio" name="size" value="MEDIUM"
+                               th:checked="${pet.size != null and pet.size.name() == 'MEDIUM'}">
+                        <span><i class="ico" aria-hidden="true">pets</i><b>중형</b><small>10–25kg</small></span>
+                    </label>
+                    <label class="choice">
+                        <input type="radio" name="size" value="LARGE"
+                               th:checked="${pet.size != null and pet.size.name() == 'LARGE'}">
+                        <span><i class="ico" aria-hidden="true">pets</i><b>대형</b><small>25kg 이상</small></span>
+                    </label>
+                </div>
+            </fieldset>
+
+            <div class="pet-editor-split">
+                <div class="field">
+                    <label for="update-birth-year">태어난 해</label>
+                    <select class="control" id="update-birth-year" name="birthYear">
+                        <th:block th:replace="~{fragments/components :: birthYearOptions(${pet.birthYear})}"></th:block>
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="update-weight">몸무게</label>
+                    <span class="pet-unit-control">
+                        <input class="control" id="update-weight" name="weight" type="number"
+                               min="0.1" max="100" step="0.1" inputmode="decimal" th:value="${pet.weight}">
+                        <span>kg</span>
+                    </span>
+                </div>
+            </div>
+
+            <fieldset class="field pet-editor-fieldset">
+                <legend class="field-label">성별</legend>
+                <div class="choice-row pet-sex-choices">
+                    <label class="choice">
+                        <input type="radio" name="sex" value="M" th:checked="${pet.sex == 'M'}"><span>남아</span>
+                    </label>
+                    <label class="choice">
+                        <input type="radio" name="sex" value="F" th:checked="${pet.sex == 'F'}"><span>여아</span>
+                    </label>
+                </div>
+            </fieldset>
+
+            <input type="hidden" name="_isNeutered" value="on">
+            <label class="pet-toggle">
+                <input type="checkbox" name="isNeutered" value="true" th:checked="${pet.isNeutered}">
+                <span><strong>중성화를 했어요</strong><small>호스트에게 미리 알려드려요</small></span>
+                <i aria-hidden="true"></i>
+            </label>
+
+            <div class="field">
+                <label for="update-memo">돌봄 메모 <span class="opt">선택</span></label>
+                <textarea class="control pet-memo" id="update-memo" name="memo" rows="5" maxlength="500"
+                          th:text="${pet.memo}" placeholder="좋아하는 것, 낯선 환경에서의 반응, 주의할 점을 알려주세요."></textarea>
+                <p class="field-hint">예약할 때 호스트가 아이를 이해하는 데 도움이 돼요.</p>
+            </div>
+
+            <div class="pet-editor-actions">
+                <a class="btn btn-ghost" th:href="@{/mypage}">취소</a>
+                <button class="btn btn-primary" type="submit">변경사항 저장하기</button>
+            </div>
+            <a class="pet-danger-link" th:href="@{/pet/delete/{petId}(petId=${petId})}">
+                <span class="ico" aria-hidden="true">delete</span> 이 반려동물 정보 삭제하기
+            </a>
+        </div>
+    </form>
+
+    <!--/*
+      fragments/base 에는 화면별 스크립트 자리가 없다. <main> 끝에 두면 위 마크업이
+      모두 파싱된 뒤 실행되므로 defer 없이도 안전하다 (auth/login.html 과 같은 방식).
+      스타일시트는 base.html 이 이미 걸어 두었다.
+    */-->
+    <script th:src="@{/js/image-upload.js}"></script>
+</main>
+</body>
+</html>

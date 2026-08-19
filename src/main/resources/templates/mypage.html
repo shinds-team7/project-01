@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/base :: page('마이페이지', 'my', ~{::main})}">
+<body>
+<main id="main-content" class="app-main my-page">
+    <div class="my-page-content">
+        <section class="my-profile" aria-labelledby="my-profile-name">
+            <!--/* 내 정보 화면(/my/profile)이 내 정보 수정·비밀번호 변경으로 들어가는 입구다. */-->
+            <a class="my-profile-link" th:href="@{/my/profile}">
+                <span class="my-profile-avatar" aria-hidden="true">
+                    <span class="ico is-filled">person</span>
+                </span>
+                <div>
+                    <h1 id="my-profile-name" th:text="${user.nickname}">김하늘</h1>
+                    <p th:text="${user.email}">sky@example.com</p>
+                </div>
+                <span class="ico my-profile-chevron" aria-hidden="true">chevron_right</span>
+            </a>
+        </section>
+
+        <section class="my-pets" aria-labelledby="my-pets-title">
+            <h2 id="my-pets-title">반려견 프로필</h2>
+
+            <div class="my-pet-grid" th:unless="${#lists.isEmpty(petList)}">
+                <article class="my-pet-card" th:each="pet : ${petList}">
+                    <span class="my-pet-avatar" aria-hidden="true">
+                        <span class="ico is-filled">pets</span>
+                    </span>
+                    <h3 th:text="${pet.name}">초코</h3>
+                    <p>
+                        <span th:text="${pet.size != null ? pet.size.label : '크기 미입력'}">소형</span>
+                        <span aria-hidden="true"> · </span>
+                        <span th:text="${pet.weight != null ? pet.weight + 'kg' : '몸무게 미입력'}">6kg</span>
+                    </p>
+                    <a class="my-pet-edit" th:href="@{/pet/detail/{petId}(petId=${pet.id})}">정보 수정하기</a>
+                </article>
+
+                <a class="my-pet-add" th:href="@{/pet/new}">
+                    <span class="ico" aria-hidden="true">add</span>
+                    <span>추가</span>
+                </a>
+            </div>
+
+            <div class="empty my-pet-empty" th:if="${#lists.isEmpty(petList)}">
+                <span class="ico" aria-hidden="true">sound_detection_dog_barking</span>
+                <strong>아직 등록한 반려동물이 없어요</strong>
+                <p>이름과 돌봄 정보를 등록하고 첫 예약을 준비해 보세요.</p>
+                <a class="btn btn-primary" th:href="@{/pet/new}">첫 반려동물 등록하기</a>
+            </div>
+        </section>
+
+        <nav class="my-menu" aria-label="마이페이지 바로가기">
+            <a th:href="@{/reservation/list}">
+                <span>예약·결제 내역</span>
+                <span class="ico" aria-hidden="true">chevron_right</span>
+            </a>
+            <a th:href="@{/bookmarks}">
+                <span>북마크</span>
+                <span class="ico" aria-hidden="true">chevron_right</span>
+            </a>
+            <a th:href="@{/reviews/my}">
+                <span>내 리뷰</span>
+                <span class="ico" aria-hidden="true">chevron_right</span>
+            </a>
+        </nav>
+
+        <a class="my-host-link" th:href="@{/host}">
+            <span>
+                <strong>호스팅 장소 관리하기</strong>
+                <small>예약·리뷰·장소를 한 곳에서 관리하세요</small>
+            </span>
+            <span class="ico" aria-hidden="true">chevron_right</span>
+        </a>
+    </div>
+</main>
+</body>
+</html>

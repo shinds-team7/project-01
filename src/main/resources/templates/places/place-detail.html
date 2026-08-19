@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<!--/*
+  장소 상세 = 프로토타입의 "DETAIL" 화면.
+
+  프로토타입은 평점·리뷰 수·지역·호스팅 연차를 하드코딩해 두었지만
+  PlaceDetailResponse 에는 없는 값이라 옮기지 않았다. (#182 의 함정 1)
+  리뷰 영역은 /reviews/place/{placeId} 로 넘겨 실제 목록에서 보게 했다.
+
+  찜·사진 갤러리·지도는 아직 서버가 없어 화면에 두지 않았다.
+*/-->
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/base :: page(${place.name}, 'none', ~{::main})}">
+<body>
+<main id="main-content" class="app-main no-nav has-cta">
+    <div class="screen">
+        <div class="media detail-hero">
+            <span class="ico" aria-hidden="true">weekend</span>
+            <a class="hero-btn is-back" th:href="@{/places}" aria-label="목록으로">
+                <span class="ico" aria-hidden="true">arrow_back_ios_new</span>
+            </a>
+        </div>
+
+        <h1 class="detail-title" th:text="${place.name}">장소명</h1>
+        <p class="detail-meta">
+            <span th:if="${place.placeType != null}" th:text="${place.placeType.label}">장소 유형</span>
+            <span class="sep" th:if="${place.areaSize != null}">·</span>
+            <span th:if="${place.areaSize != null}" th:text="${place.areaSize} + '평'">장소 면적</span>
+            <span class="sep">·</span>
+            <a th:href="@{/reviews/place/{id}(id=${place.id})}">리뷰 보기</a>
+        </p>
+
+        <div class="person-row detail-host">
+            <span class="avatar"><span class="ico" aria-hidden="true">person</span></span>
+            <span class="person-copy">
+                <strong th:text="${place.nickname} + ' 호스트'">호스트</strong>
+                <small>Pet NOW 등록 호스트</small>
+            </span>
+            <span class="verified"><span class="ico" aria-hidden="true">check</span>인증됨</span>
+        </div>
+
+        <p class="detail-desc" th:text="${place.description}">공간 소개글이 들어갑니다.</p>
+
+        <h2 class="section-title">수용 조건</h2>
+        <div class="cond-row">
+            <span th:if="${place.capacity != null}" th:text="'최대 ' + ${place.capacity} + '마리'">최대 수용 가능 수</span>
+            <span th:if="${place.allowsSmallDog}">소형견</span>
+            <span th:if="${place.allowsMediumDog}">중형견</span>
+            <span th:if="${place.allowsLargeDog}">대형견</span>
+            <span th:if="${place.providesHomeCamera}">홈 카메라</span>
+            <span th:if="${place.providesRealtimePhoto}">실시간 사진</span>
+            <span th:if="${place.providesYard}">마당</span>
+            <span th:if="${place.providesWalk}">산책</span>
+        </div>
+
+        <div class="notice" style="margin-top:16px"
+             th:if="${place.otherOptions != null and !#strings.isEmpty(place.otherOptions)}">
+            <span class="ico" aria-hidden="true">info</span>
+            <span th:text="${place.otherOptions}">기타 옵션에 대한 설명이 들어갑니다.</span>
+        </div>
+
+        <div class="section-head">
+            <h2 class="section-title">리뷰</h2>
+            <a class="section-more" th:href="@{/reviews/place/{id}(id=${place.id})}">
+                리뷰 더보기 <span class="ico" aria-hidden="true">chevron_right</span>
+            </a>
+        </div>
+        <p class="field-hint">이 공간에 남겨진 후기를 모아 볼 수 있어요.</p>
+    </div>
+
+    <div class="cta-bar no-nav">
+        <div class="cta-copy">
+            <p class="cta-price" th:if="${place.hourlyPrice != null}"
+               th:text="'시간당 ' + ${#numbers.formatInteger(place.hourlyPrice, 0, 'COMMA')} + '원'">시간당 가격</p>
+            <p class="cta-price" th:if="${place.hourlyPrice == null}">가격 문의</p>
+            <small class="cta-note" th:if="${place.nightlyPrice != null}"
+                   th:text="'1박 ' + ${#numbers.formatInteger(place.nightlyPrice, 0, 'COMMA')} + '원'">숙박 가격</small>
+        </div>
+        <a class="btn btn-dark" th:href="@{/reservation/booking-request(placeId=${place.id})}">예약 요청하기</a>
+    </div>
+</main>
+</body>
+</html>

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.petnow.mapper.PetPhotoMapper">
+
+    <insert id="insertPhoto">
+
+        INSERT INTO pet_photos
+        (
+        pet_id,
+        image_url,
+        sort_order
+        )
+        VALUES
+        (
+        #{petId},
+        #{imageUrl},
+        #{sortOrder}
+        )
+
+    </insert>
+
+    <select id="findByPetId"
+            parameterType="long"
+            resultType="com.example.petnow.entity.PetPhoto">
+
+        SELECT
+        id,
+        pet_id,
+        image_url,
+        sort_order,
+        created_at,
+        updated_at
+        FROM pet_photos
+        WHERE pet_id = #{petId}
+        <!--
+          반환 타입이 PetPhoto 단건이라 행이 2개만 되어도 TooManyResultsException 으로
+          조회가 죽는다. 반려동물은 사진 1장 정책이므로 첫 행만 가져온다.
+          sort_order 가 같은 행이 있어도 결과가 흔들리지 않도록 id 로 순서를 못박는다.
+        -->
+        ORDER BY sort_order, id
+        LIMIT 1
+
+    </select>
+
+    <delete id="deleteByPetId">
+
+        DELETE
+        FROM pet_photos
+        WHERE pet_id = #{petId}
+
+    </delete>
+
+</mapper>

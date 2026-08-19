@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="com.example.petnow.mapper.ReviewMapper">
+
+    <!-- 리뷰 등록 -->
+    <insert id="insertReview" parameterType="com.example.petnow.entity.Review"
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO reviews ( reservation_id, rating, content )
+        VALUES ( #{reservationId}, #{rating}, #{content} )
+    </insert>
+
+    <!-- 리뷰 작성 권한 체크 (해당 예약이 로그인된 유저의 예약이 맞는지 학인) -->
+    <select id="countReservationOwnedByMember" resultType="int">
+        SELECT COUNT(*)
+        FROM reservations
+        WHERE id = #{reservationId}
+            AND guest_user_id = #{memberId}
+    </select>
+
+    <!-- 내가 작성한 리뷰 목록 (reservations, places와 조인) -->
+    <select id="findReviewsByMemberId" parameterType="long" resultType="com.example.petnow.dto.response.ReviewResponse">
+        SELECT
+            r.id             AS id,
+            r.reservation_id AS reservationId,
+            res.guest_user_id    AS memberId,
+            res.place_id     AS placeId,
+            DATE(res.check_in_at)  AS checkInAt,
+            p.name           AS placeName,
+            r.content        AS content,
+            r.rating         AS rating
+        FROM reviews r
+        JOIN reservations res
+            ON r.reservation_id = res.id
+        JOIN places p
+            ON res.place_id = p.id
+        WHERE res.guest_user_id = #{memberId}
+            AND r.deleted_at IS NULL
+        ORDER BY r.created_at DESC
+    </select>
+
+    <!-- 특정 장소의 리뷰 목록 (reservations, places와 조인) -->
+    <select id="findReviewsByPlaceId" parameterType="long" resultType="com.example.petnow.dto.response.ReviewResponse">
+        SELECT
+            r.id             AS id,
+            r.reservation_id AS reservationId,
+            res.guest_user_id    AS memberId,
+            res.place_id     AS placeId,
+            DATE(res.check_in_at)  AS checkInAt,
+            p.name           AS placeName,
+            r.content        AS content,
+            r.rating         AS rating
+        FROM reviews r
+        JOIN reservations res
+            ON r.reservation_id = res.id
+        JOIN places p
+            ON res.place_id = p.id
+        WHERE res.place_id = #{placeId}
+            AND r.deleted_at IS NULL
+        ORDER BY r.created_at DESC
+    </select>
+
+    <select id="findPlaceIdByReservationId" resultType="Long">
+        SELECT place_id
+        FROM reservations
+        WHERE id = #{reservationId}
+    </select>
+
+    <select id="findResponseById" resultType="com.example.petnow.dto.response.ReviewResponse">
+        SELECT
+            r.id,
+            r.reservation_id AS reservationId,
+            res.guest_user_id AS memberId,
+            res.place_id AS placeId,
+            p.name AS placeName,
+            res.check_in_at AS checkInAt,
+            r.content,
+            r.rating
+        FROM reviews r
+        JOIN reservations res
+            ON r.reservation_id = res.id
+        JOIN places p
+            ON res.place_id = p.id
+        WHERE r.id = #{id}
+    </select>
+
+    <select id="countReviewById" resultType="int">
+        SELECT COUNT(*)
+        FROM reviews
+        WHERE id = #{reviewId}
+            AND deleted_at IS NULL
+    </select>
+
+    <select id="countReviewOwnedByMember" resultType="int">
+        SELECT COUNT(*)
+        FROM reviews r
+        JOIN reservations res ON r.reservation_id = res.id
+        WHERE r.id = #{reviewId}
+            AND res.guest_user_id = #{memberId}
+            AND r.deleted_at IS NULL
+    </select>
+
+    <select id="findPlaceIdByReviewId" resultType="Long">
+        SELECT res.place_id
+        FROM reviews r
+        JOIN reservations res ON r.reservation_id = res.id
+        WHERE r.id = #{reviewId}
+            AND r.deleted_at IS NULL
+    </select>
+
+    <update id="updateReview">
+        UPDATE reviews
+        SET
+            rating = #{rating},
+            content = #{content}
+        WHERE id = #{reviewId}
+    </update>
+
+    <update id="deleteReview">
+        UPDATE reviews
+        SET deleted_at = #{deletedAt}
+        WHERE id = #{reviewId}
+    </update>
+
+</mapper>

@@ -1,0 +1,75 @@
+spring:
+  application:
+    name: petNow
+  profiles:
+    active: local
+  servlet:
+    multipart:
+      # 한 장 5MB. 초과하면 MaxUploadSizeExceededException 이 나고 MvcExceptionHandler 가 안내 문구로 바꿔 준다.
+      max-file-size: 5MB
+      # 요청 전체 한도. ImageCategory 의 최대 장수 × max-file-size 를 담을 수 있어야 한다.
+      # 가장 큰 PLACE 가 10장이므로 10 × 5MB = 50MB, 여기에 텍스트 필드와 boundary 오버헤드를
+      # 더해 55MB 로 둔다. 30MB 였을 때는 각 장이 전부 5MB 이하인데도 요청이 통째로 거부되는
+      # 구간(30~50MB)이 있었다. (#240)
+      # ImageCategory 의 장수를 늘리면 이 값도 같이 올린다.
+      max-request-size: 55MB
+
+server:
+  servlet:
+    session:
+      # 기본값(30m)과 같지만 명시해 둔다. 세션은 톰캣 메모리에 있어 서버를 재시작하면
+      # 모두 끊긴다. 배포 중 로그인 유지가 필요해지면 그때 외부 저장소(Redis)를 붙인다.
+      timeout: 30m
+      cookie:
+        http-only: true
+        # 다른 사이트에서 넘어오는 요청에는 쿠키를 싣지 않는다. 최상위 GET 이동에는 실리므로
+        # 앞으로 붙일 카카오 콜백(리다이렉트 GET)은 그대로 동작한다.
+        same-site: lax
+        # secure 는 일부러 비워 뒀다. 켜면 쿠키가 HTTPS 로만 오가서, 평문 HTTP 로 접속하는
+        # 환경에서는 로그인이 통째로 막힌다. 배포 앞단이 HTTPS 인지 확인한 뒤 prod 프로필에서만 켤 것.
+  tomcat:
+    # 요청을 거부한 뒤 남은 요청 바디를 삼키는 한도. 기본값 2MB 로 두면 50MB 짜리 업로드가
+    # 거부될 때 남은 바이트를 삼키지 못해 Tomcat 이 커넥션을 끊는다. 그러면 사용자는 우리가
+    # 만든 413 안내 화면 대신 브라우저의 연결 오류를 보게 된다.
+    # 무제한(-1)은 악의적인 대용량 요청에 자원을 그대로 내주므로 max-request-size 에 맞춘다.
+    max-swallow-size: 55MB
+
+app:
+  # 카카오톡 등 외부 크롤러에 노출할 운영 주소. 예: https://petnow.example.com
+  # 비워 두면 현재 요청 주소를 사용한다.
+  public-url: ${APP_PUBLIC_URL:}
+  storage:
+    local:
+      # local 프로필에서 이미지를 저장할 디렉터리. Git 에 올라가지 않는다.
+      directory: ${LOCAL_UPLOAD_DIR:uploads}
+      url-prefix: /uploads
+
+cloud:
+  aws:
+    s3:
+      # prod 프로필에서만 쓴다. 값은 배포 환경의 환경변수로 주입한다.
+      bucket: ${AWS_S3_BUCKET:}
+      region: ${AWS_S3_REGION:ap-northeast-2}
+      # 비워 두면 https://{bucket}.s3.{region}.amazonaws.com 을 쓴다. CloudFront 로 옮기면 이 값만 바꾼다.
+      base-url: ${AWS_S3_BASE_URL:}
+
+kakao:
+  local-api:
+    # REST API 키는 서버에서만 사용하며 템플릿·JavaScript로 전달하지 않는다.
+    rest-api-key: ${KAKAO_REST_API_KEY:}
+    base-url: https://dapi.kakao.com
+    connect-timeout: 2s
+    read-timeout: 3s
+    # 기존 주소 좌표를 채울 때만 명시적으로 true로 켜고 실행 후 다시 끈다.
+    backfill-enabled: ${KAKAO_LOCAL_API_BACKFILL_ENABLED:false}
+    backfill-batch-size: ${KAKAO_LOCAL_API_BACKFILL_BATCH_SIZE:100}
+
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+
+logging:
+  level:
+    root: info
+    com.example.petnow: debug

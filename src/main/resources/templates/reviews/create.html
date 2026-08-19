@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<!--/*
+  리뷰 쓰기 = 프로토타입의 "REVIEW WRITE" 화면.
+
+  ReviewCreateRequest 는 reservationId · rating · content 세 개뿐이다.
+  프로토타입 상단의 "장소명 / 이용 일정" 요약은 컨트롤러가 placeName·checkInAt 를
+  모델에 넣어줄 때만 보이도록 감쌌다.
+
+  별점은 app-flow.js 의 data-star-picker 가 hidden rating 에 값을 채운다.
+*/-->
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/base :: page('리뷰 쓰기', 'none', ~{::main})}">
+<body>
+<main id="main-content" class="app-main no-nav has-cta">
+    <div class="topbar">
+        <a class="topbar-back" th:href="@{/reservation/list}" aria-label="예약 목록으로 돌아가기">
+            <span class="ico" aria-hidden="true">arrow_back_ios_new</span>
+        </a>
+        <h1>리뷰 쓰기</h1>
+    </div>
+
+    <!--/*
+      파일을 보내려면 enctype 이 반드시 multipart/form-data 여야 한다.
+      빠뜨리면 파일이 아니라 파일명 문자열만 넘어간다 (docs/CONVENTIONS.md §9.2).
+    */-->
+    <form th:action="@{/reviews}" th:object="${form}" method="post"
+          enctype="multipart/form-data">
+        <div class="screen">
+            <div class="notice notice-danger" role="alert" th:if="${submitError}" th:text="${submitError}"></div>
+
+            <div class="summary-row is-tinted" th:if="${placeName != null}">
+                <div class="media">
+                    <span class="ico" aria-hidden="true">weekend</span>
+                </div>
+                <div class="summary-copy">
+                    <strong th:text="${placeName}">성수 조용한 단독주택 마당</strong>
+                    <small th:if="${checkInAt != null}"
+                           th:text="${#temporals.format(checkInAt, 'yyyy년 M월 d일')} + ' 이용'">2026년 7월 18일 이용</small>
+                </div>
+            </div>
+
+            <input type="hidden" th:field="*{reservationId}">
+            <p class="field-error" th:if="${#fields.hasErrors('reservationId')}" th:errors="*{reservationId}"></p>
+
+            <p class="rating-ask">이용은 어떠셨나요?</p>
+            <div class="star-picker" data-star-picker aria-label="별점 선택">
+                <button type="button" aria-label="1점" aria-pressed="false"><span class="ico" aria-hidden="true">star</span></button>
+                <button type="button" aria-label="2점" aria-pressed="false"><span class="ico" aria-hidden="true">star</span></button>
+                <button type="button" aria-label="3점" aria-pressed="false"><span class="ico" aria-hidden="true">star</span></button>
+                <button type="button" aria-label="4점" aria-pressed="false"><span class="ico" aria-hidden="true">star</span></button>
+                <button type="button" aria-label="5점" aria-pressed="false"><span class="ico" aria-hidden="true">star</span></button>
+            </div>
+            <p class="rating-label" data-rating-label>별점을 선택해주세요</p>
+            <input type="hidden" th:field="*{rating}" data-rating-input>
+            <p class="field-error" th:if="${#fields.hasErrors('rating')}" th:errors="*{rating}"
+               style="text-align:center"></p>
+
+            <div class="field" style="margin-top:24px">
+                <label class="field-label" for="content">
+                    후기 내용 <span class="opt">최대 50자</span>
+                </label>
+                <textarea class="control" id="content" th:field="*{content}" th:errorclass="has-error"
+                          rows="5" maxlength="50" data-count-target="[data-content-count]"
+                          placeholder="다른 반려인들에게 도움이 되도록 솔직한 후기를 남겨주세요."></textarea>
+                <p class="field-hint"><b data-content-count>0</b>/50</p>
+                <p class="field-error" th:if="${#fields.hasErrors('content')}" th:errors="*{content}"></p>
+            </div>
+
+            <!--/*
+              사진 최대 5장 (ImageCategory.REVIEW 의 maxCount).
+
+              이 form 은 th:object 로 form 에 바인딩돼 있지만 여기만 th:field 를 쓰지
+              않는다. ReviewCreateRequest 에 파일 필드가 아직 없어서 th:field="*{images}"
+              를 걸면 이 화면이 렌더 단계에서 죽는다. name 기반 바인딩은 DTO 에
+              List<MultipartFile> images 가 추가되는 순간 그대로 동작하므로,
+              서버 작업이 들어와도 이 마크업은 고칠 필요가 없다.
+
+              data-* 기준값은 서버를 따라간다 (static/js/image-upload.js 주석 참고).
+                data-max-files   ImageCategory.REVIEW.maxCount = 5
+                data-max-size-mb max-file-size = 5MB
+            */-->
+            <div class="field">
+                <label class="field-label" for="images">사진 <span class="opt">선택 · 최대 5장</span></label>
+                <div class="image-upload" data-image-upload data-max-files="5" data-max-size-mb="5">
+                    <input class="image-upload-input" type="file" id="images" name="images" multiple
+                           accept="image/jpeg,image/png,image/webp" data-image-upload-input>
+                    <label class="image-upload-trigger" for="images">
+                        <span class="ico" aria-hidden="true">add_a_photo</span>
+                        <b data-image-upload-label>사진 추가</b>
+                        <small data-image-upload-guide></small>
+                    </label>
+                    <ul class="image-upload-list" data-image-upload-list></ul>
+                    <p class="image-upload-error" role="alert" data-image-upload-error></p>
+                </div>
+            </div>
+
+            <div class="suggest-row">
+                <button type="button" class="chip" data-suggest-for="#content">마당이 넓어요</button>
+                <button type="button" class="chip" data-suggest-for="#content">사진을 자주 보내주셨어요</button>
+                <button type="button" class="chip" data-suggest-for="#content">아이가 편하게 지냈어요</button>
+                <button type="button" class="chip" data-suggest-for="#content">친절하고 꼼꼼해요</button>
+            </div>
+        </div>
+
+        <div class="cta-bar no-nav">
+            <button class="btn btn-dark btn-block" type="submit">리뷰 등록하기</button>
+        </div>
+    </form>
+
+    <div class="toast" data-toast role="status" aria-live="polite" aria-atomic="true"></div>
+
+    <script th:src="@{/js/app-flow.js}"></script>
+    <!--/* 스타일시트는 base.html 이 이미 걸어 두었다. 스크립트만 화면에서 부른다. */-->
+    <script th:src="@{/js/image-upload.js}"></script>
+</main>
+</body>
+</html>

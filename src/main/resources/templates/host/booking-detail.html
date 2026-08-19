@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<!--/*
+  예약 요청 상세 (호스트) = 프로토타입의 "HOST BOOKING DETAIL" 화면.
+
+  ⚠ 매핑 없는 화면. 호스트가 예약 요청을 보고 승인·거절하는 서버 기능이 아직 없다.
+    - 호스트용 예약 조회 API 없음
+    - 승인 / 거절 엔드포인트 없음 (ReservationStatus 에 REJECTED 값도 없다)
+
+  이식하면서 예전에 쓰던 booking.*(guestName·petLine·estimatedPayout 등 어디에도 없는 값)을
+  버리고, 이미 있는 ReservationDetailResponse(=reservation) 형태에 맞춰 두었다.
+  승인·거절 버튼은 보낼 곳이 없어 비활성으로 남긴다.
+*/-->
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/base :: page('예약 요청 상세', 'none', ~{::main})}">
+<body>
+<main id="main-content" class="app-main no-nav has-cta">
+    <div class="topbar">
+        <a class="topbar-back" th:href="@{/host}" aria-label="호스트 홈으로 돌아가기">
+            <span class="ico" aria-hidden="true">arrow_back_ios_new</span>
+        </a>
+        <h1>예약 요청 상세</h1>
+    </div>
+
+    <div class="screen">
+        <div class="notice">
+            <span class="ico" aria-hidden="true">info</span>
+            <span>호스트용 예약 승인·거절 API 가 연결되기 전 디자인 화면이에요.</span>
+        </div>
+
+        <div class="section-head">
+            <h2 class="section-title" style="margin:0"
+                th:text="${reservation?.placeName} ?: '성수 단독주택 마당'">성수 단독주택 마당</h2>
+            <span class="badge badge-warn">승인 대기</span>
+        </div>
+
+        <div class="media" style="height:150px">
+            <span class="ico" aria-hidden="true">weekend</span>
+        </div>
+
+        <div class="block-gap"></div>
+
+        <h2 class="section-title">예약자 정보</h2>
+        <div class="person-row">
+            <span class="avatar"><span class="ico" aria-hidden="true">person</span></span>
+            <span class="person-copy">
+                <strong th:text="${reservation?.userName} ?: '예약자'">김하늘</strong>
+                <small th:text="${reservation?.reservationNo} ?: '예약번호 미정'">PN-20260802-0001</small>
+            </span>
+        </div>
+
+        <div class="block-gap"></div>
+
+        <h2 class="section-title">반려견 정보</h2>
+        <div class="empty" th:if="${reservation == null or #lists.isEmpty(reservation.pets)}">
+            <span class="ico" aria-hidden="true">pets</span>
+            <strong>반려견 정보가 없어요</strong>
+        </div>
+        <div class="pet-picks" th:unless="${reservation == null or #lists.isEmpty(reservation.pets)}">
+            <div class="person-row is-tinted" th:each="pet : ${reservation.pets}">
+                <span class="avatar is-square"><span class="ico" aria-hidden="true">pets</span></span>
+                <span class="person-copy">
+                    <strong th:text="${pet.petName}">초코</strong>
+                    <small>
+                        <span th:text="${pet.size} ?: '크기 미입력'">소형</span>
+                        <th:block th:if="${pet.weight != null}">
+                            · <span th:text="${pet.weight} + 'kg'">6kg</span>
+                        </th:block>
+                    </small>
+                </span>
+            </div>
+        </div>
+
+        <div class="block-gap"></div>
+
+        <h2 class="section-title">일정</h2>
+        <div class="info-rows">
+            <div class="info-row">
+                <span>맡기기</span>
+                <span th:text="${reservation?.checkIn != null}
+                               ? ${#temporals.format(reservation.checkIn, 'yyyy.MM.dd (E) HH:mm')}
+                               : '일정 미정'">2026.08.02 (토) 13:00</span>
+            </div>
+            <div class="info-row">
+                <span>데려오기</span>
+                <span th:text="${reservation?.checkOut != null}
+                               ? ${#temporals.format(reservation.checkOut, 'yyyy.MM.dd (E) HH:mm')}
+                               : '일정 미정'">2026.08.02 (토) 18:00</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="cta-bar no-nav">
+        <button class="btn btn-danger" type="button" disabled style="flex:1">거절하기</button>
+        <button class="btn btn-primary" type="button" disabled style="flex:1.4">승인하기</button>
+    </div>
+</main>
+</body>
+</html>

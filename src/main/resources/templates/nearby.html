@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<!--/*
+  내 주변 = 프로토타입의 "NEARBY" 화면 (지도 + 아래에서 올라오는 목록).
+
+  GET /nearby 가 이 화면을 그린다. 하단 탭의 "내 주변", 장소 목록의 "지도 보기",
+  그리고 홈의 검색 조건 카드가 제출하는 조건 필터링 결과가 모두 여기로 온다. (#7)
+
+  조건 없이 들어오면 공개된 장소 전체가 나오고, 조건이 붙으면 그 조건을 모두 만족하는
+  장소만 나온다. 결과 0건은 오류가 아니라 안내 문구다.
+
+  이식하면서 예전에 쓰던 place.distanceLabel · regionLabel · averageRating ·
+  reviewCount · liked 처럼 서버에 없는 값을 걷어내고
+  /places 가 쓰는 PlaceListResponse 에 맞췄다.
+
+  거리순 정렬과 실제 지도는 아직 불가능하다. (#265)
+    - place_addresses 테이블에 latitude·longitude 컬럼이 있지만
+      엔티티·매퍼가 없어 자바 쪽에서 주소와 좌표를 읽지 못한다.
+    - 지도 SDK 도 붙어 있지 않아 지도 자리는 도안으로 둔다.
+*/-->
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/base :: page('내 주변', 'nearby', ~{::main})}">
+<body>
+<main id="main-content" class="app-main nearby-screen">
+    <div class="media map-preview nearby-map" aria-hidden="true">
+        <span class="map-pin"><span class="ico" aria-hidden="true">pets</span></span>
+    </div>
+
+    <div class="nearby-sheet">
+        <div class="sheet-handle" aria-hidden="true"></div>
+
+        <div class="nearby-sheet-head">
+            <strong>내 주변 호스트</strong>
+            <span class="result-count"
+                  th:text="'총 ' + ${places == null ? 0 : #lists.size(places)} + '곳'">총 0곳</span>
+        </div>
+
+        <!--/*
+          조건이 잘못됐을 때. 검색을 막고 화면을 다시 그릴 뿐 오류 화면으로 보내지 않는다.
+          문구는 컨트롤러가 폼 에러를 한국어로 바꿔 넘겨 준다.
+        */-->
+        <div class="notice notice-danger" th:if="${!#lists.isEmpty(filterErrors)}">
+            <span class="ico" aria-hidden="true">error</span>
+            <span>
+                <th:block th:each="message : ${filterErrors}">
+                    <span th:text="${message}">조건 안내</span><br>
+                </th:block>
+            </span>
+        </div>
+
+        <!--/* 적용된 조건. 조건을 안 걸었으면 칩 줄 자체가 나오지 않는다. */-->
+        <div class="nearby-filters" th:if="${filtered}">
+            <div class="chip-row filter-row">
+                <span class="chip is-active" th:if="${regionLabel != null}">
+                    <span class="ico" aria-hidden="true">location_on</span>
+                    <span th:text="${regionLabel}">지역</span>
+                </span>
+                <span class="chip is-active" th:if="${dateLabel != null}">
+                    <span class="ico" aria-hidden="true">calendar_today</span>
+                    <span th:text="${dateLabel}">날짜</span>
+                </span>
+                <span class="chip is-active" th:if="${timeLabel != null}">
+                    <span class="ico" aria-hidden="true">schedule</span>
+                    <span th:text="${timeLabel}">시간</span>
+                </span>
+                <span class="chip is-active" th:if="${petLabel != null}">
+                    <span class="ico" aria-hidden="true">pets</span>
+                    <span th:text="${petLabel}">반려동물</span>
+                </span>
+            </div>
+            <a class="nearby-filter-edit" th:href="@{/home}">
+                <span class="ico" aria-hidden="true">tune</span>조건 바꾸기
+            </a>
+        </div>
+
+        <div class="notice" style="margin-top:12px">
+            <span class="ico" aria-hidden="true">info</span>
+            <span>주소·좌표가 아직 서버에 연결되지 않아 거리순 정렬과 지도 표시는 준비 중이에요.</span>
+        </div>
+
+        <!--/*
+          결과 0건. 조건을 걸었을 때와 아닐 때의 안내가 다르다.
+          조건이 잘못돼 아예 검색하지 못한 경우는 위의 안내 문구가 이미 설명하므로 그리지 않는다.
+        */-->
+        <div class="empty"
+             th:if="${#lists.isEmpty(filterErrors) and (places == null or #lists.isEmpty(places))}">
+            <span class="ico" aria-hidden="true">near_me</span>
+            <th:block th:if="${filtered}">
+                <strong>조건에 맞는 공간이 없어요</strong>
+                <p>날짜나 지역을 조금 넓혀서 다시 찾아보세요.</p>
+                <a class="btn btn-ghost" th:href="@{/home}">조건 바꾸기</a>
+            </th:block>
+            <th:block th:unless="${filtered}">
+                <strong>주변에 공개된 공간이 없어요</strong>
+                <p>공개된 공간이 생기면 여기에서 바로 확인할 수 있어요.</p>
+            </th:block>
+        </div>
+
+        <div class="place-list" th:unless="${places == null or #lists.isEmpty(places)}">
+            <a class="place-card" th:each="place : ${places}"
+               th:href="@{/places/{id}(id=${place.id})}"
+               th:aria-label="|${place.name} 상세보기|">
+                <div class="media">
+                    <span class="ico" aria-hidden="true">weekend</span>
+                </div>
+                <div class="place-card-body">
+                    <p class="place-card-title" th:text="${place.name}">공간 이름</p>
+                    <div class="place-tags">
+                        <span class="is-type" th:if="${place.placeType != null}"
+                              th:text="${place.placeType.label}">장소 유형</span>
+                        <span class="is-size" th:if="${place.allowsSmallDog}">소형견</span>
+                        <span class="is-size" th:if="${place.allowsMediumDog}">중형견</span>
+                        <span class="is-size" th:if="${place.allowsLargeDog}">대형견</span>
+                        <span class="is-extra" th:if="${place.providesYard}">마당</span>
+                        <span class="is-extra" th:if="${place.providesWalk}">산책</span>
+                    </div>
+                    <p class="place-loc">
+                        <span class="ico" aria-hidden="true">person</span>
+                        <span th:text="${place.nickname}">호스트 닉네임</span>
+                    </p>
+                    <p class="place-price" th:if="${place.hourlyPrice != null}">
+                        <span th:text="${#numbers.formatInteger(place.hourlyPrice, 0, 'COMMA')} + '원'">시간당 가격</span>
+                        <small>/ 시간당</small>
+                    </p>
+                </div>
+            </a>
+        </div>
+    </div>
+</main>
+</body>
+</html>

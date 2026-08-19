@@ -1,0 +1,19 @@
+spring:
+  datasource:
+    driver-class-name: org.mariadb.jdbc.Driver
+    url: jdbc:mariadb://localhost:3306/petnow
+    # docker-compose.yml 이 .env 로 만드는 계정과 같아야 한다.
+    # 값을 바꾸려면 .env 의 DB_USERNAME / DB_PASSWORD 도 같이 바꿀 것.
+    username: petnow
+    password: petnow1234
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+logging:
+  level:
+    org.springframework.web: debug
+
+kakao:
+  local-api:
+    # 카카오 개발자 콘솔의 REST API 키. 실제 키는 환경변수로만 넣는다.
+    rest-api-key: ${KAKAO_REST_API_KEY:}

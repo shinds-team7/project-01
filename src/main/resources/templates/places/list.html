@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<!--/*
+  장소 목록 = 프로토타입의 "SEARCH LIST + MAP" 화면.
+
+  프로토타입 카드는 지역·평점·리뷰 수를 보여주지만 PlaceListResponse 에는 셋 다 없다.
+  (#182 의 함정 1) 대신 DTO 에 있는 호스트 닉네임·수용 조건·시간당 요금으로 채웠다.
+
+  검색창·필터 칩·지도 보기는 아직 매핑이 없어 /search 로 보낸다.
+  /search 는 HomeController 가 coming-soon 으로 처리한다. (#182 의 함정 3)
+*/-->
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/base :: page('펫시터 찾기', 'search', ~{::main})}">
+<body>
+<main id="main-content" class="app-main has-cta">
+    <div class="screen">
+        <div class="search-bar">
+            <a class="search-field" th:href="@{/search}">
+                <span class="ico" aria-hidden="true">search</span>
+                <span>지역, 호스트 이름으로 검색해보세요</span>
+            </a>
+            <a class="search-submit" th:href="@{/search}" aria-label="검색">
+                <span class="ico" aria-hidden="true">search</span>
+            </a>
+        </div>
+
+        <div class="chip-row filter-row">
+            <a class="chip" th:href="@{/search}">
+                <span class="ico" aria-hidden="true">location_on</span>지역 선택
+                <span class="ico" aria-hidden="true">expand_more</span>
+            </a>
+            <a class="chip" th:href="@{/search}">
+                <span class="ico" aria-hidden="true">calendar_today</span>날짜 선택
+            </a>
+            <a class="chip" th:href="@{/search}">
+                <span class="ico" aria-hidden="true">tune</span>상세 필터
+            </a>
+        </div>
+
+        <div class="sort-row">
+            <p class="result-count" th:text="'총 ' + ${#lists.size(places)} + '개의 공간'">총 0개의 공간</p>
+        </div>
+
+        <div class="place-list" th:unless="${#lists.isEmpty(places)}">
+            <a class="place-card" th:each="place : ${places}"
+               th:href="@{/places/{id}(id=${place.id})}"
+               th:aria-label="|${place.name} 상세보기|">
+                <div class="media">
+                    <span class="ico" aria-hidden="true">weekend</span>
+                </div>
+                <div class="place-card-body">
+                    <p class="place-card-title" th:text="${place.name}">공간 이름</p>
+                    <div class="place-tags">
+                        <span class="is-type" th:if="${place.placeType != null}"
+                              th:text="${place.placeType.label}">아파트</span>
+                        <span class="is-size" th:if="${place.allowsSmallDog}">소형견</span>
+                        <span class="is-size" th:if="${place.allowsMediumDog}">중형견</span>
+                        <span class="is-size" th:if="${place.allowsLargeDog}">대형견</span>
+                        <span class="is-extra" th:if="${place.providesYard}">마당</span>
+                        <span class="is-extra" th:if="${place.providesWalk}">산책</span>
+                        <span class="is-extra" th:if="${place.providesHomeCamera}">홈캠</span>
+                        <span class="is-extra" th:if="${place.providesRealtimePhoto}">실시간 사진</span>
+                    </div>
+                    <p class="place-loc">
+                        <span class="ico" aria-hidden="true">person</span>
+                        <span th:text="${place.nickname}">호스트 닉네임</span>
+                    </p>
+                    <p class="place-price"
+                       th:if="${place.hourlyPrice != null}">
+                        <span th:text="${#numbers.formatInteger(place.hourlyPrice, 0, 'COMMA')} + '원'">12,000원</span>
+                        <small>/ 시간당</small>
+                    </p>
+                    <p class="place-price" th:if="${place.hourlyPrice == null}">가격 문의</p>
+                </div>
+            </a>
+        </div>
+
+        <div class="empty" th:if="${#lists.isEmpty(places)}">
+            <span class="ico" aria-hidden="true">travel_explore</span>
+            <strong>지금은 공개된 공간이 없어요</strong>
+            <p>새로 등록된 공간이 공개되면 여기에서 바로 확인할 수 있어요.</p>
+        </div>
+    </div>
+
+    <a class="map-toggle" th:href="@{/nearby}">
+        <span class="ico" aria-hidden="true">map</span>지도 보기
+    </a>
+</main>
+</body>
+</html>

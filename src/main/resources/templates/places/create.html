@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<!--/*
+  게시글 작성 = 프로토타입의 "HOST POST CREATE" 화면.
+
+  프로토타입에는 있지만 PlaceCreateRequest 에 없어 옮기지 않은 것 (#182 의 함정 1)
+    주소(도로명주소 API) · 요금 임시저장 · 가능한 일정 캘린더 · 고정 휴무
+  전부 서버 모델과 저장 로직이 먼저 있어야 해서 화면만 앞서 만들면 빈 껍데기가 된다.
+
+  사진은 위 목록에서 빠졌다. place_photos 테이블과 공통 저장 모듈(#230)이
+  develop 에 들어와 저장할 곳이 생겼기 때문이다 (#208).
+
+  반대로 프로토타입에 없지만 develop 에 있는 것은 그대로 지켰다 (#182 의 함정 2)
+    placeType 라디오는 컨트롤러가 넘기는 ${placeTypes} 로 그리고,
+    모든 입력은 th:field 로 placeCreateRequest 에 바인딩된 채 검증 에러를 표시한다.
+
+  기타 옵션 토글은 체크박스 형제 선택자로만 동작해 별도 스크립트가 필요 없다.
+*/-->
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/base :: page('게시글 작성', 'none', ~{::main})}">
+<body>
+<main id="main-content" class="app-main no-nav">
+    <div class="topbar has-line">
+        <a class="topbar-back" th:href="@{/host(tab='places')}" aria-label="내 호스팅 장소로 돌아가기">
+            <span class="ico" aria-hidden="true">arrow_back_ios_new</span>
+        </a>
+        <h1>게시글 작성</h1>
+    </div>
+
+    <!--/*
+      파일을 보내려면 enctype 이 반드시 multipart/form-data 여야 한다.
+      빠뜨리면 파일이 아니라 파일명 문자열만 넘어간다 (docs/CONVENTIONS.md §9.2).
+    */-->
+    <form th:action="@{/places/create}" th:object="${placeCreateRequest}" method="post"
+          enctype="multipart/form-data">
+        <div class="screen">
+            <p class="field-hint" style="margin-top:14px">정성껏 돌볼 수 있는 공간을 소개해주세요.</p>
+
+            <div class="notice notice-danger" role="alert" th:if="${#fields.hasAnyErrors()}">
+                <span class="ico" aria-hidden="true">error</span>
+                <span>입력하지 않았거나 형식이 맞지 않는 항목이 있어요.</span>
+            </div>
+
+            <h2 class="section-title">장소명</h2>
+            <div class="field">
+                <label class="sr-only" for="name">장소명</label>
+                <input class="control" id="name" type="text" th:field="*{name}" th:errorclass="has-error"
+                       maxlength="100" placeholder="예) 성수 조용한 단독주택 마당" required>
+                <p class="field-hint">동네와 공간의 매력이 드러나는 이름이면 더 좋아요.</p>
+                <p class="field-error" th:errors="*{name}"></p>
+            </div>
+
+            <h2 class="section-title">소개글 <span class="req">*</span></h2>
+            <div class="field">
+                <label class="sr-only" for="description">소개글</label>
+                <textarea class="control" id="description" th:field="*{description}" th:errorclass="has-error"
+                          rows="5" required
+                          placeholder="집의 분위기, 아이들이 쉴 공간, 평소 돌봄 방식과 주변 산책 환경을 알려주세요."></textarea>
+                <p class="field-error" th:errors="*{description}"></p>
+            </div>
+
+            <h2 class="section-title">장소 위치 <span class="req">*</span></h2>
+            <div class="field">
+                <label class="field-label" for="sigungu">지역구 <span class="req">*</span></label>
+                <select class="control" id="sigungu" th:field="*{sigungu}" th:errorclass="has-error" required>
+                    <option value="">지역구를 선택해주세요.</option>
+                    <option value="강남구">강남구</option>
+                    <option value="강동구">강동구</option>
+                    <option value="강북구">강북구</option>
+                    <option value="강서구">강서구</option>
+                    <option value="관악구">관악구</option>
+                    <option value="광진구">광진구</option>
+                    <option value="구로구">구로구</option>
+                    <option value="금천구">금천구</option>
+                    <option value="노원구">노원구</option>
+                    <option value="도봉구">도봉구</option>
+                    <option value="동대문구">동대문구</option>
+                    <option value="동작구">동작구</option>
+                    <option value="마포구">마포구</option>
+                    <option value="서대문구">서대문구</option>
+                    <option value="서초구">서초구</option>
+                    <option value="성동구">성동구</option>
+                    <option value="성북구">성북구</option>
+                    <option value="송파구">송파구</option>
+                    <option value="양천구">양천구</option>
+                    <option value="영등포구">영등포구</option>
+                    <option value="용산구">용산구</option>
+                    <option value="은평구">은평구</option>
+                    <option value="종로구">종로구</option>
+                    <option value="중구">중구</option>
+                    <option value="중랑구">중랑구</option>
+                </select>
+                <p class="field-error" th:errors="*{sigungu}"></p>
+            </div>
+            <div class="field">
+                <label class="field-label" for="roadAddress">도로명 주소 <span class="req">*</span></label>
+                <input class="control" id="roadAddress" type="text" th:field="*{roadAddress}"
+                       th:errorclass="has-error" maxlength="255"
+                       placeholder="예: 서울특별시 성동구 왕십리로 83-21" required>
+                <p class="field-error" th:errors="*{roadAddress}"></p>
+            </div>
+
+            <h2 class="section-title">사진 <span class="opt">선택</span></h2>
+            <!--/*
+              사진 최대 10장 (ImageCategory.PLACE 의 maxCount).
+
+              이 form 은 th:object 로 placeCreateRequest 에 바인딩돼 있지만 여기만
+              th:field 를 쓰지 않는다. DTO 에 파일 필드가 아직 없어서 th:field="*{images}"
+              를 걸면 이 화면이 렌더 단계에서 죽는다. name 기반 바인딩은 DTO 에
+              List<MultipartFile> images 가 추가되는 순간 그대로 동작하므로,
+              서버 작업이 들어와도 이 마크업은 고칠 필요가 없다.
+
+              data-* 기준값은 서버를 따라간다 (static/js/image-upload.js 주석 참고).
+                data-max-files    ImageCategory.PLACE.maxCount = 10
+                data-max-size-mb  max-file-size = 5MB
+                data-max-total-mb max-request-size = 30MB
+
+              10장 × 5MB = 50MB 라 장수보다 요청 전체 30MB 에 먼저 걸린다 (#240).
+              서버에서 413 을 받고 나서 알면 늦으니 고르는 시점에 미리 잘라낸다.
+            */-->
+            <div class="field">
+                <label class="sr-only" for="images">장소 사진</label>
+                <div class="image-upload" data-image-upload
+                     data-max-files="10" data-max-size-mb="5" data-max-total-mb="30">
+                    <input class="image-upload-input" type="file" id="images" name="images" multiple
+                           accept="image/jpeg,image/png,image/webp" data-image-upload-input>
+                    <label class="image-upload-trigger" for="images">
+                        <span class="ico" aria-hidden="true">add_a_photo</span>
+                        <b data-image-upload-label>사진 추가</b>
+                        <small data-image-upload-guide></small>
+                    </label>
+                    <ul class="image-upload-list" data-image-upload-list></ul>
+                    <p class="image-upload-error" role="alert" data-image-upload-error></p>
+                </div>
+                <p class="field-hint">공간이 잘 드러나는 사진일수록 예약으로 이어져요. 첫 장이 대표 사진이 됩니다.</p>
+            </div>
+
+            <h2 class="section-title">수용 조건 <span class="req">*</span></h2>
+
+            <fieldset class="field host-fieldset">
+                <legend>주거 형태</legend>
+                <div class="choice-row type-choices" style="margin-top:8px">
+                    <label class="choice" th:each="type : ${placeTypes}">
+                        <input type="radio" th:field="*{placeType}" th:value="${type}" required>
+                        <span>
+                            <i class="ico" aria-hidden="true"
+                               th:text="${type.name() == 'APARTMENT' ? 'apartment'
+                                        : (type.name() == 'HOUSE' ? 'home' : 'domain')}">home</i>
+                            <b th:text="${type.label}">주거 형태</b>
+                            <small th:text="${type.name() == 'APARTMENT' ? '공동 출입 공간'
+                                             : (type.name() == 'HOUSE' ? '독립된 생활 공간' : '도심형 주거 공간')}">주거 형태 설명</small>
+                        </span>
+                    </label>
+                </div>
+                <p class="field-error" th:errors="*{placeType}"></p>
+            </fieldset>
+
+            <div class="field-split">
+                <div class="field">
+                    <label class="field-label" for="areaSize">평수 <span class="req">*</span></label>
+                    <div class="unit-control">
+                        <input id="areaSize" type="number" min="1" max="500" step="1" inputmode="numeric"
+                               th:field="*{areaSize}" placeholder="32" required>
+                        <span>평</span>
+                    </div>
+                    <p class="field-error" th:errors="*{areaSize}"></p>
+                </div>
+                <div class="field">
+                    <label class="field-label" for="capacity">최대 수용 <span class="req">*</span></label>
+                    <div class="unit-control">
+                        <input id="capacity" type="number" min="1" max="20" step="1" inputmode="numeric"
+                               th:field="*{capacity}" placeholder="2" required>
+                        <span>마리</span>
+                    </div>
+                    <p class="field-error" th:errors="*{capacity}"></p>
+                </div>
+            </div>
+
+            <h2 class="section-title">서비스 옵션 <span class="opt">선택</span></h2>
+
+            <fieldset class="field host-fieldset">
+                <legend>수용 가능한 아이</legend>
+                <div class="option-grid">
+                    <label><input type="checkbox" th:field="*{allowsSmallDog}"><span>소형견 (10kg 미만)</span></label>
+                    <label><input type="checkbox" th:field="*{allowsMediumDog}"><span>중형견 (10–25kg)</span></label>
+                    <label><input type="checkbox" th:field="*{allowsLargeDog}"><span>대형견 (25kg 이상)</span></label>
+                </div>
+            </fieldset>
+
+            <fieldset class="field host-fieldset">
+                <legend>제공 서비스</legend>
+                <div class="option-grid">
+                    <label><input type="checkbox" th:field="*{providesHomeCamera}"><span>홈 카메라</span></label>
+                    <label><input type="checkbox" th:field="*{providesRealtimePhoto}"><span>실시간 사진</span></label>
+                    <label><input type="checkbox" th:field="*{providesYard}"><span>마당</span></label>
+                    <label><input type="checkbox" th:field="*{providesWalk}"><span>산책</span></label>
+                </div>
+            </fieldset>
+
+            <div class="other-option field">
+                <!--/*
+                  id 를 직접 적어야 한다. th:field 에만 맡기면 Thymeleaf 가 체크박스에
+                  일련번호를 붙여 otherOptionsEnabled1 로 그리고, 아래 label 의 for 와
+                  어긋나 토글을 누를 수 없게 된다 (input 은 화면에서 숨겨져 있다).
+                */-->
+                <input type="checkbox" id="otherOptionsEnabled" th:field="*{otherOptionsEnabled}">
+                <label class="switch-row" for="otherOptionsEnabled">
+                    <span>
+                        <strong>그 밖의 특별한 돌봄이 있나요?</strong>
+                        <small>투약, 노령견 케어처럼 직접 설명할 수 있어요.</small>
+                    </span>
+                    <i aria-hidden="true"></i>
+                </label>
+                <div class="reveal-field">
+                    <label class="sr-only" for="otherOptions">기타 돌봄 옵션</label>
+                    <input class="control" id="otherOptions" type="text" th:field="*{otherOptions}"
+                           placeholder="예) 노령견 투약 케어 가능">
+                </div>
+            </div>
+
+            <h2 class="section-title">요금 <span class="req">*</span></h2>
+            <div class="field-split">
+                <div class="field">
+                    <label class="field-label" for="hourlyPrice">시간당</label>
+                    <div class="unit-control">
+                        <input id="hourlyPrice" type="number" min="1" max="10000000" step="1" inputmode="numeric"
+                               th:field="*{hourlyPrice}" placeholder="12000" required>
+                        <span>원</span>
+                    </div>
+                    <p class="field-error" th:errors="*{hourlyPrice}"></p>
+                </div>
+                <div class="field">
+                    <label class="field-label" for="nightlyPrice">1박</label>
+                    <div class="unit-control">
+                        <input id="nightlyPrice" type="number" min="1" max="10000000" step="1" inputmode="numeric"
+                               th:field="*{nightlyPrice}" placeholder="48000" required>
+                        <span>원</span>
+                    </div>
+                    <p class="field-error" th:errors="*{nightlyPrice}"></p>
+                </div>
+            </div>
+
+            <div class="notice">
+                <span class="ico" aria-hidden="true">shield_with_heart</span>
+                <span>등록한 정보는 운영팀 확인 후 검색 결과에 공개됩니다.</span>
+            </div>
+
+            <button class="btn btn-primary btn-block" type="submit" style="margin-top:24px">게시글 등록</button>
+        </div>
+    </form>
+
+    <!--/*
+      fragments/base 에는 화면별 스크립트 자리가 없다. <main> 끝에 두면 위 마크업이
+      모두 파싱된 뒤 실행되므로 defer 없이도 안전하다 (auth/login.html 과 같은 방식).
+      스타일시트는 base.html 이 이미 걸어 두었다.
+    */-->
+    <script th:src="@{/js/image-upload.js}"></script>
+</main>
+</body>
+</html>

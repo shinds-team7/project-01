@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/base :: page('반려동물 등록', 'none', ~{::main})}">
+<body>
+<main id="main-content" class="app-main no-nav pet-editor-page">
+    <div class="topbar has-line pet-editor-topbar">
+        <a class="topbar-back" th:href="@{/mypage}" aria-label="마이페이지로 돌아가기">
+            <span class="ico" aria-hidden="true">arrow_back_ios_new</span>
+        </a>
+        <h1>반려동물 등록</h1>
+    </div>
+
+    <!--/*
+      파일을 보내려면 enctype 이 반드시 multipart/form-data 여야 한다.
+      빠뜨리면 파일이 아니라 파일명 문자열만 넘어간다 (docs/CONVENTIONS.md §9.2).
+    */-->
+    <form class="pet-editor" th:action="@{/pet/create}" method="post"
+          enctype="multipart/form-data">
+        <section class="pet-editor-intro" aria-labelledby="pet-create-title">
+            <span class="pet-editor-portrait" aria-hidden="true">
+                <span class="ico is-filled">pets</span>
+                <i class="ico">add_a_photo</i>
+            </span>
+            <div>
+                <span class="pet-editor-kicker">NEW FAMILY</span>
+                <h2 id="pet-create-title">새 가족을<br>소개해 주세요</h2>
+                <p>돌봄에 꼭 필요한 정보만 먼저 받을게요. 나중에 언제든 바꿀 수 있어요.</p>
+            </div>
+        </section>
+
+        <div class="pet-editor-fields">
+            <!--/*
+              사진 1장 (ImageCategory.PET 의 maxCount).
+
+              th:field 를 쓰지 않는다. PetCreateRequest 에 아직 파일 필드가 없어서
+              th:field="*{image}" 를 걸면 지금 이 화면이 렌더 단계에서 죽는다.
+              name 기반 바인딩은 DTO 에 MultipartFile image 가 추가되는 순간
+              그대로 동작하므로, 서버 작업이 들어와도 이 마크업은 고칠 필요가 없다.
+
+              data-* 기준값은 서버를 따라간다 (static/js/image-upload.js 주석 참고).
+                data-max-files   ImageCategory.PET.maxCount = 1
+                data-max-size-mb spring.servlet.multipart.max-file-size = 5MB
+            */-->
+            <div class="field">
+                <label class="field-label" for="create-image">사진 <span class="opt">선택</span></label>
+                <div class="image-upload" data-image-upload data-max-files="1" data-max-size-mb="5">
+                    <input class="image-upload-input" type="file" id="create-image" name="image"
+                           accept="image/jpeg,image/png,image/webp" data-image-upload-input>
+                    <label class="image-upload-trigger" for="create-image">
+                        <span class="ico" aria-hidden="true">add_a_photo</span>
+                        <b data-image-upload-label>사진 추가</b>
+                        <small data-image-upload-guide></small>
+                    </label>
+                    <ul class="image-upload-list" data-image-upload-list></ul>
+                    <p class="image-upload-error" role="alert" data-image-upload-error></p>
+                </div>
+            </div>
+
+            <div class="field pet-editor-name">
+                <label for="create-name">이름 <span class="req">필수</span></label>
+                <input class="control" id="create-name" name="name" type="text"
+                       placeholder="예: 초코" maxlength="20" autocomplete="off" required>
+            </div>
+
+            <fieldset class="field pet-editor-fieldset">
+                <legend class="field-label">크기 <span class="req">필수</span></legend>
+                <div class="choice-row pet-size-choices">
+                    <label class="choice">
+                        <input type="radio" name="size" value="SMALL" required>
+                        <span><i class="ico" aria-hidden="true">pets</i><b>소형</b><small>10kg 미만</small></span>
+                    </label>
+                    <label class="choice">
+                        <input type="radio" name="size" value="MEDIUM">
+                        <span><i class="ico" aria-hidden="true">pets</i><b>중형</b><small>10–25kg</small></span>
+                    </label>
+                    <label class="choice">
+                        <input type="radio" name="size" value="LARGE">
+                        <span><i class="ico" aria-hidden="true">pets</i><b>대형</b><small>25kg 이상</small></span>
+                    </label>
+                </div>
+            </fieldset>
+
+            <div class="pet-editor-split">
+                <div class="field">
+                    <label for="create-birth-year">태어난 해</label>
+                    <select class="control" id="create-birth-year" name="birthYear">
+                        <th:block th:replace="~{fragments/components :: birthYearOptions(null)}"></th:block>
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="create-weight">몸무게</label>
+                    <span class="pet-unit-control">
+                        <input class="control" id="create-weight" name="weight" type="number"
+                               min="0.1" max="100" step="0.1" inputmode="decimal" placeholder="4.2">
+                        <span>kg</span>
+                    </span>
+                </div>
+            </div>
+
+            <fieldset class="field pet-editor-fieldset">
+                <legend class="field-label">성별</legend>
+                <div class="choice-row pet-sex-choices">
+                    <label class="choice"><input type="radio" name="sex" value="M"><span>남아</span></label>
+                    <label class="choice"><input type="radio" name="sex" value="F"><span>여아</span></label>
+                </div>
+            </fieldset>
+
+            <input type="hidden" name="_isNeutered" value="on">
+            <label class="pet-toggle">
+                <input type="checkbox" name="isNeutered" value="true">
+                <span><strong>중성화를 했어요</strong><small>호스트에게 미리 알려드려요</small></span>
+                <i aria-hidden="true"></i>
+            </label>
+
+            <div class="field">
+                <label for="create-memo">돌봄 메모 <span class="opt">선택</span></label>
+                <textarea class="control pet-memo" id="create-memo" name="memo" rows="5" maxlength="500"
+                          placeholder="좋아하는 것, 낯선 환경에서의 반응, 주의할 점을 알려주세요."></textarea>
+                <p class="field-hint">예약할 때 호스트가 아이를 이해하는 데 도움이 돼요.</p>
+            </div>
+
+            <div class="pet-editor-actions">
+                <a class="btn btn-ghost" th:href="@{/mypage}">취소</a>
+                <button class="btn btn-primary" type="submit">가족으로 등록하기</button>
+            </div>
+        </div>
+    </form>
+
+    <!--/*
+      fragments/base 에는 화면별 스크립트 자리가 없다. <main> 끝에 두면 위 마크업이
+      모두 파싱된 뒤 실행되므로 defer 없이도 안전하다 (auth/login.html 과 같은 방식).
+      스타일시트는 base.html 이 이미 걸어 두었다.
+    */-->
+    <script th:src="@{/js/image-upload.js}"></script>
+</main>
+</body>
+</html>

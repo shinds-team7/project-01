@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.petnow.mapper.AuthMapper">
+    <insert id="signup" parameterType="com.example.petnow.entity.User">
+
+        INSERT INTO users (
+            email,
+            nickname,
+            password
+        )
+        VALUES (
+            #{email},
+            #{nickname},
+            #{password}
+        )
+
+    </insert>
+
+    <!--  가입 전 이메일 중복 검사. 탈퇴한 회원도 세어야 UNIQUE 제약과 판정이 어긋나지 않는다.  -->
+    <select id="existsByEmail" resultType="boolean">
+
+        SELECT EXISTS (
+            SELECT 1
+            FROM users
+            WHERE email = #{email}
+        )
+
+    </select>
+
+    <select id="findByEmail" resultType="com.example.petnow.entity.User">
+
+        SELECT id, email, nickname, password
+        FROM users
+        WHERE email = #{email}
+            AND deleted_at IS NULL
+
+    </select>
+
+    <!--  마이페이지에서 바로 보여지는 내정보 처리 (상세정보 X)  -->
+    <select id="findById" resultType="com.example.petnow.entity.User">
+
+        SELECT id, email, nickname
+        FROM users
+        WHERE id = #{userId}
+          AND deleted_at IS NULL
+
+    </select>
+</mapper>

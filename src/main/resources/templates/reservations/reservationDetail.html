@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/base :: page('예약 상세', 'none', ~{::main})}">
+<body>
+<main id="main-content" class="app-main no-nav">
+    <div class="topbar has-line">
+        <a class="topbar-back" th:href="@{/reservation/list}" aria-label="예약 목록으로 돌아가기">
+            <span class="ico" aria-hidden="true">arrow_back_ios_new</span>
+        </a>
+        <h1>예약 상세</h1>
+    </div>
+
+    <div class="screen">
+        <section class="card card-raised" aria-labelledby="reservation-summary">
+            <div class="section-head">
+                <h2 class="section-title" id="reservation-summary"
+                    th:text="${reservation.placeName}">연남동 윤슬 호스트</h2>
+                <span class="badge"
+                      th:classappend="${reservation.status?.name() == 'CONFIRMED' ? 'badge-green'
+                                      : (reservation.status?.name() == 'CANCELED' ? 'badge-danger' : 'badge-warn')}"
+                      th:text="${reservation.status?.name() == 'CONFIRMED' ? '예약 확정'
+                               : (reservation.status?.name() == 'CANCELED' ? '취소됨' : '응답 대기')}">응답 대기</span>
+            </div>
+
+            <div class="list">
+                <div class="list-row">
+                    <span class="list-row-label">예약 번호</span>
+                    <strong th:text="${reservation.reservationNo}">PN-00000000-0000</strong>
+                </div>
+                <div class="list-row">
+                    <span class="list-row-label">예약자</span>
+                    <strong th:text="${reservation.userName}">홍길동</strong>
+                </div>
+                <div class="list-row">
+                    <span class="list-row-label">맡기기</span>
+                    <strong th:text="${reservation.checkIn != null
+                                      ? #temporals.format(reservation.checkIn, 'yyyy년 M월 d일 HH:mm')
+                                      : '일정 미정'}">2026년 8월 5일 12:00</strong>
+                </div>
+                <div class="list-row">
+                    <span class="list-row-label">데려오기</span>
+                    <strong th:text="${reservation.checkOut != null
+                                      ? #temporals.format(reservation.checkOut, 'yyyy년 M월 d일 HH:mm')
+                                      : '일정 미정'}">2026년 8월 6일 12:00</strong>
+                </div>
+            </div>
+        </section>
+
+        <h2 class="section-title">동반 반려동물</h2>
+
+        <div class="empty" th:if="${#lists.isEmpty(reservation.pets)}">
+            <span class="ico" aria-hidden="true">pets</span>
+            <strong>등록된 동반 반려동물이 없어요</strong>
+        </div>
+
+        <div class="list" th:unless="${#lists.isEmpty(reservation.pets)}">
+            <div class="card list-row" th:each="pet : ${reservation.pets}">
+                <span class="media media-sm media-warm" aria-hidden="true">
+                    <span class="ico is-filled">pets</span>
+                </span>
+                <span class="list-row-label">
+                    <strong th:text="${pet.petName}">초코</strong>
+                    <small>
+                        <span th:text="${pet.size} ?: '크기 미입력'">소형</span>
+                        <th:block th:if="${pet.weight != null}">
+                            · <span th:text="${pet.weight} + 'kg'">4.5kg</span>
+                        </th:block>
+                    </small>
+                </span>
+            </div>
+        </div>
+    </div>
+</main>
+</body>
+</html>

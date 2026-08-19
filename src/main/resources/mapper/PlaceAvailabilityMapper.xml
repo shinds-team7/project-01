@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.petnow.mapper.PlaceAvailabilityMapper">
+    <insert id="insertSlots">
+        INSERT IGNORE INTO place_availability (place_id, start_at, end_at, status)
+        VALUES
+        <foreach collection="list" item="slot" separator=",">
+            (#{slot.placeId}, #{slot.startAt}, #{slot.endAt}, #{slot.status})
+        </foreach>
+    </insert>
+
+    <update id="updateSlotsToOpen">
+        UPDATE place_availability
+        SET status = 'OPEN'
+        WHERE id IN
+        <foreach collection="list" item="slotId" open="(" close=")" separator=",">
+            #{slotId}
+        </foreach>
+    </update>
+
+    <select id="findSlotsByPlaceAndPeriod"
+            resultType="com.example.petnow.dto.response.PlaceSlotResponse">
+        SELECT
+        id AS slotId,
+        start_at AS startAt,
+        end_at AS endAt,
+        status
+        FROM place_availability
+        WHERE place_id = #{placeId}
+        AND start_at &gt;= #{fromAt}
+        AND start_at &lt; #{toAt}
+        ORDER BY start_at ASC
+    </select>
+
+    <select id="findSlotPeriodByPlaceId"
+            resultType="com.example.petnow.dto.response.PlaceSlotPeriodResponse">
+        SELECT
+        DATE(MIN(start_at)) AS fromDate,
+        DATE(MAX(start_at)) AS toDate
+        FROM place_availability
+        WHERE place_id = #{placeId}
+    </select>
+
+    <update id="updateSlotStatus">
+        UPDATE place_availability
+        SET status = #{status}
+        WHERE id = #{slotId}
+        AND place_id = #{placeId}
+        AND status &lt;&gt; 'RESERVED'
+    </update>
+</mapper>

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<!--/*
+  호스트 리뷰 관리 = 프로토타입의 "HOST REVIEWS" 화면.
+
+  ⚠ 매핑 없는 화면. 지금 리뷰를 볼 수 있는 경로는 GET /reviews/place/{placeId} 뿐이고
+  그건 reviews/list.html 을 그린다.
+
+  이식하면서 예전에 쓰던 review.guestName · review.readByHost · review.replyContent ·
+  averageRating · reviewCount · hasMore 처럼 서버에 없는 값을 걷어내고
+  실제로 내려오는 ReviewResponse 에 맞췄다. 평균 별점은 화면에서 직접 계산한다.
+  답글 달기 · 읽음 처리 · 삭제는 호스트용 API 가 생기면 붙일 자리만 남겨 뒀다.
+
+  살리려면 GET /host/places/{placeId}/reviews 같은 매핑과
+  호스트 소유 검증 · 답글 도메인이 필요하다.
+*/-->
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/base :: page('리뷰 관리', 'none', ~{::main})}">
+<body>
+<main id="main-content" class="app-main no-nav">
+    <div class="topbar">
+        <a class="topbar-back" th:href="@{/host}" aria-label="호스트 홈으로 돌아가기">
+            <span class="ico" aria-hidden="true">arrow_back_ios_new</span>
+        </a>
+        <h1 th:text="${place != null} ? ${place.name} : '리뷰 관리'">리뷰 관리</h1>
+    </div>
+
+    <div class="screen"
+         th:with="total=${reviews == null} ? 0 : ${#lists.size(reviews)}">
+
+        <div class="review-summary" th:if="${total > 0}"
+             th:with="avg=${#aggregates.avg(reviews.![rating])}">
+            <span class="score" th:text="${#numbers.formatDecimal(avg, 1, 2)}">4.92</span>
+            <div>
+                <div class="stars" aria-hidden="true">
+                    <span class="ico" th:each="i : ${#numbers.sequence(1, 5)}"
+                          th:classappend="${avg >= i} ? '' : 'is-empty'">star</span>
+                </div>
+                <small th:text="'리뷰 ' + ${total} + '개'">리뷰 128개</small>
+            </div>
+        </div>
+
+        <div class="empty" th:if="${total == 0}">
+            <span class="ico" aria-hidden="true">reviews</span>
+            <strong>아직 등록된 리뷰가 없어요</strong>
+            <p>돌봄이 끝난 예약에 보호자가 후기를 남기면 여기에 모입니다.</p>
+        </div>
+
+        <div class="review-list" style="margin-top:18px" th:if="${total > 0}">
+            <article class="review-item" th:each="review : ${reviews}">
+                <div class="review-item-head">
+                    <span class="who">
+                        <span class="avatar is-sm"
+                              style="width:34px;height:34px;border-radius:50%;background:var(--sand);color:#b9b1a2;display:flex;align-items:center;justify-content:center">
+                            <span class="ico is-filled" aria-hidden="true" style="font-size:19px">person</span>
+                        </span>
+                        <span th:text="'보호자 #' + ${review.memberId}">보호자</span>
+                    </span>
+                    <span class="when">
+                        <span class="ico" aria-hidden="true">star</span>
+                        <span th:text="${review.rating}">5</span>
+                        <span th:if="${review.createdAt != null}"
+                              th:text="' · ' + ${#temporals.format(review.createdAt, 'yyyy.MM.dd')}"> · 2026.07.20</span>
+                    </span>
+                </div>
+                <p class="review-item-body" th:text="${review.content}">후기 내용</p>
+            </article>
+        </div>
+    </div>
+</main>
+</body>
+</html>
