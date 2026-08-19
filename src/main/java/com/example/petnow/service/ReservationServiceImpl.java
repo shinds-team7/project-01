@@ -391,6 +391,20 @@ public class ReservationServiceImpl implements ReservationService {
         return validateAndBuildDayRange(place, placeId, days, startDay, endDay);
     }
 
+    @Override
+    @Transactional
+    public void changeReservationPet(Long reservationId, List<Long> petIds, Long userId) {
+        Reservation reservation = reservationMapper.findById(reservationId);
+        if (reservation == null || !reservation.getUserId().equals(userId) ) {
+            throw new BusinessException(ReservationErrorCode.RESERVATION_NOT_FOUND);
+        }
+
+        List<Long> distinctPetIds = validatePets(reservation.getPlaceId(), userId, petIds);
+
+        reservationMapper.deleteReservationPets(reservationId);
+        reservationMapper.saveReservationPets(reservationId, distinctPetIds);
+    }
+
     private PlaceSlotResponse findSlot(List<PlaceSlotResponse> slots, Long slotId) {
         return slots.stream()
             .filter(s -> s.getSlotId().equals(slotId))
@@ -651,4 +665,31 @@ public class ReservationServiceImpl implements ReservationService {
 		}
 		return totalPrice;
 	}
+
+    private List<Long> validatePets(Long placeId, Long userId, List<Long> petIds) {
+        if (petIds == null || petIds.isEmpty()) {
+            throw new BusinessException(ReservationErrorCode.PET_REQUIRED);
+        }
+
+        List<Long> distinctPetIds = petIds.stream().distinct().toList();
+
+        List<PetListResponse> ownedPets = petMapper.getPetList(userId);
+        Set<Long> ownPetIds = ownedPets.stream()
+            .map(PetListResponse :: getId)
+            .collect(Collectors.toSet());
+
+        if (!ownPetIds.containsAll(distinctPetIds)) {
+            throw new BusinessException(ReservationErrorCode.PET_NOT_OWNED);
+        }
+
+        Place place = placeMapper.findById(placeId);
+        if (place == null) {
+            throw new BusinessException(PlaceErrorCode.PLACE_NOT_FOUND);
+        }
+        if (distinctPetIds.size() > place.getCapacity()) {
+            throw new BusinessException(ReservationErrorCode.PET_CAPACITY_EXCEEDED);
+        }
+
+        return distinctPetIds;
+    }
 }
