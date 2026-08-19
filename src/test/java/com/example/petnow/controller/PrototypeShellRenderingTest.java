@@ -9,11 +9,7 @@ import com.example.petnow.dto.response.PlaceSlotResponse;
 import com.example.petnow.dto.response.ReservationDetailResponse;
 import com.example.petnow.dto.response.ReservationStepResponse;
 import com.example.petnow.dto.response.ReviewResponse;
-import com.example.petnow.entity.Pet;
-import com.example.petnow.entity.Place;
-import com.example.petnow.entity.PlaceStatus;
-import com.example.petnow.entity.PlaceType;
-import com.example.petnow.entity.ReservationType;
+import com.example.petnow.entity.*;
 import com.example.petnow.mapper.PlaceMapper;
 import com.example.petnow.service.AuthService;
 import com.example.petnow.service.HostService;
@@ -374,7 +370,7 @@ class PrototypeShellRenderingTest {
     @DisplayName("장소별 리뷰 목록에는 남의 리뷰를 고칠 수 있는 수정·삭제가 나오지 않는다")
     void placeReviewsHideOwnerActions() throws Exception {
         ReviewResponse review = review();
-        given(reviewService.getReviewsByPlace(1L)).willReturn(List.of(review));
+        given(reviewService.getReviewsByPlace(1L, ReviewSortType.LATEST)).willReturn(List.of(review));
 
         mockMvc.perform(get("/reviews/place/1"))
                 .andExpect(status().isOk())
