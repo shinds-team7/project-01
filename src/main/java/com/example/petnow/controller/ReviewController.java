@@ -170,11 +170,7 @@ public class ReviewController {
      * 성공 시 내 리뷰 목록 페이지로 redirect
      */
     @PostMapping("/{reviewId}/delete")
-    public String deleteReview(@PathVariable Long reviewId, HttpSession session) {
-        Long loginUserId = getLoginUserId(session);
-        if (loginUserId == null) {
-            return "redirect:/";
-        }
+    public String deleteReview(@PathVariable Long reviewId, @LoginUser Long loginUserId) {
 
         reviewService.deleteReview(loginUserId, reviewId);
 
