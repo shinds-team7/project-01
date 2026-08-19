@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.multipart.support.StandardServletMultipartResolver;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.example.petnow.common.argument.LoginUser;
@@ -25,11 +24,11 @@ import com.example.petnow.dto.response.ReservationStepResponse;
 import com.example.petnow.entity.Place;
 import com.example.petnow.exception.BusinessException;
 import com.example.petnow.exception.PlaceErrorCode;
+import com.example.petnow.exception.ReservationErrorCode;
 import com.example.petnow.mapper.PlaceMapper;
 import com.example.petnow.service.PetService;
 import com.example.petnow.service.ReservationService;
 
-import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 
 /**
@@ -44,7 +43,7 @@ public class ReservationController {
 	private final PlaceMapper placeMapper;
 	private final PetService petService;
 
-	public ReservationController(ReservationService reservationService, PlaceMapper placeMapper, PetService petService) {
+    public ReservationController(ReservationService reservationService, PlaceMapper placeMapper, PetService petService) {
 		this.reservationService = reservationService;
 		this.placeMapper = placeMapper;
 		this.petService = petService;
@@ -63,11 +62,15 @@ public class ReservationController {
             // place 만 다시 담으면 되돌아온 폼에서 반려동물 목록이 사라져,
             // 사용자는 petIds 검증 에러를 보면서도 고를 대상이 없는 상태가 된다.
             fillBookingRequestForm(placeId, userId, model);
-            model.addAttribute("step", "confirm");
-            model.addAttribute("reservationType", request.getReservationType() != null ? request.getReservationType().name() : null);
-            model.addAttribute("checkIn", request.getCheckIn());
-            model.addAttribute("checkOut", request.getCheckOut());
-
+            // 1단계(유형 선택)로 되돌리면 애써 고른 날짜·시간이 통째로 날아간다.
+            // 일정이 그대로 넘어온 경우에는 확인 단계를 다시 그려 그 자리에서 고치게 한다.
+            if (request.getReservationType() != null && request.getCheckIn() != null && request.getCheckOut() != null) {
+                fillStep(reservationService.resolveConfirm(placeId, request.getReservationType(),
+                    request.getCheckIn(), request.getCheckOut()), model);
+                model.addAttribute("errorMessage", firstErrorMessage(bindingResult));
+            } else {
+                model.addAttribute("step", "type");
+            }
             return "booking-request";
         }
 
@@ -86,41 +89,56 @@ public class ReservationController {
 
 	@GetMapping("/booking-request")
 	public String bookingRequest(@LoginUser Long userId, @RequestParam Long placeId,
-        @RequestParam(required = false) String type,
-        @RequestParam(required = false) String date,
-        @RequestParam(required = false) Long start,
-        @RequestParam(required = false) Long end,
-        @RequestParam(required = false) String startDate,
-        @RequestParam(required = false) String endDate,
-        HttpSession session, Model model) {
-		// 비로그인 사용자는 인터셉터가 로그인 화면으로 보낸 뒤 이 주소로 되돌려 준다.
-		// 제출 시점(create)까지 통과시키면 날짜·메모를 다 채운 입력이 통째로 날아간다.
-		fillBookingRequestForm(placeId, userId, model);
+            @RequestParam(required = false) String type,
+            @RequestParam(required = false) String date,
+            @RequestParam(required = false) Long start,
+            @RequestParam(required = false) Long end,
+            @RequestParam(required = false) String startDate,
+            @RequestParam(required = false) String endDate,
+            Model model) {
+
+        fillBookingRequestForm(placeId, userId, model);
 
         if (type == null || type.isBlank()) {
             model.addAttribute("step", "type");
             return "booking-request";
         }
 
-        ReservationStepResponse result;
-        if ("SAME_DAY".equals(type)) {
-            result = reservationService.resolveHourly(placeId, date, start, end);
-        } else {
-            result = reservationService.resolvePackage(placeId, startDate, endDate);
+		ReservationStepResponse result;
+		if ("SAME_DAY".equals(type)) {
+			result = reservationService.resolveHourly(placeId, date, start, end);
+		} else if ("OVERNIGHT".equals(type)) {
+			result = reservationService.resolvePackage(placeId, startDate, endDate);
+		} else {
+			throw new BusinessException(ReservationErrorCode.UNSUPPORTED_RESERVATION_TYPE);
         }
 
-        model.addAttribute("reservationType", result.getReservationType());
-        model.addAttribute("step", result.getStep());
-        model.addAttribute("slots", result.getSlots());
-        model.addAttribute("startSlot", result.getStartSlot());
-        model.addAttribute("days", result.getDays());
-        model.addAttribute("startDay", result.getStartDay());
-        model.addAttribute("selectedDate", result.getSelectedDate());
+        fillStep(result, model);
         model.addAttribute("errorMessage", result.getErrorMessage());
-        model.addAttribute("checkIn", result.getCheckIn());
-        model.addAttribute("checkOut", result.getCheckOut());
 
 		return "booking-request";
+	}
+
+	/** 단계 응답을 화면이 읽는 모델 이름으로 펼친다. */
+	private void fillStep(ReservationStepResponse result, Model model) {
+		model.addAttribute("reservationType", result.getReservationType());
+		model.addAttribute("step", result.getStep());
+		model.addAttribute("slots", result.getSlots());
+		model.addAttribute("startSlot", result.getStartSlot());
+		model.addAttribute("days", result.getDays());
+		model.addAttribute("startDay", result.getStartDay());
+		model.addAttribute("selectedDate", result.getSelectedDate());
+		model.addAttribute("checkIn", result.getCheckIn());
+		model.addAttribute("checkOut", result.getCheckOut());
+		model.addAttribute("totalPrice", result.getTotalPrice());
+	}
+
+	private String firstErrorMessage(BindingResult bindingResult) {
+		return bindingResult.getAllErrors().stream()
+			.map(error -> error.getDefaultMessage())
+			.filter(message -> message != null && !message.isBlank())
+			.findFirst()
+			.orElse("입력값을 확인해주세요.");
 	}
 
 	/**
@@ -149,16 +167,14 @@ public class ReservationController {
 	}
 
 	@GetMapping("/list")
-	public String getReservationList(@LoginUser Long userId, @RequestParam(required = false) String useStatus,
-		Model model) {
+	public String getReservationList(@LoginUser Long userId, @RequestParam(required = false) String useStatus, Model model) {
 		List<ReservationListResponse> responseList = reservationService.getReservationList(userId, useStatus);
 		model.addAttribute("reservations", responseList);
 		return "reservations/reservationList";
 	}
 
 	@PostMapping("/cancel")
-	public String cancel(@LoginUser Long userId, @Valid @ModelAttribute ReservationCancelRequest request,
-		BindingResult bindingResult) {
+	public String cancel(@LoginUser Long userId, @Valid @ModelAttribute ReservationCancelRequest request, BindingResult bindingResult) {
 		if (bindingResult.hasErrors()) {
 			return "reservations/reservationList";
 		}

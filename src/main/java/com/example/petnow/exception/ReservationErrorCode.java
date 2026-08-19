@@ -14,6 +14,7 @@ public enum ReservationErrorCode implements ErrorCode {
 	UNSUPPORTED_RESERVATION_TYPE(HttpStatus.BAD_REQUEST, "UNSUPPORTED_RESERVATION_TYPE", "이 장소가 지원하지 않는 예약 유형입니다."),
 	INVALID_PACKAGE_TIME(HttpStatus.BAD_REQUEST, "INVALID_PACKAGE_TIME", "패키지 예약의 입실/퇴실 시각이 올바르지 않습니다."),
 	INVALID_RESERVATION_PERIOD(HttpStatus.BAD_REQUEST, "INVALID_RESERVATION_PERIOD", "체크인/체크아웃 날짜가 올바르지 않습니다."),
+	RESERVATION_IN_PAST(HttpStatus.BAD_REQUEST, "RESERVATION_IN_PAST", "지난 시간에는 예약할 수 없습니다."),
 	INVALID_RESERVATION_STATUS(HttpStatus.BAD_REQUEST, "INVALID_RESERVATION_STATUS", "처리할 수 없는 예약 상태입니다."),
 	RESERVATION_UPDATE_FAILED(HttpStatus.BAD_REQUEST, "RESERVATION_UPDATE_FAILED", "상태 업데이트에 실패했습니다."),
 	RESERVATION_TOO_SHORT(HttpStatus.BAD_REQUEST, "RESERVATION_TOO_SHORT", "예약 시간은 최소 3시간 이상입니다."),
