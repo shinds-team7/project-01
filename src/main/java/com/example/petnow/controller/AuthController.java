@@ -1,13 +1,15 @@
 package com.example.petnow.controller;
 
-import com.example.petnow.common.config.KakaoProperties;
+import com.example.petnow.config.KakaoProperties;
 import com.example.petnow.common.session.LoginRedirect;
 import com.example.petnow.common.session.LoginSession;
 import com.example.petnow.dto.request.UserLoginRequest;
 import com.example.petnow.dto.request.UserSignupRequest;
+import com.example.petnow.dto.response.KakaoUserResponse;
 import com.example.petnow.dto.response.LoginUser;
 import com.example.petnow.exception.BusinessException;
 import com.example.petnow.service.AuthService;
+import com.example.petnow.service.KakaoService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
@@ -34,6 +36,7 @@ public class AuthController {
 
     private final AuthService authService;
     private final KakaoProperties kakaoProperties;
+    private final KakaoService kakaoService;
 
     // ────────────────────────── 화면 ──────────────────────────
 
@@ -132,11 +135,29 @@ public class AuthController {
 
     // 카카오 로그인 결과
     @GetMapping("/kakao/callback")
-    public String kakaoCallback(@RequestParam String code) {
+    public String kakaoCallback(@RequestParam String code, HttpServletRequest request) {
 
-        System.out.println("카카오 인가 코드 = " + code);
+        // 1. 인가 코드로 Access Token 발급
+        String accessToken = kakaoService.getAccessToken(code);
 
-        return "redirect:/home";
+        // 2. Access Token으로 카카오 사용자 정보 조회
+        KakaoUserResponse kakaoUser =
+            kakaoService.getUserInfo(accessToken);
+
+        // 3. 우리 DB에서 회원 조회
+        //    없으면 회원가입, 있으면 기존 회원 로그인
+        LoginUser loginUser =
+            authService.loginOrSignupKakao(kakaoUser);
+
+        // 4. 우리 서비스 세션 생성
+        HttpSession session = request.getSession();
+
+        request.changeSessionId();
+
+        LoginSession.set(session, loginUser);
+
+        // 5. 로그인 전에 가려던 페이지가 있으면 그쪽으로 이동
+        return "redirect:" + LoginRedirect.pop(session);
     }
 
     /**
