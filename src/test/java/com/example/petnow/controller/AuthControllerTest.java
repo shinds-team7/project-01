@@ -10,6 +10,8 @@ import com.example.petnow.exception.BusinessException;
 import com.example.petnow.service.AuthService;
 import com.example.petnow.service.PetService;
 import com.example.petnow.service.PlaceService;
+import com.example.petnow.config.KakaoProperties;
+import com.example.petnow.service.KakaoService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,6 +68,12 @@ class AuthControllerTest {
     /** 홈이 검색 조건 카드의 반려동물 선택지를 채울 때 쓴다. (#7) */
     @MockitoBean
     private PetService petService;
+
+    @MockitoBean
+    private KakaoService kakaoService;
+
+    @MockitoBean
+    private KakaoProperties kakaoProperties;
 
     // ───────────────────── 1. GET 매핑 (구 #112) ─────────────────────
 
