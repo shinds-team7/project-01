@@ -346,7 +346,10 @@ public class ReservationServiceImpl implements ReservationService {
         if (place == null) {
             throw new BusinessException(PlaceErrorCode.PLACE_NOT_FOUND);
         }
-        if (!place.isSupportsPackage()) {
+        boolean supported = reservationType == ReservationType.SAME_DAY
+            ? place.isSupportsHourly()
+            : place.isSupportsPackage();
+        if (!supported) {
             throw new BusinessException(ReservationErrorCode.UNSUPPORTED_RESERVATION_TYPE);
         }
 
@@ -433,7 +436,7 @@ public class ReservationServiceImpl implements ReservationService {
             }
         }
 
-        long expectedSlotCount = Duration.between(from.getStartAt(), to.getStartAt()).toHours() / SLOT_HOURS;
+        long expectedSlotCount = Duration.between(from.getStartAt(), to.getEndAt()).toHours() / SLOT_HOURS;
         if (slotsInRange.size() != expectedSlotCount) {
             return ReservationStepResponse.builder()
                 .step("hourly-slot")
