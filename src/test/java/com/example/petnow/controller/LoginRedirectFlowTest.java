@@ -3,8 +3,10 @@ package com.example.petnow.controller;
 import com.example.petnow.common.argument.LoginUser;
 import com.example.petnow.common.constant.SessionConst;
 import com.example.petnow.common.session.LoginRedirect;
+import com.example.petnow.config.KakaoProperties;
 import com.example.petnow.dto.request.UserLoginRequest;
 import com.example.petnow.service.AuthService;
+import com.example.petnow.service.KakaoService;
 import com.example.petnow.service.PetService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -46,6 +48,12 @@ class LoginRedirectFlowTest {
 
     @MockitoBean
     AuthService authService;
+
+    @MockitoBean
+    KakaoProperties kakaoProperties;
+
+    @MockitoBean
+    KakaoService kakaoService;
 
     @MockitoBean
     PetService petService;

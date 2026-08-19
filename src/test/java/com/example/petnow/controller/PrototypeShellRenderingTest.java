@@ -1,6 +1,7 @@
 package com.example.petnow.controller;
 
 import com.example.petnow.common.constant.SessionConst;
+import com.example.petnow.config.KakaoProperties;
 import com.example.petnow.dto.response.PackageDayResponse;
 import com.example.petnow.dto.response.PetListResponse;
 import com.example.petnow.dto.response.PlaceDetailResponse;
@@ -17,6 +18,7 @@ import com.example.petnow.entity.ReservationType;
 import com.example.petnow.mapper.PlaceMapper;
 import com.example.petnow.service.AuthService;
 import com.example.petnow.service.HostService;
+import com.example.petnow.service.KakaoService;
 import com.example.petnow.service.PetService;
 import com.example.petnow.service.PlaceService;
 import com.example.petnow.service.ReservationService;
@@ -87,6 +89,12 @@ class PrototypeShellRenderingTest {
 
     @MockitoBean
     private AuthService authService;
+
+    @MockitoBean
+    private KakaoProperties kakaoProperties;
+
+    @MockitoBean
+    private KakaoService kakaoService;
 
     // ────────────────────────── 장소 ──────────────────────────
 
