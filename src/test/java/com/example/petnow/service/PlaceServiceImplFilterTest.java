@@ -44,7 +44,11 @@ class PlaceServiceImplFilterTest {
     void setUp() {
         placeMapper = mock(PlaceMapper.class);
         petMapper = mock(PetMapper.class);
-        placeService = new PlaceServiceImpl(placeMapper, mock(AuthMapper.class), petMapper);
+        placeService = new PlaceServiceImpl(
+                placeMapper,
+                mock(AuthMapper.class),
+                petMapper,
+                mock(PlaceGeocodingService.class));
         given(placeMapper.findByFilter(any())).willReturn(List.of());
     }
 
