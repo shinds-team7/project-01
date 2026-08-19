@@ -24,6 +24,14 @@ public class PlaceCreateRequest {
     @NotBlank(message = "소개글을 필수로 입력해주세요")
     private String description;
 
+    @NotBlank(message = "지역구를 선택해주세요.")
+    @Size(max = 50, message = "지역구는 50자 이하로 입력해주세요.")
+    private String sigungu;
+
+    @NotBlank(message = "도로명 주소를 입력해주세요.")
+    @Size(max = 255, message = "도로명 주소는 255자 이하로 입력해주세요.")
+    private String roadAddress;
+
     @NotNull(message = "장소 유형을 선택해주세요.")
     private PlaceType placeType;
 
