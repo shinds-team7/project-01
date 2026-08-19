@@ -8,7 +8,7 @@ import com.example.petnow.service.PetService;
 import com.example.petnow.service.PlaceService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.Map;
 
 @Controller
-@RequiredArgsConstructor
 public class HomeController {
 
     /** 홈의 가로 스크롤 한 줄에 들어갈 만큼만 보낸다. 장소가 늘어도 홈 응답이 커지지 않게 한다. */
@@ -44,6 +43,30 @@ public class HomeController {
 
     private final PlaceService placeService;
     private final PetService petService;
+
+    /**
+     * 카카오맵 JavaScript 키. 브라우저가 쓰는 키라 화면에 그대로 실린다.
+     *
+     * <p>{@code @ControllerAdvice} 로 전역에 뿌리지 않고 이 컨트롤러가 {@code /nearby} 모델에만 담는다.
+     * 지도를 쓰지 않는 화면까지 키를 달고 다닐 이유가 없다.
+     *
+     * <p>서버 전용 REST API 키({@code kakao.local-api.rest-api-key})는 여기서 읽지 않는다. 웹 계층이
+     * 아예 모르는 값이어야 실수로 내려보낼 수 없다. 두 키가 뒤바뀐 경우는
+     * {@link com.example.petnow.common.config.KakaoKeyGuard} 가 기동 때 잡는다.
+     */
+    private final String kakaoMapJavascriptKey;
+
+    /**
+     * {@code @RequiredArgsConstructor} 를 쓰지 않는다. lombok 이 만든 생성자에는 {@code @Value} 가
+     * 옮겨 붙지 않아(복사할 애너테이션을 지정하는 lombok.config 가 이 저장소에 없다) 키가 주입되지 않는다.
+     */
+    public HomeController(PlaceService placeService,
+                          PetService petService,
+                          @Value("${kakao.map.javascript-key:}") String kakaoMapJavascriptKey) {
+        this.placeService = placeService;
+        this.petService = petService;
+        this.kakaoMapJavascriptKey = kakaoMapJavascriptKey == null ? "" : kakaoMapJavascriptKey.trim();
+    }
 
     /** 루트 접속 시 앱 홈으로 보낸다. */
     @GetMapping("/")
@@ -94,8 +117,11 @@ public class HomeController {
      * <p>조건을 하나도 안 보내면 예전처럼 공개된 장소 전체가 나온다. 조건이 잘못됐을 때는
      * 500 이 아니라 폼 에러 문구와 함께 이 화면을 다시 그린다. 결과 0건도 예외가 아니다.
      *
-     * <p>거리순 정렬과 지도는 아직 못 한다. {@code place_addresses} 에 위경도 컬럼이 있지만
-     * 엔티티·매퍼가 없어 자바에서 좌표를 읽을 수 없고 지도 SDK 도 붙어 있지 않다. (#265)
+     * <p>장소마다 좌표가 실려 나가지만 {@code null} 일 수 있다. 좌표가 있는 곳만 지도 마커가 되고,
+     * 없는 곳도 목록에는 그대로 남는다. 거리 계산·정렬은 사용자 좌표를 아는 브라우저가 한다. (#277)
+     *
+     * <p>{@code kakaoMapEnabled} 가 {@code false} 면 화면이 지도 SDK 를 아예 부르지 않는다.
+     * 키 없이 SDK 를 부르면 401 만 찍히고 지도 자리는 어차피 비어 있다.
      */
     @GetMapping("/nearby")
     public String nearby(@Valid @ModelAttribute("placeFilter") PlaceFilterRequest filter,
@@ -108,9 +134,14 @@ public class HomeController {
             return "redirect:/auth/login";
         }
 
+        // 조건 오류로 다시 그리는 경우에도 지도는 떠야 한다. 여기서 한 번만 담고 두 갈래가 같이 쓴다.
+        model.addAttribute("kakaoMapJavascriptKey", kakaoMapJavascriptKey);
+        model.addAttribute("kakaoMapEnabled", !kakaoMapJavascriptKey.isEmpty());
+
         if (bindingResult.hasErrors()) {
             model.addAttribute("filterErrors", filterErrors(bindingResult));
             model.addAttribute("places", List.of());
+            model.addAttribute("filtered", false);
             return "nearby";
         }
 

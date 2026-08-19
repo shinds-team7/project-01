@@ -4172,6 +4172,75 @@ textarea.control {
     }
 }
 
+/* ──────────── 내 주변 지도 (#277) ──────────── */
+
+/*
+ * 실제 지도가 그려지는 자리. 지도가 뜨기 전까지는 감춰 두고 .map-preview 도안을 그대로 보여준다.
+ * SDK 를 못 받거나 키가 없으면 is-live 가 붙지 않아 도안이 남는다. 빈 회색 상자가 되지 않는다.
+ */
+.nearby-map-canvas {
+    position: absolute;
+    inset: 0;
+    display: none;
+}
+
+.nearby-map.is-live .nearby-map-canvas {
+    display: block;
+}
+
+.nearby-map.is-live .map-pin {
+    display: none;
+}
+
+/* 지도 위의 내 위치 점. 장소 마커와 헷갈리지 않게 원형으로 둔다. */
+.map-me {
+    display: block;
+    width: 14px;
+    height: 14px;
+    margin: -7px 0 0 -7px;
+    border-radius: 50%;
+    background: var(--green);
+    border: 2.5px solid #fff;
+    box-shadow: 0 0 0 3px rgba(34, 164, 92, 0.25);
+}
+
+/* JS 가 채우는 안내 자리. 채울 게 없으면 비어 있어야 하므로 여백을 안쪽 요소에만 준다. */
+.nearby-status:not(:empty) {
+    margin-top: 12px;
+    display: grid;
+    gap: 8px;
+}
+
+/* 카드의 거리 표기. 내 위치를 실제로 얻었을 때만 보인다. */
+.place-distance {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    margin-top: 6px;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--green-on-soft);
+}
+
+.place-distance .ico {
+    font-size: 15px;
+}
+
+/*
+ * display 를 준 요소에는 hidden 속성이 먹지 않는다. 브라우저 기본 스타일(display:none)보다
+ * 위 규칙이 강해서다. 이게 없으면 거리를 모르는 상태에서도 빈 줄이 카드마다 생긴다.
+ */
+.place-distance[hidden] {
+    display: none;
+}
+
+/* 지도 마커를 눌렀을 때 어느 카드인지 잠깐 짚어 준다. */
+.place-card.is-focused {
+    outline: 2px solid var(--green);
+    outline-offset: 3px;
+    border-radius: var(--r-md);
+}
+
 /* ───────────────────── 조건 필터링 (#7) ───────────────────── */
 
 /* 검색 조건 필드는 다이얼로그를 여는 button 이라 브라우저 기본 꼴을 지운다 */
