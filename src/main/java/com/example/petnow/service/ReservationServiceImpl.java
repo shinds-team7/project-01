@@ -6,7 +6,11 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -15,11 +19,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.petnow.dto.request.ReservationRequest;
+import com.example.petnow.dto.response.PackageDayResponse;
 import com.example.petnow.dto.response.PetListResponse;
 import com.example.petnow.dto.response.PlaceDetailResponse;
 import com.example.petnow.dto.response.PlaceSlotResponse;
+import com.example.petnow.dto.response.PlaceSlotPeriodResponse;
+import com.example.petnow.dto.response.PlaceSlotResponse;
 import com.example.petnow.dto.response.ReservationDetailResponse;
 import com.example.petnow.dto.response.ReservationListResponse;
+import com.example.petnow.dto.response.ReservationStepResponse;
 import com.example.petnow.entity.Place;
 import com.example.petnow.entity.Reservation;
 import com.example.petnow.entity.ReservationStatus;
@@ -44,10 +52,10 @@ public class ReservationServiceImpl implements ReservationService {
 	private final ReservationMapper reservationMapper;
 	private final PlaceMapper placeMapper;
 	private final PetMapper petMapper;
+    private final PlaceAvailabilityMapper placeAvailabilityMapper;
 
 	private static final int SLOT_HOURS = 3;
 	private static final long MIN_RESERVATION_MINUTES = SLOT_HOURS * 60;
-	private final PlaceAvailabilityMapper placeAvailabilityMapper;
 
 	@Override
 	@Transactional
@@ -141,9 +149,9 @@ public class ReservationServiceImpl implements ReservationService {
 
 		reservationMapper.save(reservation);
 
-        List<Long> slotIds = actualSlots.stream()
-            .map(PlaceSlotResponse::getSlotId)
-            .collect(Collectors.toList());
+		List<Long> slotIds = actualSlots.stream()
+                .map(PlaceSlotResponse::getSlotId)
+                .collect(Collectors.toList());
 
         try {
             reservationMapper.insertReservationSlots(reservation.getId(), slotIds);
@@ -154,7 +162,7 @@ public class ReservationServiceImpl implements ReservationService {
         for (Long slotId : slotIds) {
             placeAvailabilityMapper.updateSlotStatus(request.getPlaceId(), slotId, SlotStatus.RESERVED);
         }
-		reservationMapper.saveReservationSlots(reservation.getId(), slotIds);
+
 		reservationMapper.saveReservationPets(reservation.getId(), request.getPetIds());
 		return reservationNo;
 	}
@@ -191,6 +199,10 @@ public class ReservationServiceImpl implements ReservationService {
 		if (!reservation.getUserId().equals(userId)) {
 			throw new BusinessException(AuthErrorCode.FORBIDDEN);
 		}
+
+        List<Long> slotIds = reservationMapper.findSlotIdsByReservationId(reservationId);
+        placeAvailabilityMapper.updateSlotsToOpen(slotIds);
+        reservationMapper.deleteReservationSlotsByReservationId(reservationId);
 
 		int updatedRows = reservationMapper.cancelReservation(reservationId);
 		if (updatedRows == 0) {
@@ -238,6 +250,10 @@ public class ReservationServiceImpl implements ReservationService {
 			throw new BusinessException(ReservationErrorCode.INVALID_RESERVATION_STATUS);
 		}
 
+        List<Long> slotIds = reservationMapper.findSlotIdsByReservationId(reservationId);
+        placeAvailabilityMapper.updateSlotsToOpen(slotIds);
+        reservationMapper.deleteReservationSlotsByReservationId(reservationId);
+
 		int result = reservationMapper.rejectReservation(reservationId);
 		if (result != 1) {
 			throw new BusinessException(ReservationErrorCode.RESERVATION_UPDATE_FAILED);
@@ -259,6 +275,230 @@ public class ReservationServiceImpl implements ReservationService {
 			return null;
 		}
 	}
+
+    @Override
+    public ReservationStepResponse resolveHourly(Long placeId, String date, Long start, Long end) {
+        if (date == null) {
+            return ReservationStepResponse.builder()
+                .step("hourly-date")
+                .build();
+        }
+        LocalDate localDate = LocalDate.parse(date);
+        LocalDateTime fromAt = localDate.atStartOfDay();
+        LocalDateTime toAt = localDate.plusDays(1).atStartOfDay();
+        List<PlaceSlotResponse> slots = placeAvailabilityMapper.findSlotsByPlaceAndPeriod(placeId, fromAt, toAt);
+
+        if (start == null) {
+            return ReservationStepResponse.builder()
+                .step("hourly-slot")
+                .slots(slots)
+                .selectedDate(date)
+                .build();
+        }
+
+        PlaceSlotResponse startSlot = findSlot(slots, start);
+
+        if (end == null) {
+            return ReservationStepResponse.builder()
+                .step("hourly-slot")
+                .slots(slots)
+                .startSlot(startSlot)
+                .selectedDate(date)
+                .build();
+        }
+
+        PlaceSlotResponse endSlot = findSlot(slots, end);
+        return validateAndBuildRange(slots, startSlot, endSlot, date);
+    }
+
+    @Override
+    public ReservationStepResponse resolvePackage(Long placeId, String startDate, String endDate) {
+        Place place = placeMapper.findById(placeId);
+        if (place == null) {
+            throw new BusinessException(PlaceErrorCode.PLACE_NOT_FOUND);
+        }
+        List<PackageDayResponse> days = buildPackageDays(placeId);
+
+        if (startDate == null || startDate.trim().isEmpty()) {
+            return ReservationStepResponse.builder()
+                .step("package-day")
+                .days(days)
+                .build();
+        }
+
+        PackageDayResponse startDay = findDay(days, startDate);
+
+        if (endDate == null || endDate.trim().isEmpty()) {
+            return ReservationStepResponse.builder()
+                .step("package-day")
+                .days(days)
+                .startDay(startDay)
+                .build();
+        }
+
+        PackageDayResponse endDay = findDay(days, endDate);
+        return validateAndBuildDayRange(place, placeId, days, startDay, endDay);
+    }
+
+    private PlaceSlotResponse findSlot(List<PlaceSlotResponse> slots, Long slotId) {
+        return slots.stream()
+            .filter(s -> s.getSlotId().equals(slotId))
+            .findFirst()
+            .orElseThrow(() -> new BusinessException(ReservationErrorCode.SLOT_NOT_AVAILABLE));
+    }
+
+    private ReservationStepResponse validateAndBuildRange(List<PlaceSlotResponse> slots, PlaceSlotResponse startSlot, PlaceSlotResponse endSlot, String date) {
+        PlaceSlotResponse from;
+        PlaceSlotResponse to;
+
+        if (startSlot.getStartAt().isBefore(endSlot.getStartAt())) {
+            from = startSlot;
+            to = endSlot;
+        } else {
+            from = endSlot;
+            to = startSlot;
+        }
+
+        List<PlaceSlotResponse> slotsInRange = new ArrayList<>();
+        for (int i=0; i<slots.size(); i++) {
+            PlaceSlotResponse slot = slots.get(i);
+
+            boolean afterOrEqualFrom = !slot.getStartAt().isBefore(from.getStartAt());
+            boolean beforeOrEqualTo = !slot.getStartAt().isAfter(to.getStartAt());
+
+            if (afterOrEqualFrom && beforeOrEqualTo) {
+                slotsInRange.add(slot);
+            }
+        }
+
+        boolean blockedSlot = false;
+
+        for (int i=0; i<slotsInRange.size(); i++) {
+            PlaceSlotResponse slot = slotsInRange.get(i);
+
+            if (!"OPEN".equals(slot.getStatus())) {
+                blockedSlot = true;
+                break;
+            }
+        }
+
+        if (blockedSlot) {
+            return ReservationStepResponse.builder()
+                .step("hourly-slot")
+                .slots(slots)
+                .selectedDate(date)
+                .errorMessage("예약 불가한 시간이 포함되어 있습니다.")
+                .build();
+        }
+        return ReservationStepResponse.builder()
+            .step("confirm")
+            .reservationType(ReservationType.SAME_DAY)
+            .checkIn(from.getStartAt())
+            .checkOut(to.getEndAt())
+            .build();
+    }
+
+    private List<PackageDayResponse> buildPackageDays(Long placeId) {
+        PlaceSlotPeriodResponse period = placeAvailabilityMapper.findSlotPeriodByPlaceId(placeId);
+        if (period == null || period.getFromDate() == null || period.getToDate() == null) {
+            return Collections.emptyList();
+        }
+
+        LocalDateTime fromAt = period.getFromDate().atStartOfDay();
+        LocalDateTime toAt = period.getToDate().plusDays(1).atStartOfDay();
+
+        List<PlaceSlotResponse> slots = placeAvailabilityMapper.findSlotsByPlaceAndPeriod(placeId, fromAt, toAt);
+
+        Map<LocalDate, List<PlaceSlotResponse>> slotsByDate = new HashMap<>();
+
+        for (int i=0; i<slots.size(); i++) {
+            PlaceSlotResponse slot = slots.get(i);
+            LocalDate date = slot.getStartAt().toLocalDate();
+
+            if (!slotsByDate.containsKey(date)) {
+                slotsByDate.put(date, new ArrayList<>());
+            }
+            slotsByDate.get(date).add(slot);
+        }
+
+        List<PackageDayResponse> days = new ArrayList<>();
+        List<LocalDate> sortedDates = new ArrayList<>(slotsByDate.keySet());
+        Collections.sort(sortedDates);
+
+        for (int i=0; i<sortedDates.size(); i++) {
+            LocalDate date = sortedDates.get(i);
+            List<PlaceSlotResponse> daySlots = slotsByDate.get(date);
+
+            boolean allOpen = true;
+            for (int j=0; j<daySlots.size(); j++) {
+                if (!"OPEN".equals(daySlots.get(j).getStatus())) {
+                    allOpen = false;
+                    break;
+                }
+            }
+
+            days.add(PackageDayResponse.builder()
+                .date(date)
+                .selectable(allOpen)
+                .build());
+        }
+
+        return days;
+    }
+
+    private PackageDayResponse findDay(List<PackageDayResponse> days, String dateStr) {
+        LocalDate target = LocalDate.parse(dateStr);
+
+        for (int i=0; i<days.size(); i++) {
+            if (days.get(i).getDate().equals(target)) {
+                return days.get(i);
+            }
+        }
+        throw new BusinessException(ReservationErrorCode.SLOT_NOT_AVAILABLE);
+    }
+
+    private ReservationStepResponse validateAndBuildDayRange(Place place, Long placeId, List<PackageDayResponse> days, PackageDayResponse startDay, PackageDayResponse endDay) {
+        PackageDayResponse from;
+        PackageDayResponse to;
+
+        if (startDay.getDate().isBefore(endDay.getDate())) {
+            from = startDay;
+            to = endDay;
+        } else {
+            from = endDay;
+            to = startDay;
+        }
+
+        LocalTime checkInTime = place.getPackageCheckInTime() != null ? place.getPackageCheckInTime() : PlaceAvailabilityServiceImpl.DEFAULT_PACKAGE_CHECK_IN_TIME;
+        LocalTime checkOutTime = place.getPackageCheckOutTime() != null ? place.getPackageCheckOutTime() : PlaceAvailabilityServiceImpl.DEFAULT_PACKAGE_CHECK_OUT_TIME;
+
+        LocalDateTime checkIn = from.getDate().atTime(checkInTime);
+        LocalDateTime checkOut = to.getDate().atTime(checkOutTime);
+        List<PlaceSlotResponse> actualSlots = placeAvailabilityMapper.findSlotsByPlaceAndPeriod(placeId, checkIn, checkOut);
+
+        boolean blockedSlot = false;
+        for (int i=0; i<actualSlots.size(); i++) {
+            if (!"OPEN".equals(actualSlots.get(i).getStatus())) {
+                blockedSlot = true;
+                break;
+            }
+        }
+
+        if (blockedSlot) {
+            return ReservationStepResponse.builder()
+                .step("package-day")
+                .days(days)
+                .errorMessage("예약 불가한 날짜가 포함되어 있습니다.")
+                .build();
+        }
+
+        return ReservationStepResponse.builder()
+            .step("confirm")
+            .reservationType(ReservationType.OVERNIGHT)
+            .checkIn(checkIn)
+            .checkOut(checkOut)
+            .build();
+    }
 
 	private BigDecimal calculateTotalPrice(Place place, ReservationType reservationType, LocalDateTime checkIn, LocalDateTime checkOut) {
 		BigDecimal totalPrice;
