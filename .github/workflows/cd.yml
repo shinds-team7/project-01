@@ -118,21 +118,6 @@ jobs:
             mkdir -p ~/app
             cd ~/app
 
-            umask 077
-
-            {
-              printf '%s\n' "APP_IMAGE=$APP_IMAGE"
-              printf '%s\n' "DB_USERNAME=$DB_USERNAME"
-              printf '%s\n' "DB_PASSWORD=$DB_PASSWORD"
-              printf '%s\n' "DB_ROOT_PASSWORD=$DB_ROOT_PASSWORD"
-              printf '%s\n' "KAKAO_MAP_JAVASCRIPT_KEY=$KAKAO_MAP_JAVASCRIPT_KEY"
-              printf '%s\n' "KAKAO_REST_API_KEY=$KAKAO_REST_API_KEY"
-              printf '%s\n' "FLYWAY_BASELINE_ON_MIGRATE=$FLYWAY_BASELINE_ON_MIGRATE"
-              printf '%s\n' "AWS_S3_REGION=$AWS_S3_REGION"
-              printf '%s\n' "AWS_S3_BUCKET=$AWS_S3_BUCKET"
-              printf '%s\n' "AWS_S3_BASE_URL=$AWS_S3_BASE_URL"
-            } > .env
-
             cleanup() {
               docker logout ghcr.io >/dev/null 2>&1 || true
             }

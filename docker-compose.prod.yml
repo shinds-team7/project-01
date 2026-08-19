@@ -42,7 +42,7 @@ services:
 
   app:
     # CD 워크플로가 .env 에 커밋 SHA 태그가 붙은 이미지 주소를 써준다.
-    image: ${APP_IMAGE}
+    image: ${APP_IMAGE:?APP_IMAGE is required}
 
     container_name: petnow-app
     restart: unless-stopped
