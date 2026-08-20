@@ -32,6 +32,8 @@ public class PlaceDetailResponse {
     private String otherOptions;
     private BigDecimal hourlyPrice;
     private BigDecimal nightlyPrice;
+    private BigDecimal averageRating;
+    private Integer reviewCount;
     private boolean supportsHourly;
     private boolean supportsPackage;
     private LocalTime packageCheckInTime;

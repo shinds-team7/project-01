@@ -37,6 +37,16 @@
             <span th:if="${place.areaSize != null}" th:text="${place.areaSize} + '평'">장소 면적</span>
             <span class="sep">·</span>
             <a th:href="@{/reviews/place/{id}(id=${place.id})}">리뷰 보기</a>
+            <span class="sep">·</span>
+            <span class="rating" th:if="${place.reviewCount != null and place.reviewCount > 0}">
+                <span class="ico" aria-hidden="true">star</span>
+                <span th:text="${#numbers.formatDecimal(place.averageRating, 1, 1)}">4.8</span>
+                <small th:text="'(리뷰 ' + ${place.reviewCount} + ')'">(리뷰 12)</small>
+            </span>
+            <span class="rating" th:unless="${place.reviewCount != null and place.reviewCount > 0}">
+                <span class="ico" aria-hidden="true">star</span>
+                <small>평가 없음</small>
+            </span>
         </p>
 
         <div class="person-row detail-host">

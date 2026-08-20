@@ -132,8 +132,24 @@ class PrototypeShellRenderingTest {
                 .andExpect(content().string(containsString("/css/app.css")))
                 .andExpect(content().string(containsString("수용 조건")))
                 .andExpect(content().string(containsString("최대 2마리")))
+                .andExpect(content().string(containsString("class=\"ico\" aria-hidden=\"true\">star")))
+                .andExpect(content().string(containsString("4.8")))
+                .andExpect(content().string(containsString("(리뷰 12)")))
                 .andExpect(content().string(containsString("/reservation/booking-request?placeId=1")))
                 .andExpect(content().string(containsString("예약 요청하기")));
+    }
+
+    @Test
+    @DisplayName("리뷰가 없는 장소 상세는 0점 대신 평가 없음을 보여준다")
+    void placeDetailRendersEmptyRating() throws Exception {
+        PlaceDetailResponse place = placeDetail();
+        place.setAverageRating(BigDecimal.ZERO);
+        place.setReviewCount(0);
+        given(placeService.getPlaceDetail(1L, null)).willReturn(place);
+
+        mockMvc.perform(get("/places/1"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("평가 없음")));
     }
 
     // ────────────────────────── 예약 ──────────────────────────
@@ -433,6 +449,8 @@ class PrototypeShellRenderingTest {
         place.setProvidesYard(true);
         place.setHourlyPrice(new BigDecimal("12000"));
         place.setNightlyPrice(new BigDecimal("48000"));
+        place.setAverageRating(new BigDecimal("4.75"));
+        place.setReviewCount(12);
         place.setStatus(PlaceStatus.PUBLISHED);
         place.setVisible(true);
         return place;
