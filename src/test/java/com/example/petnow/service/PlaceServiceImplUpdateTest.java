@@ -4,6 +4,7 @@ import com.example.petnow.dto.request.PlaceUpdateRequest;
 import com.example.petnow.entity.Place;
 import com.example.petnow.exception.BusinessException;
 import com.example.petnow.mapper.AuthMapper;
+import com.example.petnow.mapper.BookmarkMapper;
 import com.example.petnow.mapper.PetMapper;
 import com.example.petnow.mapper.PlaceMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,11 +26,13 @@ class PlaceServiceImplUpdateTest {
     void setUp() {
         placeMapper = mock(PlaceMapper.class);
         placeGeocodingService = mock(PlaceGeocodingService.class);
+        // 이 테스트는 장소 수정만 본다. 찜 여부는 상세 조회에서만 쓰여 목으로 자리만 채운다.
         placeService = new PlaceServiceImpl(
                 placeMapper,
                 mock(AuthMapper.class),
                 mock(PetMapper.class),
-                placeGeocodingService
+                placeGeocodingService,
+                mock(BookmarkMapper.class)
         );
     }
 
