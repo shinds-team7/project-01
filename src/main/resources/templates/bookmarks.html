@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/base :: page('찜한 호스트', 'like', ~{::main})}">
+<body>
+<main id="main-content" class="app-main">
+    <div class="screen">
+        <div class="topbar has-line">
+            <a class="topbar-back" th:href="@{/home}" aria-label="홈으로 돌아가기">
+                <span class="ico" aria-hidden="true">arrow_back_ios_new</span>
+            </a>
+            <h1>찜한 호스트</h1>
+        </div>
+
+        <div class="notice notice-green" role="status" th:if="${bookmarkUpdated}">
+            <span class="ico" aria-hidden="true">check_circle</span>
+            <span th:text="${bookmarked} ? '찜 목록에 추가했어요.' : '찜을 취소했어요.'">찜 상태가 변경됐어요.</span>
+        </div>
+
+        <div class="place-list bookmark-list" th:unless="${#lists.isEmpty(places)}">
+            <article class="place-card bookmark-card" th:each="place : ${places}">
+                <a class="bookmark-card-link"
+                   th:href="@{/places/{id}(id=${place.id})}"
+                   th:aria-label="|${place.name} 상세보기|">
+                    <div class="media">
+                        <span class="ico" aria-hidden="true">weekend</span>
+                    </div>
+                    <div class="place-card-body">
+                        <p class="place-card-title" th:text="${place.name}">공간 이름</p>
+                        <div class="place-tags">
+                            <span class="is-type" th:if="${place.placeType != null}"
+                                  th:text="${place.placeType.label}">장소 유형</span>
+                            <span class="is-size" th:if="${place.allowsSmallDog}">소형견</span>
+                            <span class="is-size" th:if="${place.allowsMediumDog}">중형견</span>
+                            <span class="is-size" th:if="${place.allowsLargeDog}">대형견</span>
+                            <span class="is-extra" th:if="${place.providesYard}">마당</span>
+                            <span class="is-extra" th:if="${place.providesWalk}">산책</span>
+                        </div>
+                        <p class="place-loc">
+                            <span class="ico" aria-hidden="true">person</span>
+                            <span th:text="${place.nickname}">호스트 닉네임</span>
+                        </p>
+                        <p class="place-price" th:if="${place.hourlyPrice != null}">
+                            <span th:text="${#numbers.formatInteger(place.hourlyPrice, 0, 'COMMA')} + '원'">12,000원</span>
+                            <small>/ 시간</small>
+                        </p>
+                        <p class="place-price" th:if="${place.hourlyPrice == null}">가격 문의</p>
+                    </div>
+                </a>
+                <form th:action="@{/bookmarks/{id}/toggle(id=${place.id})}" method="post">
+                    <input type="hidden" name="redirectTo" th:value="@{/bookmarks}">
+                    <button class="like-btn is-on" type="submit" aria-label="찜 취소">
+                        <span class="ico" aria-hidden="true">favorite</span>
+                    </button>
+                </form>
+            </article>
+        </div>
+
+        <div class="empty" th:if="${#lists.isEmpty(places)}">
+            <span class="ico" aria-hidden="true">favorite</span>
+            <strong>아직 찜한 호스트가 없어요</strong>
+            <p>마음에 드는 공간을 찜하면 여기에서 다시 볼 수 있어요.</p>
+            <a class="btn btn-primary" th:href="@{/places}">공간 둘러보기</a>
+        </div>
+    </div>
+</main>
+</body>
+</html>
