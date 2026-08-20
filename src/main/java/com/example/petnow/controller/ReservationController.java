@@ -2,6 +2,7 @@ package com.example.petnow.controller;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Objects;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -61,11 +62,22 @@ public class ReservationController {
 	public String saveReservation(@LoginUser Long userId, @Valid @ModelAttribute ReservationRequest request,
 		BindingResult bindingResult, Model model, RedirectAttributes redirectAttributes) {
 
+        Long placeId = request.getPlaceId();
+        if (placeId == null) {
+            throw new BusinessException(PlaceErrorCode.PLACE_NOT_FOUND);
+        }
+
+        Place place = placeMapper.findById(request.getPlaceId());
+        if (place == null) {
+            throw new BusinessException(PlaceErrorCode.PLACE_NOT_FOUND);
+        }
+
+        if (Objects.equals(place.getHostUserId(), userId)) {
+            redirectAttributes.addFlashAttribute("errorMessage", "본인이 등록한 장소는 예약할 수 없습니다.");
+            return "redirect:/places/" + placeId;
+        }
+
         if (bindingResult.hasErrors()) {
-            Long placeId = request.getPlaceId();
-            if (placeId == null) {
-                throw new BusinessException(PlaceErrorCode.PLACE_NOT_FOUND);
-            }
 
             // place 만 다시 담으면 되돌아온 폼에서 반려동물 목록이 사라져,
             // 사용자는 petIds 검증 에러를 보면서도 고를 대상이 없는 상태가 된다.
