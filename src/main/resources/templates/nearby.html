@@ -8,6 +8,11 @@
   조건 없이 들어오면 공개된 장소 전체가 나오고, 조건이 붙으면 그 조건을 모두 만족하는
   장소만 나온다. 결과 0건은 오류가 아니라 안내 문구다.
 
+  화면 구성 — 지도가 배경으로 깔리고 그 위에 두 겹이 뜬다.
+    · 위: 검색어와 조건 칩을 얹은 필터 바. 여기서 조건을 바꾸면 바로 다시 검색한다.
+    · 아래: 목록 시트. 위로 당기면 목록 전체화면, 아래로 내리면 지도 전체화면이다.
+      멈추는 자리와 드래그 규칙은 js/nearby-sheet.js 에 적어 뒀다.
+
   지도(#277) — 카카오맵 JavaScript SDK 를 이 파일에서만 부른다.
   fragments/base.html 에 넣으면 지도를 쓰지 않는 화면까지 SDK 를 내려받는다.
 
@@ -19,7 +24,8 @@
        떨어지고 오류 화면을 띄우지 않는다.
     3. 좌표 없는 장소 — 지도에서만 빠지고 목록에는 남는다. 지도와 목록이 같이 죽지 않게 한다.
 
-  JS 가 없거나 SDK 를 못 받아도 목록은 서버가 그린 순서 그대로 보인다.
+  JS 가 없거나 SDK 를 못 받아도 목록은 서버가 그린 순서 그대로 보인다. 시트도 CSS 가 잡아 둔
+  기본 자리에 그대로 있어 목록을 읽는 데 지장이 없다.
 */-->
 <html lang="ko" xmlns:th="http://www.thymeleaf.org"
       th:replace="~{fragments/base :: page('내 주변', 'nearby', ~{::main})}">
@@ -31,24 +37,99 @@
 */-->
 <main id="main-content" class="app-main nearby-screen"
       th:attr="data-filtered=${filtered != null and filtered}">
-    <!--/*
-      정렬 칩만 쓰는 스타일. app.css 의 .chip 은 <a>·<span> 기준이라 button 에 그대로 쓰면
-      브라우저 기본 글꼴이 남는다(font 는 상속되지 않는다). app.css 를 건드리지 않으려고
-      이 화면 안에 둔다. host/availability.html 도 같은 방식이다.
-    */-->
-    <style>
-        .nearby-sort { margin-top: 12px; }
-        .nearby-sort button.chip { font: inherit; font-weight: 700; font-size: 13px; }
-    </style>
 
-    <!--/* 지도가 뜨면 JS 가 is-live 를 붙여 도안(.map-pin)을 감춘다. 못 뜨면 도안이 그대로 남는다. */-->
+    <!--/*
+      지도. 화면 전체를 배경으로 깔고 그 위에 필터 바와 시트가 뜬다.
+      지도가 뜨면 JS 가 is-live 를 붙여 도안(.map-pin)을 감춘다. 못 뜨면 도안이 그대로 남는다.
+    */-->
     <div class="media map-preview nearby-map" id="nearby-map" aria-hidden="true">
         <div class="nearby-map-canvas" id="nearby-map-canvas"></div>
         <span class="map-pin"><span class="ico" aria-hidden="true">pets</span></span>
     </div>
 
-    <div class="nearby-sheet">
-        <div class="sheet-handle" aria-hidden="true"></div>
+    <!--/*
+      지도 위 필터 바.
+
+      홈의 검색 조건 카드와 같은 조건을 고르지만, 여기서는 결과를 보면서 바꾸는 자리라
+      레퍼런스대로 칩 한 줄로 눌러 놨다. 시간·유형·반려동물은 "상세 필터" 하나에 모았다.
+
+      다이얼로그가 이 form 의 자손이어야 안의 값이 함께 제출된다. form 안의 button 은
+      기본이 submit 이라 조건을 여는 칩과 다이얼로그의 버튼에는 type="button" 을 반드시 적는다.
+      빠지면 지역을 고르려다 검색이 제출된다.
+
+      정렬(sort)은 칩이 아니라 이 폼이 들고 있는 값이라 hidden 으로 실어 보낸다.
+      조건을 바꿔 다시 검색해도 켜 두었던 정렬이 풀리면 안 된다.
+    */-->
+    <form class="nearby-topbar" method="get" th:action="@{/nearby}" data-place-filter>
+        <input type="hidden" name="sort" th:value="${currentSort}">
+
+        <div class="search-bar nearby-search">
+            <input class="search-field" type="search" name="keyword" th:value="${placeFilter.keyword}"
+                   placeholder="지역, 호스트 이름으로 검색해보세요" aria-label="장소 검색어">
+            <button class="search-submit" type="submit" aria-label="검색">
+                <span class="ico" aria-hidden="true">search</span>
+            </button>
+        </div>
+
+        <div class="chip-row nearby-filter-row">
+            <!--/*
+              칩이 켜져 있는지는 서버가 판정한 라벨로 정한다. 고른 값이 실제로 조건이 됐을 때만
+              라벨이 내려오므로, 화면이 입력값을 직접 들여다보는 것보다 어긋날 여지가 없다.
+            */-->
+            <button class="chip" type="button" data-modal-open aria-controls="nearby-region-modal"
+                    th:classappend="${regionLabel != null} ? ' is-active'">
+                <span class="ico" aria-hidden="true">location_on</span>
+                <span data-filter-summary="region" data-filter-placeholder="지역"
+                      th:text="${regionLabel} ?: '지역'">지역</span>
+                <span class="ico" aria-hidden="true">expand_more</span>
+            </button>
+
+            <button class="chip" type="button" data-modal-open aria-controls="nearby-schedule-modal"
+                    th:classappend="${dateLabel != null} ? ' is-active'">
+                <span class="ico" aria-hidden="true">calendar_today</span>
+                <span data-filter-summary="date" data-filter-placeholder="날짜"
+                      th:text="${dateLabel} ?: '날짜'">날짜</span>
+            </button>
+
+            <!--/*
+              상세 필터 칩 하나가 시간·유형·반려동물 셋을 대표한다. 셋을 다 적으면 칩이 넘치므로
+              몇 개 걸렸는지만 숫자로 보여주고, 무엇을 골랐는지는 열어서 확인한다.
+              data-filter-time-trigger 는 여러 날을 고르면 이 칩이 잠겨야 해서 붙인다.
+            */-->
+            <button class="chip" type="button" data-modal-open aria-controls="nearby-detail-modal"
+                    data-filter-time-trigger
+                    th:classappend="${timeLabel != null or typeLabel != null or petLabel != null} ? ' is-active'"
+                    th:with="picked=${(timeLabel != null ? 1 : 0)
+                                      + (typeLabel != null ? 1 : 0)
+                                      + (petLabel != null ? 1 : 0)}">
+                <span class="ico" aria-hidden="true">tune</span>
+                <span data-filter-summary="detail" data-filter-placeholder="상세 필터"
+                      th:text="${picked == 0} ? '상세 필터' : '상세 필터 ' + ${picked}">상세 필터</span>
+            </button>
+
+            <!--/*
+              초기화. 조건을 지우는 건 새 주소로 가는 것과 같아서 폼을 비우지 않고 맨 주소로 보낸다.
+              폼 안의 링크라 제출과 무관하다. 걸린 조건이 없으면 지울 것도 없으므로 감춘다.
+            */-->
+            <a class="chip nearby-filter-reset" th:href="@{/nearby}" th:if="${filtered}">
+                <span class="ico" aria-hidden="true">refresh</span>초기화
+            </a>
+        </div>
+
+        <th:block th:replace="~{fragments/place-filter :: regionDialog('nearby-region-modal', ${regions}, ${placeFilter})}"></th:block>
+        <th:block th:replace="~{fragments/place-filter :: scheduleDialog('nearby-schedule-modal', ${placeFilter})}"></th:block>
+        <th:block th:replace="~{fragments/place-filter :: detailDialog('nearby-detail-modal', ${myPets}, ${session.loginUser != null}, ${placeFilter})}"></th:block>
+    </form>
+
+    <!--/*
+      목록 시트. 손잡이를 잡고 위아래로 끌면 세 자리 사이를 옮겨 다닌다.
+      드래그가 없어도(JS 미로딩·키보드) 손잡이 버튼을 눌러 같은 자리를 돈다.
+    */-->
+    <section class="nearby-sheet" data-sheet data-sheet-state="half" aria-label="주변 호스트 목록">
+        <button class="sheet-grip" type="button" data-sheet-handle
+                aria-expanded="false" aria-label="목록 펼치기" aria-controls="nearby-sheet-scroll">
+            <span class="sheet-handle" aria-hidden="true"></span>
+        </button>
 
         <div class="nearby-sheet-head">
             <strong>내 주변 호스트</strong>
@@ -57,156 +138,130 @@
         </div>
 
         <!--/*
-          조건이 잘못됐을 때. 검색을 막고 화면을 다시 그릴 뿐 오류 화면으로 보내지 않는다.
-          문구는 컨트롤러가 폼 에러를 한국어로 바꿔 넘겨 준다.
+          정렬. 서버에 다시 묻지 않고 이미 받아 둔 목록의 순서만 바꾼다.
+            거리순 — 내 위치를 실제로 얻었을 때만 쓸 수 있다. 기본 위치로 떨어진 상태에서
+                     "가까운 순"이라고 적으면 사실이 아니므로 JS 가 칩을 잠근다.
+            최신순 — 서버가 준 순서 그대로. 조건을 걸고 들어와도 이 순서가 기준이다.
+          그래서 링크가 아니라 버튼이다. 주소가 바뀌지 않는다.
         */-->
-        <div class="notice notice-danger" th:if="${!#lists.isEmpty(filterErrors)}">
-            <span class="ico" aria-hidden="true">error</span>
-            <span>
-                <th:block th:each="message : ${filterErrors}">
-                    <span th:text="${message}">조건 안내</span><br>
-                </th:block>
-            </span>
+        <div class="chip-row nearby-sort" role="group" aria-label="정렬 기준">
+            <button class="chip is-active" type="button" data-sort="distance" aria-pressed="true">거리순</button>
+            <button class="chip" type="button" data-sort="latest" aria-pressed="false">최신순</button>
         </div>
 
-        <!--/* 적용된 조건. 조건을 안 걸었으면 칩 줄 자체가 나오지 않는다. */-->
-        <div class="nearby-filters" th:if="${filtered}">
-            <div class="chip-row filter-row">
-                <span class="chip is-active" th:if="${regionLabel != null}">
-                    <span class="ico" aria-hidden="true">location_on</span>
-                    <span th:text="${regionLabel}">지역</span>
-                </span>
-                <span class="chip is-active" th:if="${dateLabel != null}">
-                    <span class="ico" aria-hidden="true">calendar_today</span>
-                    <span th:text="${dateLabel}">날짜</span>
-                </span>
-                <span class="chip is-active" th:if="${timeLabel != null}">
-                    <span class="ico" aria-hidden="true">schedule</span>
-                    <span th:text="${timeLabel}">시간</span>
-                </span>
-                <span class="chip is-active" th:if="${petLabel != null}">
-                    <span class="ico" aria-hidden="true">pets</span>
-                    <span th:text="${petLabel}">반려동물</span>
-                </span>
-                <span class="chip is-active" th:if="${typeLabel != null}">
-                    <span class="ico" aria-hidden="true">home_work</span>
-                    <span th:text="${typeLabel}">장소 유형</span>
-                </span>
-            </div>
-            <a class="nearby-filter-edit" th:href="@{/home}">
-                <span class="ico" aria-hidden="true">tune</span>조건 바꾸기
-            </a>
-        </div>
+        <!--/* 여기부터가 시트 안에서 스크롤되는 자리다. 목록이 길어져도 손잡이와 제목줄은 남는다. */-->
+        <div class="nearby-sheet-scroll" id="nearby-sheet-scroll" data-sheet-scroll>
 
-        <!--/*
-          정렬. 지금 걸려 있는 조건을 그대로 들고 다시 검색한다. (정렬 키는 PlaceMapper 의 allowlist)
-
-          링크(@{/nearby(regions=${...})})로 만들지 않는다. 값이 null 인 조건까지 `regions=` 처럼
-          빈 파라미터로 실려 나가고, 그러면 목록 조건이 IN ('') 이 되어 결과가 통째로 0건이 된다.
-          hidden input 은 th:each·th:if 로 "없으면 아예 안 그리기"가 되므로 그 함정이 없다.
-
-          같은 name 의 제출 버튼은 눌린 것 하나만 전송된다는 표준 동작을 쓴다. JS 가 없어도 된다.
-        */-->
-        <form class="nearby-sort" method="get" th:action="@{/nearby}">
-            <input type="hidden" name="regions" th:each="region : ${placeFilter.regions}" th:value="${region}">
-            <input type="hidden" name="petIds" th:each="petId : ${placeFilter.petIds}" th:value="${petId}">
-            <input type="hidden" name="startDate" th:if="${placeFilter.startDate != null}"
-                   th:value="${placeFilter.startDate}">
-            <input type="hidden" name="endDate" th:if="${placeFilter.endDate != null}"
-                   th:value="${placeFilter.endDate}">
-            <input type="hidden" name="startTime" th:if="${placeFilter.startTime != null}"
-                   th:value="${#temporals.format(placeFilter.startTime, 'HH:mm')}">
-            <input type="hidden" name="endTime" th:if="${placeFilter.endTime != null}"
-                   th:value="${#temporals.format(placeFilter.endTime, 'HH:mm')}">
-            <input type="hidden" name="placeType" th:if="${placeFilter.placeType != null}"
-                   th:value="${placeFilter.placeType.name()}">
-
-            <div class="chip-row" role="group" aria-label="정렬 기준">
-                <button class="chip" type="submit" name="sort" value="latest"
-                        th:classappend="${currentSort == 'latest'} ? ' is-active'"
-                        th:attrappend="aria-pressed=${currentSort == 'latest'}">최신순</button>
-                <button class="chip" type="submit" name="sort" value="price"
-                        th:classappend="${currentSort == 'price'} ? ' is-active'"
-                        th:attrappend="aria-pressed=${currentSort == 'price'}">가격 낮은순</button>
-                <button class="chip" type="submit" name="sort" value="rating"
-                        th:classappend="${currentSort == 'rating'} ? ' is-active'"
-                        th:attrappend="aria-pressed=${currentSort == 'rating'}">별점 높은순</button>
-            </div>
-        </form>
-
-        <!--/*
-          안내 자리. 기본 위치로 떨어졌거나, 좌표가 없어 지도에 못 찍은 장소가 있거나,
-          지도를 못 불러왔을 때 JS 가 여기에만 문구를 넣는다. 해당 없으면 비어 있다.
-        */-->
-        <div class="nearby-status" id="nearby-status" role="status" aria-live="polite"></div>
-
-        <!--/*
-          결과 0건. 조건을 걸었을 때와 아닐 때의 안내가 다르다.
-          조건이 잘못돼 아예 검색하지 못한 경우는 위의 안내 문구가 이미 설명하므로 그리지 않는다.
-        */-->
-        <div class="empty"
-             th:if="${#lists.isEmpty(filterErrors) and (places == null or #lists.isEmpty(places))}">
-            <span class="ico" aria-hidden="true">near_me</span>
-            <th:block th:if="${filtered}">
-                <strong>조건에 맞는 공간이 없어요</strong>
-                <p>날짜나 지역을 조금 넓혀서 다시 찾아보세요.</p>
-                <a class="btn btn-ghost" th:href="@{/home}">조건 바꾸기</a>
-            </th:block>
-            <th:block th:unless="${filtered}">
-                <strong>주변에 공개된 공간이 없어요</strong>
-                <p>공개된 공간이 생기면 여기에서 바로 확인할 수 있어요.</p>
-            </th:block>
-        </div>
-
-        <div class="place-list" id="nearby-place-list"
-             th:unless="${places == null or #lists.isEmpty(places)}">
             <!--/*
-              data-lat·data-lng 는 좌표가 있는 장소에만 붙는다. Thymeleaf 는 값이 null 인
-              속성을 아예 그리지 않으므로, 좌표가 없으면 속성 없는 카드가 된다.
+              조건이 잘못됐을 때. 검색을 막고 화면을 다시 그릴 뿐 오류 화면으로 보내지 않는다.
+              문구는 컨트롤러가 폼 에러를 한국어로 바꿔 넘겨 준다.
             */-->
-            <a class="place-card" th:each="place : ${places}"
-               th:href="@{/places/{id}(id=${place.id})}"
-               th:aria-label="|${place.name} 상세보기|"
-               th:attr="data-place-id=${place.id},
-                        data-lat=${place.latitude},
-                        data-lng=${place.longitude}">
-                <div class="media">
-                    <span class="ico" aria-hidden="true">weekend</span>
-                </div>
-                <div class="place-card-body">
-                    <p class="place-card-title" th:text="${place.name}">공간 이름</p>
-                    <div class="place-tags">
-                        <span class="is-type" th:if="${place.placeType != null}"
-                              th:text="${place.placeType.label}">장소 유형</span>
-                        <span class="is-size" th:if="${place.allowsSmallDog}">소형견</span>
-                        <span class="is-size" th:if="${place.allowsMediumDog}">중형견</span>
-                        <span class="is-size" th:if="${place.allowsLargeDog}">대형견</span>
-                        <span class="is-extra" th:if="${place.providesYard}">마당</span>
-                        <span class="is-extra" th:if="${place.providesWalk}">산책</span>
-                    </div>
-                    <p class="place-loc">
-                        <span class="ico" aria-hidden="true">person</span>
-                        <span th:text="${place.nickname}">호스트 닉네임</span>
-                    </p>
-                    <!--/* 리뷰가 없으면(0.00) 줄 자체를 그리지 않는다. places/list.html 과 같은 규칙. */-->
-                    <p class="rating" th:if="${place.hasRating()}">
-                        <span class="ico" aria-hidden="true">star</span>
-                        <span th:text="${#numbers.formatDecimal(place.averageRating, 1, 1)}">4.8</span>
-                        <span class="sr-only">점</span>
-                    </p>
-                    <!--/* 내 위치를 실제로 얻었을 때만 JS 가 채우고 hidden 을 뗀다. */-->
-                    <p class="place-distance" hidden>
-                        <span class="ico" aria-hidden="true">near_me</span>
-                        <span data-distance-text></span>
-                    </p>
-                    <p class="place-price" th:if="${place.hourlyPrice != null}">
-                        <span th:text="${#numbers.formatInteger(place.hourlyPrice, 0, 'COMMA')} + '원'">시간당 가격</span>
-                        <small>/ 시간당</small>
-                    </p>
-                </div>
-            </a>
+            <div class="notice notice-danger" th:if="${!#lists.isEmpty(filterErrors)}">
+                <span class="ico" aria-hidden="true">error</span>
+                <span>
+                    <th:block th:each="message : ${filterErrors}">
+                        <span th:text="${message}">조건 안내</span><br>
+                    </th:block>
+                </span>
+            </div>
+
+            <!--/*
+              안내 자리. 기본 위치로 떨어졌거나, 좌표가 없어 지도에 못 찍은 장소가 있거나,
+              지도를 못 불러왔을 때 JS 가 여기에만 문구를 넣는다. 해당 없으면 비어 있다.
+            */-->
+            <div class="nearby-status" id="nearby-status" role="status" aria-live="polite"></div>
+
+            <!--/*
+              결과 0건. 조건을 걸었을 때와 아닐 때의 안내가 다르다.
+              조건이 잘못돼 아예 검색하지 못한 경우는 위의 안내 문구가 이미 설명하므로 그리지 않는다.
+            */-->
+            <div class="empty"
+                 th:if="${#lists.isEmpty(filterErrors) and (places == null or #lists.isEmpty(places))}">
+                <span class="ico" aria-hidden="true">near_me</span>
+                <th:block th:if="${filtered}">
+                    <strong>조건에 맞는 공간이 없어요</strong>
+                    <p>날짜나 지역을 조금 넓혀서 다시 찾아보세요.</p>
+                    <a class="btn btn-ghost" th:href="@{/nearby}">조건 초기화</a>
+                </th:block>
+                <th:block th:unless="${filtered}">
+                    <strong>주변에 공개된 공간이 없어요</strong>
+                    <p>공개된 공간이 생기면 여기에서 바로 확인할 수 있어요.</p>
+                </th:block>
+            </div>
+
+            <div class="place-list" id="nearby-place-list"
+                 th:unless="${places == null or #lists.isEmpty(places)}">
+                <!--/*
+                  카드는 링크 하나가 통째로 덮고 찜 버튼만 그 위에 얹힌다. 버튼을 링크 안에 넣으면
+                  찜하려다 상세로 넘어간다. 그래서 .bookmark-card 로 감싸고 둘을 형제로 둔다.
+
+                  장소 id 는 찜 버튼에만 붙인다. 그걸 읽는 곳이 bookmark.js 하나뿐이고,
+                  지도 쪽은 카드를 좌표로만 다뤄 id 를 보지 않는다.
+
+                  data-lat·data-lng 는 좌표가 있는 장소에만 붙는다. Thymeleaf 는 값이 null 인
+                  속성을 아예 그리지 않으므로, 좌표가 없으면 속성 없는 카드가 된다.
+                */-->
+                <article class="place-card bookmark-card" th:each="place : ${places}"
+                         th:attr="data-lat=${place.latitude},
+                                  data-lng=${place.longitude}">
+                    <a class="bookmark-card-link" th:href="@{/places/{id}(id=${place.id})}"
+                       th:aria-label="|${place.name} 상세보기|">
+                        <div class="media">
+                            <span class="ico" aria-hidden="true">weekend</span>
+                        </div>
+                        <div class="place-card-body">
+                            <p class="place-card-title" th:text="${place.name}">공간 이름</p>
+                            <div class="place-tags">
+                                <span class="is-type" th:if="${place.placeType != null}"
+                                      th:text="${place.placeType.label}">장소 유형</span>
+                                <span class="is-size" th:if="${place.allowsSmallDog}">소형견</span>
+                                <span class="is-size" th:if="${place.allowsMediumDog}">중형견</span>
+                                <span class="is-size" th:if="${place.allowsLargeDog}">대형견</span>
+                                <span class="is-extra" th:if="${place.providesYard}">마당</span>
+                                <span class="is-extra" th:if="${place.providesWalk}">산책</span>
+                            </div>
+                            <p class="place-loc">
+                                <span class="ico" aria-hidden="true">person</span>
+                                <span th:text="${place.nickname}">호스트 닉네임</span>
+                            </p>
+                            <!--/*
+                              평균 별점. 리뷰가 없으면 average_rating 이 0.00 이라 줄 자체를 그리지 않는다.
+                              "0.0점"으로 보이면 후기가 나쁜 공간처럼 읽힌다.
+                            */-->
+                            <p class="rating" th:if="${place.hasRating()}">
+                                <span class="ico" aria-hidden="true">star</span>
+                                <span th:text="${#numbers.formatDecimal(place.averageRating, 1, 1)}">4.9</span>
+                                <span class="sr-only">점</span>
+                            </p>
+                            <!--/* 내 위치를 실제로 얻었을 때만 JS 가 채우고 hidden 을 뗀다. */-->
+                            <p class="place-distance" hidden>
+                                <span class="ico" aria-hidden="true">near_me</span>
+                                <span data-distance-text></span>
+                            </p>
+                            <p class="place-price" th:if="${place.hourlyPrice != null}">
+                                <span th:text="${#numbers.formatInteger(place.hourlyPrice, 0, 'COMMA')} + '원'">시간당 가격</span>
+                                <small>/ 시간당</small>
+                            </p>
+                        </div>
+                    </a>
+
+                    <!--/*
+                      찜. 비로그인으로 누르면 bookmark.js 가 401 을 받아 로그인 화면으로 보낸다.
+                      그래서 로그인 여부로 버튼을 감추지 않는다 — 찜하려면 로그인해야 한다는 걸
+                      눌러 보기 전에는 알 수 없는 편이 더 불친절하다.
+                    */-->
+                    <button class="like-btn like-btn-lg" type="button"
+                            th:classappend="${place.bookmarked} ? ' is-on'"
+                            th:data-place-id="${place.id}"
+                            th:aria-pressed="${place.bookmarked}"
+                            th:aria-label="${place.bookmarked} ? '찜 취소' : '찜하기'"
+                            data-bookmark-toggle>
+                        <span class="ico" aria-hidden="true">favorite</span>
+                    </button>
+                </article>
+            </div>
         </div>
-    </div>
+    </section>
 
     <!--/*
       위치 동의 안내. modal.js 의 data-modal-open 위임 처리를 그대로 쓰려고
@@ -228,6 +283,9 @@
     </dialog>
 
     <script th:src="@{/js/modal.js}"></script>
+    <script th:src="@{/js/place-filter.js}"></script>
+    <script th:src="@{/js/bookmark.js}"></script>
+    <script th:src="@{/js/nearby-sheet.js}"></script>
     <!--/* autoload=false 로 받아 두고 필요한 순간에 kakao.maps.load 로 켠다. */-->
     <script th:if="${kakaoMapEnabled}" id="kakao-map-sdk"
             th:src="@{https://dapi.kakao.com/v2/maps/sdk.js(autoload=false,appkey=${kakaoMapJavascriptKey})}"></script>
@@ -263,6 +321,7 @@
             const canvas = document.getElementById("nearby-map-canvas");
             const listBox = document.getElementById("nearby-place-list");
             const statusBox = document.getElementById("nearby-status");
+            const sortBox = document.querySelector(".nearby-sort");
             const cards = listBox ? Array.from(listBox.querySelectorAll(".place-card")) : [];
 
             /* ───────────────── 좌표 읽기 ───────────────── */
@@ -397,9 +456,9 @@
             /* ───────────────── 목록 ───────────────── */
 
             /*
-             * 거리 표기와 정렬. 내 위치를 실제로 얻었을 때만 한다.
+             * 거리 표기. 내 위치를 실제로 얻었을 때만 한다.
              * 기본 위치로 떨어진 상태에서 "1.2km" 를 적으면 부산에 있는 사용자에게 사실이 아닌
-             * 값을 보여주게 된다. 그럴 땐 서버가 준 순서를 그대로 둔다.
+             * 값을 보여주게 된다. 그럴 땐 거리 자리를 비워 둔다.
              */
             function applyDistances(origin, entries) {
                 entries.forEach((entry) => {
@@ -412,11 +471,19 @@
                     text.textContent = formatDistance(entry.distance);
                     box.hidden = false;
                 });
+            }
 
+            /*
+             * 목록 순서를 바꾼다. 서버에 다시 묻지 않고 이미 그려진 카드를 옮겨 담기만 한다.
+             *   latest   — 서버가 준 순서 (entry.index)
+             *   distance — 가까운 순. 좌표가 없는 장소는 목록에서 빼지 않고 뒤로만 민다.
+             *              저희끼리의 순서는 서버 순서를 유지한다.
+             */
+            function reorder(entries, mode) {
                 if (!listBox) return;
 
-                /* 좌표가 없는 장소는 목록에서 빼지 않고 뒤로만 민다. 저희끼리의 순서는 유지한다. */
                 const sorted = entries.slice().sort((a, b) => {
+                    if (mode !== "distance") return a.index - b.index;
                     if (a.distance === null && b.distance === null) return a.index - b.index;
                     if (a.distance === null) return 1;
                     if (b.distance === null) return -1;
@@ -426,6 +493,39 @@
                 const fragment = document.createDocumentFragment();
                 sorted.forEach((entry) => fragment.appendChild(entry.card));
                 listBox.appendChild(fragment);
+            }
+
+            /*
+             * 정렬 칩. 거리를 모르면 거리순을 켤 수 없으므로 칩 자체를 잠그고 최신순으로 켜 둔다.
+             * 잠긴 칩을 눌러 아무 일도 일어나지 않는 것보다, 못 쓰는 이유가 보이는 편이 낫다.
+             */
+            function wireSort(entries, located) {
+                if (!sortBox) return;
+                const chips = Array.from(sortBox.querySelectorAll("[data-sort]"));
+                const distanceChip = chips.find((chip) => chip.dataset.sort === "distance");
+
+                const select = (mode) => {
+                    chips.forEach((chip) => {
+                        const on = chip.dataset.sort === mode;
+                        chip.classList.toggle("is-active", on);
+                        chip.setAttribute("aria-pressed", String(on));
+                    });
+                    reorder(entries, mode);
+                };
+
+                if (!located && distanceChip) {
+                    distanceChip.disabled = true;
+                    distanceChip.title = "내 위치를 알 수 없어 거리순으로 정렬할 수 없어요.";
+                }
+
+                chips.forEach((chip) => {
+                    chip.addEventListener("click", () => {
+                        if (chip.disabled) return;
+                        select(chip.dataset.sort);
+                    });
+                });
+
+                select(located ? "distance" : "latest");
             }
 
             function notice(message) {
@@ -501,6 +601,9 @@
                 /*
                  * 최초 표시, 모바일 회전, 데스크톱 브레이크포인트·사이드바 변화처럼 지도 영역의
                  * 실제 크기가 바뀌는 모든 경우에 다시 배치한다. 중심은 relayout 전후로 유지한다.
+                 *
+                 * 시트를 끌어 지도가 보이는 넓이가 달라질 때도 여기로 들어온다. mapBox 는 화면을
+                 * 꽉 채우고 있어 크기가 변하지 않지만, 데스크톱에서는 목록 칸 때문에 실제로 바뀐다.
                  */
                 let resizeFrame = 0;
                 const scheduleRelayout = () => {
@@ -571,6 +674,7 @@
 
                     /* 목록이 먼저다. 지도가 어떻게 되든 여기까지는 이미 끝나 있다. */
                     if (here) applyDistances(here, entries);
+                    wireSort(entries, Boolean(here));
 
                     if (!window.kakao || !window.kakao.maps || typeof window.kakao.maps.load !== "function") {
                         report(Boolean(here), filtered, withoutPoint, false, entries.length);
@@ -582,7 +686,11 @@
                         try {
                             drawn = drawMap(origin, Boolean(here), entries);
                         } catch (error) {
-                            /* 지도만 포기한다. 목록은 그대로 둔다. */
+                            /*
+                             * 지도만 포기한다. 목록은 그대로 둔다.
+                             * is-live 는 Map 을 만들기 전에 붙였으므로, 도중에 넘어졌으면 도로 뗀다.
+                             * 남겨 두면 캔버스는 비어 있는데 도안까지 사라져 회색 상자만 남는다.
+                             */
                             mapBox?.classList.remove("is-live");
                             drawn = false;
                         }

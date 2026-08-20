@@ -4382,13 +4382,36 @@ textarea.control {
     }
 }
 
-/* ─────────────────────── 내 주변 (지도) ─────────────────────── */
+/* ─────────────────────── 내 주변 (지도 + 바텀시트) ─────────────────────── */
+
+/*
+ * 이 화면만 스크롤 구조가 다르다. 다른 화면은 본문이 길어지면 페이지가 스크롤되지만,
+ * 여기서는 지도가 배경으로 화면을 꽉 채우고 목록은 그 위 시트 안에서만 스크롤된다.
+ * 그래서 화면 높이를 픽셀로 못박고 넘치는 것을 잘라 낸다. 페이지가 같이 스크롤되면
+ * 시트를 끌어내릴 때 지도까지 따라 움직인다.
+ *
+ * .app-main 이 하단 탭만큼 준 아래 여백은 여기서 지운다. 높이 계산에 이미 들어 있다.
+ */
 .nearby-screen {
+    position: relative;
+    height: calc(100dvh - var(--nav-h) - env(safe-area-inset-bottom, 0px));
     padding: 0;
+    overflow: hidden;
+    /* 시트를 끌 때 브라우저가 당겨서 새로고침하거나 페이지를 튕기지 않게 한다. */
+    overscroll-behavior: none;
+}
+
+/* 100dvh 를 모르는 브라우저를 위한 되돌아갈 자리. 주소창 높이만큼 어긋날 뿐 못 쓰지는 않는다. */
+@supports not (height: 100dvh) {
+    .nearby-screen {
+        height: calc(100vh - var(--nav-h));
+    }
 }
 
 .nearby-map {
-    height: 260px;
+    position: absolute;
+    inset: 0;
+    height: auto;
     border-radius: 0;
 }
 
@@ -4396,24 +4419,132 @@ textarea.control {
     background: var(--orange);
 }
 
+/* ──────────── 지도 위 필터 바 ──────────── */
+
+/*
+ * 지도 위에 뜨는 검색어·조건 줄. 지도를 가리는 만큼만 흐린 흰색을 깔아 지도 무늬 위에서도
+ * 글자가 읽히게 한다. 시트(z-index 20)보다 위에 둬서 목록을 끝까지 올려도 조건은 남는다.
+ */
+.nearby-topbar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 30;
+    padding: 8px 20px 12px;
+    background: linear-gradient(#fff 62%, rgba(255, 255, 255, 0.82) 88%, rgba(255, 255, 255, 0));
+    pointer-events: none;
+}
+
+/* 배경 그러데이션은 통과시키고 실제로 누를 것만 받는다. */
+.nearby-topbar > * {
+    pointer-events: auto;
+}
+
+.nearby-topbar .nearby-search {
+    padding-top: 8px;
+}
+
+.nearby-search .search-field {
+    background: #fff;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+
+.nearby-filter-row {
+    margin-top: 12px;
+    /* 칩이 넘치면 옆으로 흐른다. 여백 밖까지 흘려보내 잘린 칩이 다음 칩을 예고한다. */
+    margin-inline: -20px;
+    padding-inline: 20px;
+    padding-bottom: 2px;
+}
+
+.nearby-filter-row .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
+}
+
+.nearby-filter-row .chip .ico {
+    font-size: 16px;
+}
+
+.nearby-filter-row .chip:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* 초기화는 조건이 아니라 조건을 지우는 동작이라 켜진 것처럼 보이면 안 된다. */
+.nearby-filter-reset {
+    color: var(--muted);
+}
+
+/* ──────────── 목록 시트 ──────────── */
+
+/*
+ * 위치는 --sheet-y 하나로만 준다. js/nearby-sheet.js 가 세 자리(6% / 52% / 88%) 사이를
+ * 오가며 이 값을 바꾸고, 드래그 중에는 그 사이의 아무 값이나 들어온다.
+ * JS 가 없으면 여기 적힌 기본값 그대로 반쯤 열린 채 멈춰 있고, 목록은 그대로 읽을 수 있다.
+ */
 .nearby-sheet {
-    position: relative;
-    margin-top: -20px;
+    --sheet-y: 52%;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    z-index: 20;
+    height: 100%;
+    transform: translateY(var(--sheet-y));
+    transition: transform 0.32s cubic-bezier(0.32, 0.72, 0, 1);
+    display: flex;
+    flex-direction: column;
     background: #fff;
     border-radius: 20px 20px 0 0;
     box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.14);
-    padding: 10px 20px 24px;
+    /* 손가락을 세로로 끌 때 브라우저가 먼저 스크롤을 가져가지 않게 한다. */
+    touch-action: none;
+}
+
+/* 끄는 동안은 손가락을 그대로 따라와야 한다. 전환을 켜 두면 늦게 따라온다. */
+.nearby-sheet.is-dragging {
+    transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .nearby-sheet {
+        transition: none;
+    }
+}
+
+/*
+ * 손잡이. 드래그는 포인터가 있어야 하는 조작이라 button 으로 두고 키보드로도 자리를 돌 수 있게 한다.
+ * 누르는 자리가 4px 짜리 막대뿐이면 너무 작아서 시트 폭 전체를 받는다.
+ */
+.sheet-grip {
+    flex: none;
+    display: block;
+    width: 100%;
+    padding: 10px 0 6px;
+    border: 0;
+    background: none;
+    cursor: grab;
+}
+
+.sheet-grip:active {
+    cursor: grabbing;
 }
 
 .nearby-sheet .sheet-handle {
-    margin: 0 auto 10px;
+    margin: 0 auto;
 }
 
 .nearby-sheet-head {
+    flex: none;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 12px;
+    padding: 4px 20px 0;
 }
 
 .nearby-sheet-head strong {
@@ -4422,22 +4553,110 @@ textarea.control {
     color: var(--ink);
 }
 
+.nearby-sort {
+    flex: none;
+    gap: 8px;
+    padding: 12px 20px 4px;
+}
+
+.nearby-sort .chip {
+    padding: 7px 15px;
+}
+
+/* 거리순은 내 위치를 알아야 켤 수 있다. 못 쓰는 상태가 보여야 이유를 짐작할 수 있다. */
+.nearby-sort .chip:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+/*
+ * 시트에서 유일하게 스크롤되는 자리. contain 을 줘야 목록 끝에서 더 굴렸을 때
+ * 스크롤이 뒤의 페이지로 넘어가지 않는다.
+ *
+ * touch-action 을 되돌린다. 시트 전체는 드래그를 받으려고 none 이지만 목록 안에서는
+ * 세로 스크롤이 되어야 한다. 목록이 맨 위일 때만 시트가 가로채는 판단은 JS 가 한다.
+ */
+.nearby-sheet-scroll {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    touch-action: pan-y;
+    padding: 0 20px 24px;
+    /* 시트를 끝까지 올렸을 때 마지막 카드가 하단 탭에 가리지 않게 한다. */
+    scroll-padding-bottom: 24px;
+}
+
+/* 지도만 보이는 상태에서는 목록이 손에 닿지 않아야 한다. 지도를 만지려다 목록이 스크롤된다. */
+.nearby-sheet[data-sheet-state="peek"] .nearby-sheet-scroll {
+    overflow-y: hidden;
+}
+
+.nearby-sheet .place-list {
+    margin-top: 14px;
+}
+
+/* ──────────── 데스크톱: 시트 대신 왼쪽 목록 칸 ──────────── */
+
+/*
+ * 넓은 화면에서는 끌어 올릴 이유가 없다. 지도와 목록을 나란히 두고 시트는 고정한다.
+ * JS 도 여기서는 자리를 바꾸지 않는다 — transform 을 none 으로 못박아 두면
+ * --sheet-y 가 어떤 값이어도 목록 칸은 제자리에 있다.
+ */
 @media (min-width: 1024px) {
+    .nearby-screen {
+        height: 100dvh;
+        display: grid;
+        grid-template-columns: 420px minmax(0, 1fr);
+    }
+
     .nearby-map {
-        height: 360px;
-        border-radius: var(--r-md);
-        margin: 20px 32px 0;
+        position: relative;
+        grid-column: 2;
+        inset: auto;
     }
 
     .nearby-sheet {
-        margin-top: 20px;
-        border-radius: var(--r-md);
-        box-shadow: none;
-        padding-inline: 32px;
+        position: relative;
+        grid-column: 1;
+        grid-row: 1;
+        transform: none;
+        border-radius: 0;
+        box-shadow: 1px 0 0 var(--line-soft);
+        touch-action: auto;
     }
 
-    .nearby-sheet .sheet-handle {
+    /* 손잡이는 끌 수 있다는 표시라 끌 수 없는 곳에서는 없어야 한다. */
+    .nearby-sheet .sheet-grip {
         display: none;
+    }
+
+    .nearby-sheet-head {
+        padding-top: 24px;
+    }
+
+    /*
+     * peek 은 "지도만 보이는 중"이라 목록을 잠그는 상태다. 여기서는 시트가 고정된 목록 칸이라
+     * 그런 상태 자체가 없다. 값이 남아 있어도 목록은 끝까지 스크롤되어야 한다.
+     */
+    .nearby-sheet[data-sheet-state="peek"] .nearby-sheet-scroll {
+        overflow-y: auto;
+    }
+
+    /* 필터 바는 지도 쪽에만 얹는다. 목록 칸까지 덮으면 제목줄을 가린다. */
+    .nearby-topbar {
+        left: 420px;
+        padding: 16px 20px 20px;
+        background: none;
+    }
+
+    .nearby-topbar .nearby-search {
+        padding-top: 0;
+    }
+
+    .nearby-filter-row {
+        margin-inline: 0;
+        padding-inline: 0;
     }
 }
 
@@ -4552,34 +4771,25 @@ button.home-search-field:disabled {
     line-height: 1.5;
 }
 
-/* 결과 화면 상단의 적용된 조건 줄 */
-.nearby-filters {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-top: 14px;
+/*
+ * "상세 필터" 다이얼로그는 시간·공간·맡길 아이를 한 곳에 모아 놓아 길다.
+ * 무엇에 대한 칸인지 구분선처럼 끊어 주지 않으면 select 와 체크박스가 한 덩어리로 읽힌다.
+ */
+.filter-section-title {
+    margin: 20px 0 10px;
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--ink);
 }
 
-.nearby-filters .filter-row {
-    flex: 1;
-    min-width: 0;
-    margin: 0;
-    padding: 0;
+.filter-modal .modal-inner > .filter-section-title:first-of-type {
+    margin-top: 12px;
 }
 
-.nearby-filter-edit {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    flex: none;
-    font-size: 12.5px;
-    font-weight: 700;
-    color: var(--green);
-}
-
-.nearby-filter-edit .ico {
-    font-size: 16px;
-}
+/*
+ * 적용된 조건은 이제 지도 위 필터 바의 칩이 켜진 상태로 보여준다(.nearby-filter-row).
+ * 결과 목록 위에 조건 줄을 따로 두던 .nearby-filters / .nearby-filter-edit 는 그래서 없앴다.
+ */
 
 .empty .btn {
     display: inline-flex;
