@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.InputStream;
 import java.util.Locale;
+import java.util.Map;
 
 import com.example.petnow.dto.request.PlaceFilterCriteria;
 import org.apache.ibatis.builder.xml.XMLMapperBuilder;
@@ -31,6 +32,8 @@ class PlaceMapperStatementTest {
     /** /nearby 가 실제로 타는 쿼리다. 여기에 좌표가 없으면 지도에 마커가 하나도 찍히지 않는다. (#7) */
     private static final String FIND_BY_FILTER =
             "com.example.petnow.mapper.PlaceMapper.findByFilter";
+    private static final String UPSERT_ADDRESS =
+            "com.example.petnow.mapper.PlaceMapper.upsertAddress";
 
     private Configuration configuration;
 
@@ -78,6 +81,20 @@ class PlaceMapperStatementTest {
         assertThat(sql).contains("pa.longitude");
         assertThat(sql).contains("left join place_addresses");
         assertThat(sql).doesNotContain("inner join place_addresses");
+    }
+
+    @Test
+    @DisplayName("주소 수정 시 이전 좌표를 초기화한다")
+    void upsertAddressClearsStaleCoordinates() {
+        String sql = sqlOf(UPSERT_ADDRESS, Map.of(
+                "placeId", 3L,
+                "sido", "서울특별시",
+                "sigungu", "성동구",
+                "roadAddress", "서울특별시 성동구 왕십리로 1"));
+
+        assertThat(sql)
+                .contains("latitude = null")
+                .contains("longitude = null");
     }
 
     /** 공백을 하나로 줄이고 소문자로 낮춰 비교한다. 줄바꿈·들여쓰기가 바뀌어도 테스트가 흔들리지 않게. */
