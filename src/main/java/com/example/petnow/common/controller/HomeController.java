@@ -155,11 +155,6 @@ public class HomeController {
         return "nearby";
     }
 
-    @GetMapping("/bookmarks")
-    public String bookmarks(Model model) {
-        return comingSoon(model, "찜한 호스트", "like");
-    }
-
     /**
      * 검증·바인딩 실패를 화면에 그대로 쓸 수 있는 한국어 문구로 바꾼다.
      *
@@ -187,9 +182,4 @@ public class HomeController {
                 : message;
     }
 
-    private String comingSoon(Model model, String title, String navKey) {
-        model.addAttribute("pageTitle", title);
-        model.addAttribute("navKey", navKey);
-        return "coming-soon";
-    }
 }
