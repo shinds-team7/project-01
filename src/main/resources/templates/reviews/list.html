@@ -8,7 +8,7 @@
   수정·삭제는 내 리뷰일 때만 의미가 있어 placeId 가 없을 때만 그린다.
 
   내 리뷰의 수정은 GET /reviews/{id}/edit, 삭제는 POST /reviews/{id}/delete 로 처리한다.
-  삭제 폼은 카드마다 고유한 id 를 두고 버튼의 form 속성으로 연결한다.
+  삭제 버튼은 공용 modal.js 로 확인창을 연 뒤 모달 안의 폼을 제출한다.
 
 
   [reviews 원소가 쓰는 필드] ReviewResponse
