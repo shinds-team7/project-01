@@ -8,6 +8,7 @@ import com.example.petnow.dto.response.PetListResponse;
 import com.example.petnow.dto.response.PlaceListResponse;
 import com.example.petnow.dto.response.PlaceSearchResponse;
 import com.example.petnow.entity.Pet;
+import com.example.petnow.entity.PlaceType;
 import com.example.petnow.service.PetService;
 import com.example.petnow.service.PlaceService;
 import org.junit.jupiter.api.BeforeEach;
@@ -152,6 +153,57 @@ class NearbyFilterTest {
         mockMvc.perform(get("/nearby").param("placeType", "CASTLE"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("장소 유형 값을 다시 선택해 주세요")));
+    }
+
+    @Test
+    @DisplayName("고른 장소 유형이 필터에 실려 가고 적용된 조건 칩으로 되비친다")
+    void placeTypeReachesFilterAndShowsChip() throws Exception {
+        given(placeService.searchPlaces(any(), any())).willReturn(PlaceSearchResponse.builder()
+                .places(List.of())
+                .typeLabel("주택")
+                .build());
+
+        mockMvc.perform(get("/nearby").param("placeType", "HOUSE"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("주택")))
+                // typeLabel 이 isFiltered() 에 들어가야 "조건을 걸었는데 0건"으로 안내된다.
+                // 빠뜨리면 유형을 골랐는데도 "주변에 공개된 공간이 없어요" 가 나온다.
+                .andExpect(content().string(containsString("조건에 맞는 공간이 없어요")))
+                .andExpect(content().string(not(containsString("주변에 공개된 공간이 없어요"))));
+
+        ArgumentCaptor<PlaceFilterRequest> captor = ArgumentCaptor.forClass(PlaceFilterRequest.class);
+        then(placeService).should().searchPlaces(any(), captor.capture());
+        assertThat(captor.getValue().getPlaceType()).isEqualTo(PlaceType.HOUSE);
+    }
+
+    @Test
+    @DisplayName("장소 유형 '전체'(빈 값)는 조건을 걸지 않은 것으로 읽는다")
+    void blankPlaceTypeMeansNoCondition() throws Exception {
+        given(placeService.searchPlaces(any(), any())).willReturn(PlaceSearchResponse.builder()
+                .places(List.of(PlaceListResponse.builder().id(3L).name("햇살 가득한 마당").build()))
+                .build());
+
+        // 홈의 "전체" 라디오가 보내는 값이다. 이게 조건으로 읽히면 결과가 통째로 사라진다.
+        mockMvc.perform(get("/nearby").param("placeType", ""))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("햇살 가득한 마당")));
+
+        ArgumentCaptor<PlaceFilterRequest> captor = ArgumentCaptor.forClass(PlaceFilterRequest.class);
+        then(placeService).should().searchPlaces(any(), captor.capture());
+        assertThat(captor.getValue().getPlaceType()).isNull();
+    }
+
+    @Test
+    @DisplayName("홈 조건 카드에 장소 유형 선택지가 라디오로 나온다")
+    void homeCardOffersPlaceTypeRadios() throws Exception {
+        mockMvc.perform(get("/home"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("id=\"type-modal\"")))
+                // 라디오여야 한다. 체크박스면 여러 개가 제출돼 마지막 값만 남는다.
+                .andExpect(content().string(containsString("type=\"radio\" name=\"placeType\"")))
+                .andExpect(content().string(containsString("주택")))
+                // 고른 유형을 되돌릴 수 있어야 한다.
+                .andExpect(content().string(containsString("<span>전체</span>")));
     }
 
     @Test

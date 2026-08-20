@@ -88,6 +88,10 @@
                     <span class="ico" aria-hidden="true">pets</span>
                     <span th:text="${petLabel}">반려동물</span>
                 </span>
+                <span class="chip is-active" th:if="${typeLabel != null}">
+                    <span class="ico" aria-hidden="true">home_work</span>
+                    <span th:text="${typeLabel}">장소 유형</span>
+                </span>
             </div>
             <a class="nearby-filter-edit" th:href="@{/home}">
                 <span class="ico" aria-hidden="true">tune</span>조건 바꾸기

@@ -4,6 +4,7 @@ import com.example.petnow.common.session.LoginRedirect;
 import com.example.petnow.common.session.LoginSession;
 import com.example.petnow.dto.request.PlaceFilterRequest;
 import com.example.petnow.dto.response.PlaceSearchResponse;
+import com.example.petnow.entity.PlaceType;
 import com.example.petnow.service.PetService;
 import com.example.petnow.service.PlaceService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -84,6 +85,9 @@ public class HomeController {
 
         // 검색 조건 카드의 다이얼로그를 채운다. 지역은 아직 place_addresses 가 비어 있으면 0건이다. (#7)
         model.addAttribute("regions", placeService.getFilterRegions());
+
+        // 장소 유형은 고정 목록이라 지역과 달리 DB 를 보지 않는다. 등록 폼과 같은 출처를 쓴다.
+        model.addAttribute("placeTypes", PlaceType.values());
         Long loginUserId = LoginSession.currentUserId(request);
         model.addAttribute("myPets", loginUserId == null ? List.of() : petService.getPetList(loginUserId));
         return "home";
@@ -164,6 +168,7 @@ public class HomeController {
         model.addAttribute("dateLabel", result.getDateLabel());
         model.addAttribute("timeLabel", result.getTimeLabel());
         model.addAttribute("petLabel", result.getPetLabel());
+        model.addAttribute("typeLabel", result.getTypeLabel());
         return "nearby";
     }
 
