@@ -3,6 +3,17 @@
       th:replace="~{fragments/base :: page('예약 목록', 'none', ~{::main})}">
 <body>
 <main id="main-content" class="app-main no-nav">
+    <style>
+        .reservation-filter-tabs { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:5px; margin-bottom:16px; padding:4px; border-radius:12px; background:#f3f4f6; }
+        .reservation-filter-tabs a { padding:10px 4px; border-radius:9px; text-align:center; font-size:12.5px; font-weight:700; color:var(--muted); white-space:nowrap; }
+        .reservation-filter-tabs a.is-active { background:#fff; color:var(--ink); box-shadow:0 1px 4px rgba(0,0,0,.08); }
+        .reservation-filter-tabs a:focus-visible { outline:2px solid var(--green); outline-offset:2px; }
+        .reservation-row-badges { display:flex; flex:none; flex-direction:column; align-items:flex-end; gap:6px; }
+        .badge-use-before { background:#eef8f2; color:var(--green-dark); }
+        .badge-use-now { background:#fff3d8; color:#8a5a00; }
+        .badge-use-after { background:#f0f1f3; color:var(--muted); }
+    </style>
+
     <div class="topbar has-line">
         <a class="topbar-back" th:href="@{/mypage}" aria-label="마이페이지로 돌아가기">
             <span class="ico" aria-hidden="true">arrow_back_ios_new</span>
@@ -11,6 +22,17 @@
     </div>
 
     <div class="screen">
+        <nav class="reservation-filter-tabs" aria-label="예약 이용상태 필터">
+            <a th:href="@{/reservation/list}"
+               th:classappend="${param.useStatus == null} ? ' is-active'">전체</a>
+            <a th:href="@{/reservation/list(useStatus='BEFORE_USE')}"
+               th:classappend="${param.useStatus != null and param.useStatus[0] == 'BEFORE_USE'} ? ' is-active'">이용 전</a>
+            <a th:href="@{/reservation/list(useStatus='IN_USE')}"
+               th:classappend="${param.useStatus != null and param.useStatus[0] == 'IN_USE'} ? ' is-active'">이용 중</a>
+            <a th:href="@{/reservation/list(useStatus='AFTER_USE')}"
+               th:classappend="${param.useStatus != null and param.useStatus[0] == 'AFTER_USE'} ? ' is-active'">이용 완료</a>
+        </nav>
+
         <div class="empty" th:if="${#lists.isEmpty(reservations)}">
             <span class="ico" aria-hidden="true">event_busy</span>
             <strong>조회된 예약 내역이 없어요</strong>
@@ -41,11 +63,18 @@
                            th:text="${#numbers.formatInteger(reservation.totalPrice, 0, 'COMMA')} + '원'">48,000원</small>
                 </span>
 
-                <span class="badge"
-                      th:classappend="${reservation.reservationStatus?.name() == 'CONFIRMED' ? 'badge-green'
-                                      : (reservation.reservationStatus?.name() == 'CANCELED' ? 'badge-danger' : 'badge-warn')}"
-                      th:text="${reservation.reservationStatus?.name() == 'CONFIRMED' ? '예약 확정'
-                               : (reservation.reservationStatus?.name() == 'CANCELED' ? '취소됨' : '응답 대기')}">응답 대기</span>
+                <span class="reservation-row-badges">
+                    <span class="badge" th:if="${reservation.reservationUseStatus != null}"
+                          th:classappend="${reservation.reservationUseStatus.name() == 'BEFORE_USE' ? 'badge-use-before'
+                                          : (reservation.reservationUseStatus.name() == 'IN_USE' ? 'badge-use-now' : 'badge-use-after')}"
+                          th:text="${reservation.reservationUseStatus.name() == 'BEFORE_USE' ? '이용 전'
+                                   : (reservation.reservationUseStatus.name() == 'IN_USE' ? '이용 중' : '이용 완료')}">이용 전</span>
+                    <span class="badge"
+                          th:classappend="${reservation.reservationStatus?.name() == 'CONFIRMED' ? 'badge-green'
+                                          : (reservation.reservationStatus?.name() == 'CANCELED' ? 'badge-danger' : 'badge-warn')}"
+                          th:text="${reservation.reservationStatus?.name() == 'CONFIRMED' ? '예약 확정'
+                                   : (reservation.reservationStatus?.name() == 'CANCELED' ? '취소됨' : '응답 대기')}">응답 대기</span>
+                </span>
             </a>
         </div>
     </div>

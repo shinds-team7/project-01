@@ -2,6 +2,7 @@ package com.example.petnow.controller;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Objects;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -25,7 +26,6 @@ import com.example.petnow.dto.response.ReservationStepResponse;
 import com.example.petnow.dto.response.ReviewResponse;
 import com.example.petnow.entity.Place;
 import com.example.petnow.entity.Reservation;
-import com.example.petnow.entity.ReservationStatus;
 import com.example.petnow.exception.BusinessException;
 import com.example.petnow.exception.PlaceErrorCode;
 import com.example.petnow.exception.ReservationErrorCode;
@@ -61,11 +61,22 @@ public class ReservationController {
 	public String saveReservation(@LoginUser Long userId, @Valid @ModelAttribute ReservationRequest request,
 		BindingResult bindingResult, Model model, RedirectAttributes redirectAttributes) {
 
+        Long placeId = request.getPlaceId();
+        if (placeId == null) {
+            throw new BusinessException(PlaceErrorCode.PLACE_NOT_FOUND);
+        }
+
+        Place place = placeMapper.findById(request.getPlaceId());
+        if (place == null) {
+            throw new BusinessException(PlaceErrorCode.PLACE_NOT_FOUND);
+        }
+
+        if (Objects.equals(place.getHostUserId(), userId)) {
+            redirectAttributes.addFlashAttribute("errorMessage", "본인이 등록한 장소는 예약할 수 없습니다.");
+            return "redirect:/places/" + placeId;
+        }
+
         if (bindingResult.hasErrors()) {
-            Long placeId = request.getPlaceId();
-            if (placeId == null) {
-                throw new BusinessException(PlaceErrorCode.PLACE_NOT_FOUND);
-            }
 
             // place 만 다시 담으면 되돌아온 폼에서 반려동물 목록이 사라져,
             // 사용자는 petIds 검증 에러를 보면서도 고를 대상이 없는 상태가 된다.
@@ -171,6 +182,12 @@ public class ReservationController {
 	public String detailReservation(@LoginUser Long userId, @RequestParam Long reservationId, Model model) {
 		ReservationDetailResponse reservation = reservationService.detailReservation(reservationId, userId);
 		model.addAttribute("reservation", reservation);
+		model.addAttribute("myPets", petService.getPetList(userId));
+		model.addAttribute("selectedPetIds", reservation.getPets() == null
+			? List.of()
+			: reservation.getPets().stream()
+				.map(ReservationDetailResponse.PetDetail::getPetId)
+				.toList());
 		model.addAttribute("myReviewId", findMyReviewId(userId, reservationId));
 		return "reservations/reservationDetail";
 	}
@@ -194,29 +211,6 @@ public class ReservationController {
 		model.addAttribute("reservations", responseList);
 		return "reservations/reservationList";
 	}
-
-    @GetMapping("/host")
-    public String getReservationHostList(
-        @LoginUser Long userId,
-        @RequestParam(required = false, defaultValue = "booking") String tab,
-        @RequestParam(required = false, defaultValue = "ALL") String status,
-        Model model) {
-        model.addAttribute("tab", tab);
-        model.addAttribute("activeTab", tab);
-
-        if ("booking".equals(tab)) {
-            ReservationStatus filterStatus = "ALL".equalsIgnoreCase(status)
-                ? null
-                : ReservationStatus.valueOf(status.toUpperCase());
-
-            List<ReservationListResponse> reservations =
-                reservationService.getReservationByHost(userId, filterStatus);
-
-            model.addAttribute("reservations", reservations);
-            model.addAttribute("status", status.toUpperCase());
-        }
-        return "host/dashboard";
-    }
 
 	@PostMapping("/cancel")
 	public String cancel(@LoginUser Long userId, @Valid @ModelAttribute ReservationCancelRequest request, BindingResult bindingResult) {
