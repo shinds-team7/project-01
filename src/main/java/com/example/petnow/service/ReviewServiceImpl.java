@@ -68,7 +68,7 @@ public class ReviewServiceImpl implements ReviewService {
         ReviewResponse response = reviewMapper.findResponseById(reviewId)
             .orElseThrow(() -> new BusinessException(ReviewErrorCode.REVIEW_NOT_FOUND));
 
-        int count = reviewMapper.countReviewOwnedByMember(reviewId, memberId);
+        int count = reviewMapper.countReviewOwnedByMember(memberId, reviewId);
         if (count == 0) {
             throw new BusinessException(ReviewErrorCode.REVIEW_FORBIDDEN);
         }

@@ -2,6 +2,7 @@ package com.example.petnow.service;
 
 import com.example.petnow.dto.request.UserLoginRequest;
 import com.example.petnow.dto.request.UserSignupRequest;
+import com.example.petnow.dto.response.KakaoUserResponse;
 import com.example.petnow.dto.response.LoginUser;
 import com.example.petnow.dto.response.UserMyPageResponse;
 
@@ -12,4 +13,6 @@ public interface AuthService {
     LoginUser login(UserLoginRequest request);
 
     UserMyPageResponse getMyPage(Long userId);
+
+    LoginUser loginOrSignupKakao(KakaoUserResponse kakaoUser);
 }

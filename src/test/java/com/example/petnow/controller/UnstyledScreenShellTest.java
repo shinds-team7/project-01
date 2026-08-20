@@ -5,6 +5,7 @@ import com.example.petnow.dto.response.HostPlaceListResponse;
 import com.example.petnow.dto.response.MyProfileResponse;
 import com.example.petnow.dto.response.ReservationDetailResponse;
 import com.example.petnow.dto.response.ReservationListResponse;
+import com.example.petnow.dto.response.ReviewResponse;
 import com.example.petnow.entity.PlaceStatus;
 import com.example.petnow.entity.ReservationStatus;
 import com.example.petnow.mapper.PlaceMapper;
@@ -12,6 +13,7 @@ import com.example.petnow.service.HostService;
 import com.example.petnow.service.MyProfileServiceImpl;
 import com.example.petnow.service.PetService;
 import com.example.petnow.service.ReservationService;
+import com.example.petnow.service.ReviewService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +30,7 @@ import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -52,6 +55,10 @@ class UnstyledScreenShellTest {
     /** 같은 이유로 필요하다. 예약 요청 폼이 반려동물 목록을 여기서 받는다 (#187). */
     @MockitoBean
     private PetService petService;
+
+    /** 예약 상세가 "리뷰 쓰기 / 리뷰 수정하기" 중 무엇을 그릴지 여기서 판단한다. */
+    @MockitoBean
+    private ReviewService reviewService;
 
     @MockitoBean
     private HostService hostService;
@@ -96,6 +103,34 @@ class UnstyledScreenShellTest {
                 .andExpect(content().string(containsString("/css/app.css")))
                 .andExpect(content().string(containsString("PN-20260805-0001")))
                 .andExpect(content().string(containsString("초코")));
+    }
+
+    /**
+     * #306. 리뷰 작성 폼(GET /reviews/new)은 진작 있었는데 어느 화면에서도 링크가 걸려 있지
+     * 않아 마이페이지 → 예약 상세까지 온 사람이 후기를 남길 방법이 없었다.
+     */
+    @Test
+    @DisplayName("아직 리뷰가 없는 예약이면 예약 상세에 리뷰 작성 폼으로 가는 링크를 그린다")
+    void reservationDetailLinksToReviewForm() throws Exception {
+        given(reservationService.detailReservation(9L, 1L)).willReturn(detail());
+
+        mockMvc.perform(get("/reservation/detail").param("reservationId", "9").session(loggedIn()))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("/reviews/new?reservationId=9")))
+                .andExpect(content().string(containsString("리뷰 쓰기")));
+    }
+
+    @Test
+    @DisplayName("이미 리뷰를 쓴 예약이면 작성 폼 대신 수정 화면으로 보낸다")
+    void reservationDetailLinksToReviewEditWhenAlreadyWritten() throws Exception {
+        ReviewResponse myReview = myReviewOn(9L, 5L);
+        given(reservationService.detailReservation(9L, 1L)).willReturn(detail());
+        given(reviewService.getMyReviews(1L)).willReturn(List.of(myReview));
+
+        mockMvc.perform(get("/reservation/detail").param("reservationId", "9").session(loggedIn()))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("/reviews/5/edit")))
+                .andExpect(content().string(containsString("리뷰 수정하기")));
     }
 
     /** #179 로 host/manage.html 이 host/dashboard.html 로 교체됐다. */
@@ -156,6 +191,14 @@ class UnstyledScreenShellTest {
                 9L, "PN-20260805-0001", ReservationStatus.CONFIRMED,
                 LocalDateTime.of(2026, 8, 5, 14, 0), LocalDateTime.of(2026, 8, 5, 20, 0),
                 "지우", "연남동 윤슬 호스트", List.of(pet));
+    }
+
+    /** ReviewResponse 는 MyBatis 가 채우는 DTO 라 생성자·세터가 없다. 화면이 읽는 두 값만 스텁한다. */
+    private ReviewResponse myReviewOn(Long reservationId, Long reviewId) {
+        ReviewResponse review = mock(ReviewResponse.class);
+        given(review.getReservationId()).willReturn(reservationId);
+        given(review.getId()).willReturn(reviewId);
+        return review;
     }
 
     private MockHttpSession loggedIn() {
