@@ -7,6 +7,7 @@ import com.example.petnow.dto.response.PlaceSearchResponse;
 import com.example.petnow.entity.Pet;
 import com.example.petnow.exception.BusinessException;
 import com.example.petnow.mapper.AuthMapper;
+import com.example.petnow.mapper.BookmarkMapper;
 import com.example.petnow.mapper.PetMapper;
 import com.example.petnow.mapper.PlaceMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -48,7 +49,8 @@ class PlaceServiceImplFilterTest {
                 placeMapper,
                 mock(AuthMapper.class),
                 petMapper,
-                mock(PlaceGeocodingService.class));
+                mock(PlaceGeocodingService.class),
+                mock(BookmarkMapper.class));
         given(placeMapper.findByFilter(any())).willReturn(List.of());
     }
 
