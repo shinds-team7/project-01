@@ -63,6 +63,11 @@ public class ReviewServiceImpl implements ReviewService {
         return reviewMapper.findReviewsByPlaceId(placeId, sort);
     }
 
+    // 내가 호스팅하는 장소들에 달린 리뷰 목록 조회 (호스트 홈 리뷰 탭)
+    public List<ReviewResponse> getReviewsForHost(Long hostUserId) {
+        return reviewMapper.findReviewsByHostUserId(hostUserId);
+    }
+
     // 리뷰 단건 조회 (수정 폼 화면 용)
     public ReviewResponse getReview(Long memberId, Long reviewId) {
         ReviewResponse response = reviewMapper.findResponseById(reviewId)

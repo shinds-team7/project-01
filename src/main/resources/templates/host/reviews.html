@@ -2,16 +2,16 @@
 <!--/*
   호스트 리뷰 관리 = 프로토타입의 "HOST REVIEWS" 화면.
 
-  ⚠ 매핑 없는 화면. 지금 리뷰를 볼 수 있는 경로는 GET /reviews/place/{placeId} 뿐이고
-  그건 reviews/list.html 을 그린다.
+  GET /host/places/{placeId}/reviews 가 이 화면을 그린다. HostController 가 장소 주인인지
+  확인한 뒤에만 열어 준다. 보호자용 GET /reviews/place/{placeId}(reviews/list.html)는
+  로그인 없이도 열리는 공개 화면이라 작성자 표기 없이 후기만 보여준다.
 
-  이식하면서 예전에 쓰던 review.guestName · review.readByHost · review.replyContent ·
-  averageRating · reviewCount · hasMore 처럼 서버에 없는 값을 걷어내고
-  실제로 내려오는 ReviewResponse 에 맞췄다. 평균 별점은 화면에서 직접 계산한다.
-  답글 달기 · 읽음 처리 · 삭제는 호스트용 API 가 생기면 붙일 자리만 남겨 뒀다.
+  ${place} 는 Place 엔티티, ${reviews} 는 ReviewResponse 목록(최신순)이다.
+  평균 별점은 집계 쿼리 대신 받아 온 목록으로 화면에서 직접 낸다. 이 화면이 장소 하나의
+  리뷰를 다 받아오므로 목록과 평균이 어긋날 일이 없다.
 
-  살리려면 GET /host/places/{placeId}/reviews 같은 매핑과
-  호스트 소유 검증 · 답글 도메인이 필요하다.
+  예전에 쓰던 review.guestName · review.readByHost · review.replyContent · reviewCount ·
+  hasMore 는 서버에 없어 걷어냈다. 답글 달기 · 읽음 처리는 답글 도메인이 생기면 붙인다.
 */-->
 <html lang="ko" xmlns:th="http://www.thymeleaf.org"
       th:replace="~{fragments/base :: page('리뷰 관리', 'none', ~{::main})}">
@@ -58,8 +58,12 @@
                     <span class="when">
                         <span class="ico" aria-hidden="true">star</span>
                         <span th:text="${review.rating}">5</span>
-                        <span th:if="${review.createdAt != null}"
-                              th:text="' · ' + ${#temporals.format(review.createdAt, 'yyyy.MM.dd')}"> · 2026.07.20</span>
+                        <!--/*
+                          ReviewResponse 에 작성 시각이 없어 이용일(reservations.check_in_at)을 쓴다.
+                          "언제 묵고 남긴 후기인지"가 호스트에게는 작성 시각보다 쓸모 있다.
+                        */-->
+                        <span th:if="${review.checkInAt != null}"
+                              th:text="' · ' + ${#temporals.format(review.checkInAt, 'yyyy.MM.dd')} + ' 이용'"> · 2026.07.20 이용</span>
                     </span>
                 </div>
                 <p class="review-item-body" th:text="${review.content}">후기 내용</p>

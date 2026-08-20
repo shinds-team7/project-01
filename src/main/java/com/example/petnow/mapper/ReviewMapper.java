@@ -26,6 +26,10 @@ public interface ReviewMapper {
     // 특정 장소의 리뷰 목록 조회 (reservation과 조인)
     List<ReviewResponse> findReviewsByPlaceId(@Param("placeId") Long placeId, @Param("sort") ReviewSortType sort);
 
+    // 내가 호스팅하는 장소들에 달린 리뷰 목록 (호스트 홈 리뷰 탭)
+    // 장소별로 나눠 부르면 장소 수만큼 쿼리가 나가서 places 를 한 번 더 조인해 한 방에 가져온다.
+    List<ReviewResponse> findReviewsByHostUserId(@Param("hostUserId") Long hostUserId);
+
     // 특정 예약의 placeId 조회
     Long findPlaceIdByReservationId(@Param("reservationId") Long reservationId);
 
