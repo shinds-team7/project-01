@@ -6,6 +6,16 @@
     <style>
         .reservation-cta .btn { flex:1; min-width:0; padding-inline:12px; }
         .reservation-cta .btn-danger { flex:.75; }
+        .reservation-pet-head { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+        .reservation-pet-head .section-title { margin:0; }
+        .reservation-pet-edit { border:0; background:none; padding:6px; font-size:13px; font-weight:700; color:var(--green-dark); cursor:pointer; }
+        .reservation-pet-modal { width:min(360px,calc(100% - 40px)); }
+        .reservation-pet-modal .modal-inner { text-align:left; }
+        .reservation-pet-options { display:flex; flex-direction:column; gap:8px; margin:16px 0 20px; }
+        .reservation-pet-option { display:flex; align-items:center; gap:10px; padding:12px; border:1px solid var(--line-soft); border-radius:12px; cursor:pointer; }
+        .reservation-pet-option input { width:18px; height:18px; accent-color:var(--green); }
+        .reservation-pet-option span { display:flex; flex-direction:column; gap:2px; }
+        .reservation-pet-option small { color:var(--muted); }
     </style>
 
     <div class="topbar has-line">
@@ -51,7 +61,12 @@
             </div>
         </section>
 
-        <h2 class="section-title">동반 반려동물</h2>
+        <div class="reservation-pet-head">
+            <h2 class="section-title">동반 반려동물</h2>
+            <button class="reservation-pet-edit" type="button" data-modal-open
+                    aria-controls="reservation-pets-modal"
+                    th:unless="${reservation.status?.name() == 'CANCELED'}">변경하기</button>
+        </div>
 
         <div class="empty" th:if="${#lists.isEmpty(reservation.pets)}">
             <span class="ico" aria-hidden="true">pets</span>
@@ -104,6 +119,40 @@
             <div class="modal-actions">
                 <button class="btn btn-ghost" type="button" data-modal-close>계속 이용</button>
                 <button class="btn btn-danger" type="submit">예약 취소</button>
+            </div>
+        </form>
+    </dialog>
+
+    <dialog class="modal reservation-pet-modal" id="reservation-pets-modal"
+            aria-labelledby="reservation-pets-title"
+            th:unless="${reservation.status?.name() == 'CANCELED'}">
+        <form class="modal-inner"
+              th:action="@{/reservation/{id}/edit(id=${reservation.reservationId})}"
+              method="post">
+            <h2 id="reservation-pets-title">동반 반려동물 변경</h2>
+            <p>이 예약에 함께할 아이를 한 마리 이상 선택해주세요.</p>
+
+            <div class="reservation-pet-options" th:if="${!#lists.isEmpty(myPets)}">
+                <label class="reservation-pet-option" th:each="pet : ${myPets}">
+                    <input type="checkbox" name="petIds" th:value="${pet.id}"
+                           th:checked="${#lists.contains(selectedPetIds, pet.id)}">
+                    <span>
+                        <strong th:text="${pet.name}">초코</strong>
+                        <small th:text="${(pet.size != null ? pet.size.label : '크기 미입력')
+                                          + (pet.weight != null ? ' · ' + pet.weight + 'kg' : '')}">소형 · 4.5kg</small>
+                    </span>
+                </label>
+            </div>
+
+            <div class="notice" th:if="${#lists.isEmpty(myPets)}">
+                <span class="ico" aria-hidden="true">pets</span>
+                <span>등록된 반려동물이 없어요. <a th:href="@{/pet/new}">먼저 등록하기</a></span>
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn btn-ghost" type="button" data-modal-close>취소</button>
+                <button class="btn btn-primary" type="submit"
+                        th:disabled="${#lists.isEmpty(myPets)}">변경 저장</button>
             </div>
         </form>
     </dialog>

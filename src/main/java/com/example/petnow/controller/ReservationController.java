@@ -171,6 +171,12 @@ public class ReservationController {
 	public String detailReservation(@LoginUser Long userId, @RequestParam Long reservationId, Model model) {
 		ReservationDetailResponse reservation = reservationService.detailReservation(reservationId, userId);
 		model.addAttribute("reservation", reservation);
+		model.addAttribute("myPets", petService.getPetList(userId));
+		model.addAttribute("selectedPetIds", reservation.getPets() == null
+			? List.of()
+			: reservation.getPets().stream()
+				.map(ReservationDetailResponse.PetDetail::getPetId)
+				.toList());
 		model.addAttribute("myReviewId", findMyReviewId(userId, reservationId));
 		return "reservations/reservationDetail";
 	}
