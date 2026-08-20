@@ -57,6 +57,7 @@ public class WebConfig implements WebMvcConfigurer {
                 // 장소 등록 흐름(폼 · 제출 · 완료). 공개 목록 GET /places 와 상세는 열어 둔다.
                 "/places/new",
                 "/places/create",
+                "/places/edit/**",
                 "/places/success"
             )
             // 장소별 리뷰 목록은 로그인 없이 볼 수 있어야 한다.

@@ -62,6 +62,26 @@
         )
     </insert>
 
+    <insert id="upsertAddress">
+        INSERT INTO place_addresses (
+        place_id,
+        sido,
+        sigungu,
+        road_address
+        ) VALUES (
+        #{placeId},
+        #{sido},
+        #{sigungu},
+        #{roadAddress}
+        )
+        ON DUPLICATE KEY UPDATE
+        sido = VALUES(sido),
+        sigungu = VALUES(sigungu),
+        road_address = VALUES(road_address),
+        latitude = NULL,
+        longitude = NULL
+    </insert>
+
     <select id="findById"
             resultType="com.example.petnow.entity.Place">
         SELECT
@@ -81,6 +101,33 @@
         FROM places
         WHERE id = #{placeId}
         AND deleted_at IS NULL
+    </select>
+    <select id="findUpdateForm"
+            resultType="com.example.petnow.dto.request.PlaceUpdateRequest">
+        SELECT
+        p.name,
+        p.description,
+        p.place_type AS placeType,
+        p.area_size AS areaSize,
+        p.capacity,
+        p.allows_small_dog AS allowsSmallDog,
+        p.allows_medium_dog AS allowsMediumDog,
+        p.allows_large_dog AS allowsLargeDog,
+        p.provides_home_camera AS providesHomeCamera,
+        p.provides_realtime_photo AS providesRealtimePhoto,
+        p.provides_yard AS providesYard,
+        p.provides_walk AS providesWalk,
+        p.other_options AS otherOptions,
+        CASE WHEN p.other_options IS NOT NULL AND p.other_options &lt;&gt; ''
+             THEN TRUE ELSE FALSE END AS otherOptionsEnabled,
+        p.hourly_price AS hourlyPrice,
+        p.nightly_price AS nightlyPrice,
+        pa.sigungu,
+        pa.road_address AS roadAddress
+        FROM places p
+        LEFT JOIN place_addresses pa ON pa.place_id = p.id
+        WHERE p.id = #{placeId}
+        AND p.deleted_at IS NULL
     </select>
     <select id="findAllPublished"
             resultType="com.example.petnow.dto.response.PlaceListResponse">
@@ -151,6 +198,27 @@
             package_check_in_time = #{packageCheckInTime},
             package_check_out_time = #{packageCheckOutTime}
         WHERE id = #{placeId}
+        AND deleted_at IS NULL
+    </update>
+    <update id="update">
+        UPDATE places
+        SET name = #{request.name},
+            description = #{request.description},
+            place_type = #{request.placeType},
+            area_size = #{request.areaSize},
+            capacity = #{request.capacity},
+            allows_small_dog = #{request.allowsSmallDog},
+            allows_medium_dog = #{request.allowsMediumDog},
+            allows_large_dog = #{request.allowsLargeDog},
+            provides_home_camera = #{request.providesHomeCamera},
+            provides_realtime_photo = #{request.providesRealtimePhoto},
+            provides_yard = #{request.providesYard},
+            provides_walk = #{request.providesWalk},
+            other_options = #{otherOptions},
+            hourly_price = #{request.hourlyPrice},
+            nightly_price = #{request.nightlyPrice}
+        WHERE id = #{placeId}
+        AND host_user_id = #{hostUserId}
         AND deleted_at IS NULL
     </update>
     <update id="updateAvgRating">
