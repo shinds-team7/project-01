@@ -224,7 +224,7 @@ class AuthControllerTest {
         mockMvc.perform(get("/home").session(loggedInSession()))
                 .andExpect(status().isOk())
                 .andExpect(content().string(allOf(
-                        containsString("profile-button"),
+                        containsString("class=\"profile\""),
                         containsString("초코 보호자님"),
                         containsString("/auth/logout"),
                         // 하드코딩된 예시 이름이 남아 있으면 안 된다

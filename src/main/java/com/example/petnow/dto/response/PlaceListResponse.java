@@ -62,4 +62,6 @@ public class PlaceListResponse {
     public boolean hasRating() {
         return averageRating != null && averageRating.compareTo(BigDecimal.ZERO) > 0;
     }
+
+    private boolean availableToday;
 }
