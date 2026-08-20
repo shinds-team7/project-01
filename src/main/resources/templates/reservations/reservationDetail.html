@@ -107,9 +107,11 @@
         <button class="btn btn-ghost btn-danger-ghost" type="button" data-modal-open
                 aria-controls="reservation-cancel-modal">예약 취소</button>
 
-        <a class="btn btn-dark" th:if="${myReviewId == null}"
+        <a class="btn btn-dark"
+           th:if="${myReviewId == null and reservation.useStatus?.isAfterUse}"
            th:href="@{/reviews/new(reservationId=${reservation.reservationId})}">리뷰 쓰기</a>
-        <a class="btn btn-dark" th:if="${myReviewId != null}"
+        <a class="btn btn-dark"
+           th:if="${myReviewId != null and reservation.useStatus?.isAfterUse}"
            th:href="@{/reviews/{reviewId}/edit(reviewId=${myReviewId})}">리뷰 수정하기</a>
     </div>
 

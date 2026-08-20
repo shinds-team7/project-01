@@ -201,12 +201,29 @@ public class ReservationServiceImpl implements ReservationService {
 			throw new BusinessException(AuthErrorCode.FORBIDDEN);
 		}
 
-		return reservationMapper.detailReservation(reservationId);
+        ReservationDetailResponse response = reservationMapper.detailReservation(reservationId);
+        response.setUseStatus(ReservationUseStatus.calculate(
+            reservation.getStatus(), reservation.getCheckIn(), reservation.getCheckOut()));
+
+		return response;
 	}
 
     @Override
     public ReservationDetailResponse detailReservationForHost(Long reservationId, Long hostUserId) {
-        return reservationMapper.detailReservationForHost(reservationId, hostUserId);
+        Reservation reservation = reservationMapper.findById(reservationId);
+        if (reservation == null) {
+            throw new BusinessException(AuthErrorCode.FORBIDDEN);
+        }
+
+        Place place = placeMapper.findById(reservation.getPlaceId());
+        if (place == null || !Objects.equals(place.getHostUserId(), hostUserId)) {
+            throw new BusinessException(AuthErrorCode.FORBIDDEN);
+        }
+
+        ReservationDetailResponse response = reservationMapper.detailReservationForHost(reservationId, hostUserId);
+        response.setUseStatus(ReservationUseStatus.calculate(
+            reservation.getStatus(), reservation.getCheckIn(), reservation.getCheckOut()));
+        return response;
     }
 
     @Override

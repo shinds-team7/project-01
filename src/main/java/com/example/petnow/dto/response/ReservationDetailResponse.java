@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import com.example.petnow.entity.ReservationStatus;
+import com.example.petnow.entity.ReservationUseStatus;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -25,6 +26,7 @@ public class ReservationDetailResponse {
 	private String userName;
 	private String placeName;
 	private List<PetDetail> pets;
+    private ReservationUseStatus useStatus;
 
 	@Getter
 	@Setter
