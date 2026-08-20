@@ -3,6 +3,11 @@
       th:replace="~{fragments/base :: page('예약 상세', 'none', ~{::main})}">
 <body>
 <main id="main-content" class="app-main no-nav has-cta">
+    <style>
+        .reservation-cta .btn { flex:1; min-width:0; padding-inline:12px; }
+        .reservation-cta .btn-danger { flex:.75; }
+    </style>
+
     <div class="topbar has-line">
         <a class="topbar-back" th:href="@{/reservation/list}" aria-label="예약 목록으로 돌아가기">
             <span class="ico" aria-hidden="true">arrow_back_ios_new</span>
@@ -77,12 +82,33 @@
       등록 단계에서 REVIEW_DUPLICATE 로 튕겨 무엇이 잘못됐는지 화면에서 알 수 없다.
       취소된 예약은 남길 후기가 없으므로 CTA 자체를 그리지 않는다.
     */-->
-    <div class="cta-bar no-nav" th:unless="${reservation.status?.name() == 'CANCELED'}">
+    <div class="cta-bar no-nav reservation-cta" th:unless="${reservation.status?.name() == 'CANCELED'}">
+        <button class="btn btn-danger" type="button" data-modal-open
+                aria-controls="reservation-cancel-modal">예약 취소</button>
         <a class="btn btn-dark btn-block" th:if="${myReviewId == null}"
            th:href="@{/reviews/new(reservationId=${reservation.reservationId})}">리뷰 쓰기</a>
         <a class="btn btn-ghost btn-block" th:if="${myReviewId != null}"
            th:href="@{/reviews/{reviewId}/edit(reviewId=${myReviewId})}">리뷰 수정하기</a>
     </div>
+
+    <dialog class="modal" id="reservation-cancel-modal"
+            aria-labelledby="reservation-cancel-title"
+            th:unless="${reservation.status?.name() == 'CANCELED'}">
+        <form class="modal-inner" th:action="@{/reservation/cancel}" method="post">
+            <input type="hidden" name="reservationId" th:value="${reservation.reservationId}">
+            <h2 id="reservation-cancel-title">예약을 취소할까요?</h2>
+            <p>
+                예약 번호 <strong th:text="${reservation.reservationNo}">PN-00000000-0000</strong><br>
+                취소하면 예약 시간이 다시 열려요.
+            </p>
+            <div class="modal-actions">
+                <button class="btn btn-ghost" type="button" data-modal-close>계속 이용</button>
+                <button class="btn btn-danger" type="submit">예약 취소</button>
+            </div>
+        </form>
+    </dialog>
+
+    <script th:src="@{/js/modal.js}"></script>
 </main>
 </body>
 </html>
