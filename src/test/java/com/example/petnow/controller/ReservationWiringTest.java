@@ -2,6 +2,7 @@ package com.example.petnow.controller;
 
 import com.example.petnow.common.constant.SessionConst;
 import com.example.petnow.dto.response.ReservationDetailResponse;
+import com.example.petnow.dto.response.ReservationListResponse;
 import com.example.petnow.entity.ReservationStatus;
 import com.example.petnow.mapper.PlaceMapper;
 import com.example.petnow.service.PetService;
@@ -15,6 +16,8 @@ import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.hamcrest.Matchers.containsString;
@@ -70,6 +73,32 @@ class ReservationWiringTest {
                 .andExpect(redirectedUrl("/reservation/list"));
 
         then(reservationService).should().cancelReservation(9L, 1L);
+    }
+
+    @Test
+    @DisplayName("예약 목록이 이용상태 필터와 이용상태 배지를 함께 그린다")
+    void reservationListWiresUseStatusFilter() throws Exception {
+        given(reservationService.getReservationList(1L, "BEFORE_USE"))
+                .willReturn(List.of(new ReservationListResponse(
+                        9L,
+                        "연남동 윤슬 호스트",
+                        new BigDecimal("48000"),
+                        ReservationStatus.CONFIRMED,
+                        LocalDateTime.now().plusDays(2),
+                        LocalDateTime.now().plusDays(2).plusHours(6))));
+
+        mockMvc.perform(get("/reservation/list")
+                        .param("useStatus", "BEFORE_USE")
+                        .session(loggedIn()))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("/reservation/list?useStatus=BEFORE_USE")))
+                .andExpect(content().string(containsString("/reservation/list?useStatus=IN_USE")))
+                .andExpect(content().string(containsString("/reservation/list?useStatus=AFTER_USE")))
+                .andExpect(content().string(containsString("예약 이용상태 필터")))
+                .andExpect(content().string(containsString("badge-use-before")))
+                .andExpect(content().string(containsString("이용 전")));
+
+        then(reservationService).should().getReservationList(1L, "BEFORE_USE");
     }
 
     private ReservationDetailResponse detail() {
