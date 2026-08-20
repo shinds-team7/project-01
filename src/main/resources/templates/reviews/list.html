@@ -7,11 +7,8 @@
     GET /reviews/place/{id}    → 장소별 리뷰. 모델에 placeId 가 있다.
   수정·삭제는 내 리뷰일 때만 의미가 있어 placeId 가 없을 때만 그린다.
 
-  ⚠ 수정·삭제 엔드포인트(GET /reviews/{id}/edit · POST /reviews/{id}/delete)가
-    ReviewController 에 없다. 예전에는 없는 경로로 링크가 걸려 있었지만, 그때는
-    /reviews/my 로 들어갈 입구 자체가 없어 아무도 누를 수 없었다.
-    이번에 마이페이지에 입구를 만들면서 처음으로 눌리게 되므로, 링크 대신
-    비활성 버튼으로 둔다. 엔드포인트가 생기면 disabled 를 떼고 form·a 로 바꾸면 된다.
+  내 리뷰의 수정은 GET /reviews/{id}/edit, 삭제는 POST /reviews/{id}/delete 로 처리한다.
+  삭제 폼은 카드마다 고유한 id 를 두고 버튼의 form 속성으로 연결한다.
 
 
   [reviews 원소가 쓰는 필드] ReviewResponse
@@ -86,11 +83,16 @@
                     마당이 넓어서 우리 강아지가 정말 좋아했어요.
                 </p>
 
-                <!--/* 내 리뷰 목록에서만 수정·삭제를 보여준다. 서버가 붙기 전까지는 비활성. */-->
+                <!--/* 내 리뷰 목록에서만 수정·삭제를 보여준다. */-->
                 <div class="card-actions" th:if="${placeId == null}">
-                    <button type="button" disabled title="리뷰 수정 기능은 준비 중이에요">수정하기</button>
-                    <button type="button" class="is-danger" disabled title="리뷰 삭제 기능은 준비 중이에요">삭제하기</button>
+                    <a th:href="@{/reviews/{id}/edit(id=${review.id})}">수정하기</a>
+                    <button type="submit" class="is-danger" th:form="|delete-review-${review.id}|">삭제하기</button>
                 </div>
+                <form th:if="${placeId == null}"
+                      th:id="|delete-review-${review.id}|"
+                      th:action="@{/reviews/{id}/delete(id=${review.id})}"
+                      method="post"
+                      onsubmit="return confirm('삭제한 리뷰는 복구할 수 없어요. 정말 삭제할까요?');"></form>
             </li>
         </ul>
     </div>

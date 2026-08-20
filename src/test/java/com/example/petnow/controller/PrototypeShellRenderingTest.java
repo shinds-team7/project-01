@@ -37,6 +37,7 @@ import static org.hamcrest.Matchers.not;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.mock;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -371,7 +372,32 @@ class PrototypeShellRenderingTest {
                 .andExpect(content().string(containsString("/css/app.css")))
                 .andExpect(content().string(containsString("성수 조용한 단독주택 마당")))
                 .andExpect(content().string(containsString("마당이 넓어서 좋았어요")))
-                .andExpect(content().string(containsString("수정하기")));
+                .andExpect(content().string(containsString("href=\"/reviews/11/edit\"")))
+                .andExpect(content().string(containsString("action=\"/reviews/11/delete\"")))
+                .andExpect(content().string(containsString("method=\"post\"")))
+                .andExpect(content().string(containsString("form=\"delete-review-11\"")))
+                .andExpect(content().string(containsString("삭제한 리뷰는 복구할 수 없어요")))
+                .andExpect(content().string(not(containsString("준비 중이에요"))))
+                .andExpect(content().string(containsString("수정하기")))
+                .andExpect(content().string(containsString("삭제하기")));
+    }
+
+    @Test
+    @DisplayName("리뷰 목록이 연결한 수정·삭제 요청을 컨트롤러가 처리한다")
+    void reviewActionsReachController() throws Exception {
+        mockMvc.perform(post("/reviews/11").session(loggedIn())
+                        .param("rating", "4")
+                        .param("content", "수정한 리뷰예요"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/reviews/my"));
+
+        then(reviewService).should().updateReview(eq(1L), eq(11L), any());
+
+        mockMvc.perform(post("/reviews/11/delete").session(loggedIn()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/reviews/my"));
+
+        then(reviewService).should().deleteReview(1L, 11L);
     }
 
     @Test
