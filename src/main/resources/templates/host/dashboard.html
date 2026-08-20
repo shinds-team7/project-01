@@ -4,11 +4,12 @@
 
   GET /host 가 이 화면을 그린다. (#179 로 manage.html 을 대체했다)
 
-  ${places} 는 HostPlaceListResponse(id·name·status)다.
-  프로토타입 카드의 평점·예약 건수는 집계 쿼리가 없어 옮기지 않았다.
+  ${places} 는 HostPlaceListResponse(id·name·status·averageRating)다.
+  평점은 places.average_rating 을 그대로 읽는다. 예약 건수는 집계 쿼리가 없어 아직 없다.
 
-  예약 요청·리뷰 탭은 호스트용 조회 API 가 아직 없어 빈 상태로 둔다.
-  붙일 자리는 #100(예약 승인/거부)에서 이어간다.
+  예약 요청 탭은 HostController 가 reservationService.getReservationByHost 로 채운다.
+  카드를 누르면 GET /reservation/{id} 의 호스트 예약 상세로 가고 거기서 승인·거절한다.
+  리뷰 탭은 호스트용 리뷰 조회 쿼리가 없어 아직 비어 있다.
 
   "일정 관리 및 수정"은 프로토타입 라벨을 그대로 두되 비활성이다.
   장소 수정·일정 관리 서버 기능이 둘 다 없다.
@@ -31,7 +32,7 @@
             <a th:href="@{/host(tab='places')}" th:classappend="${activeTab == 'places'} ? 'is-active'">내 호스팅</a>
         </div>
 
-        <!--/* 예약 요청 탭 — 호스트용 예약 조회 API 가 없어 아직 비어 있다 (#100) */-->
+        <!--/* 예약 요청 탭 — HostController 가 status 필터로 채운다 (#100) */-->
         <div th:if="${activeTab == 'booking'}">
             <div class="tab-row">
                 <a th:href="@{/host(tab='booking', status='PENDING')}"
@@ -99,6 +100,16 @@
                                       th:if="${place.status != null}"
                                       th:classappend="${place.status.name() == 'PUBLISHED'} ? 'badge-green' : 'badge-warn'"
                                       th:text="${place.status.label}">게시 상태</span>
+                            </span>
+                            <!--/*
+                              평균 별점. 호스트가 자기 공간 평판을 대시보드에서 바로 보게 한다.
+                              리뷰가 없으면(0.00) 그리지 않는다 — 첫 리뷰 전에 0.0 이 뜨면
+                              호스트에게 잘못된 신호가 된다.
+                            */-->
+                            <span class="rating" th:if="${place.hasRating()}">
+                                <span class="ico" aria-hidden="true">star</span>
+                                <span th:text="${#numbers.formatDecimal(place.averageRating, 1, 1)}">4.8</span>
+                                <span class="sr-only">점</span>
                             </span>
                             <span class="place-summary-more">
                                 게시글 보기 <span class="ico" aria-hidden="true">chevron_right</span>

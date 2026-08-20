@@ -55,6 +55,12 @@
                             <span class="ico" aria-hidden="true">person</span>
                             <span th:text="${place.nickname}">호스트 닉네임</span>
                         </p>
+                        <!--/* 리뷰가 없으면(0.00) 줄 자체를 그리지 않는다. places/list.html 과 같은 규칙. */-->
+                        <p class="rating" th:if="${place.hasRating()}">
+                            <span class="ico" aria-hidden="true">star</span>
+                            <span th:text="${#numbers.formatDecimal(place.averageRating, 1, 1)}">4.8</span>
+                            <span class="sr-only">점</span>
+                        </p>
                         <p class="place-price" th:if="${place.hourlyPrice != null}">
                             <span th:text="${#numbers.formatInteger(place.hourlyPrice, 0, 'COMMA')} + '원'">12,000원</span>
                             <small>/ 시간당</small>

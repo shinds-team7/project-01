@@ -104,6 +104,7 @@
         p.provides_yard AS providesYard,
         p.provides_walk AS providesWalk,
         p.hourly_price AS hourlyPrice,
+        p.average_rating AS averageRating,
         pa.latitude AS latitude,
         pa.longitude AS longitude
         FROM places p
@@ -134,6 +135,7 @@
         other_options AS otherOptions,
         hourly_price AS hourlyPrice,
         nightly_price AS nightlyPrice,
+        average_rating AS averageRating,
         supports_hourly AS supportsHourly,
         supports_package AS supportsPackage,
         package_check_in_time AS packageCheckInTime,
@@ -193,6 +195,11 @@
         p.provides_yard AS providesYard,
         p.provides_walk AS providesWalk,
         p.hourly_price AS hourlyPrice,
+        <!--
+          별점순 정렬(sort=rating)이 읽는 것과 같은 컬럼이다. 정렬 키를 화면에 보여주지 않으면
+          왜 이 순서인지 알 수 없으므로 목록 조회에서 항상 같이 읽는다.
+        -->
+        p.average_rating AS averageRating,
         <!--
           지도 마커용 좌표. (#277) 조인은 지역 조건 때문에 이미 있으므로 컬럼만 더 읽는다.
           LEFT JOIN 이라 주소가 없거나 아직 지오코딩되지 않은 장소는 NULL 로 나오고,

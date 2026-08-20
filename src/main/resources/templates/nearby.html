@@ -138,6 +138,12 @@
                         <span class="ico" aria-hidden="true">person</span>
                         <span th:text="${place.nickname}">호스트 닉네임</span>
                     </p>
+                    <!--/* 리뷰가 없으면(0.00) 줄 자체를 그리지 않는다. places/list.html 과 같은 규칙. */-->
+                    <p class="rating" th:if="${place.hasRating()}">
+                        <span class="ico" aria-hidden="true">star</span>
+                        <span th:text="${#numbers.formatDecimal(place.averageRating, 1, 1)}">4.8</span>
+                        <span class="sr-only">점</span>
+                    </p>
                     <!--/* 내 위치를 실제로 얻었을 때만 JS 가 채우고 hidden 을 뗀다. */-->
                     <p class="place-distance" hidden>
                         <span class="ico" aria-hidden="true">near_me</span>

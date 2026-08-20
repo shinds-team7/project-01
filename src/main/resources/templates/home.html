@@ -226,6 +226,15 @@
                     <span class="ico" aria-hidden="true">home_work</span>
                     <span th:text="${place.placeType != null ? place.placeType.label : '유형 미정'}">장소 유형</span>
                 </span>
+                <!--/*
+                  평균 별점. 카드가 <a> 라 블록 요소를 넣을 수 없어 span 으로 쓴다.
+                  .rating 은 inline-flex 라 그대로 붙는다. 리뷰가 없으면(0.00) 그리지 않는다.
+                */-->
+                <span class="rating" th:if="${place.hasRating()}">
+                    <span class="ico" aria-hidden="true">star</span>
+                    <span th:text="${#numbers.formatDecimal(place.averageRating, 1, 1)}">4.8</span>
+                    <span class="sr-only">점</span>
+                </span>
                 <span class="home-recent-price"
                       th:text="${place.hourlyPrice != null
                                  ? #numbers.formatInteger(place.hourlyPrice, 0, 'COMMA') + '원~'
