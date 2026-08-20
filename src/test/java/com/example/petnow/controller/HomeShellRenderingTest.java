@@ -54,6 +54,8 @@ class HomeShellRenderingTest {
                 .andExpect(content().string(containsString("class=\"site-header\"")))
                 .andExpect(content().string(containsString("/css/home-classic.css")))
                 .andExpect(content().string(containsString("/auth/login")))
+                .andExpect(content().string(containsString("<form class=\"home-search\"")))
+                .andExpect(content().string(not(containsString("data-classic-search"))))
                 .andExpect(content().string(containsString("편안한 하루</em>를 맡겨요")));
     }
 

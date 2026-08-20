@@ -1,8 +1,6 @@
 (() => {
     "use strict";
 
-    const filterForm = document.querySelector(".home-search");
-    const planner = document.querySelector("[data-classic-search]");
     const header = document.querySelector("[data-header]");
 
     const reveal = () => document.querySelectorAll(".reveal")
@@ -13,7 +11,4 @@
     updateHeader();
     window.addEventListener("scroll", updateHeader, {passive: true});
 
-    planner?.querySelector("[data-classic-search-submit]")?.addEventListener("click", () => {
-        filterForm?.requestSubmit();
-    });
 })();
