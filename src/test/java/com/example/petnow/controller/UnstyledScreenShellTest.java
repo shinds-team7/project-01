@@ -8,6 +8,7 @@ import com.example.petnow.dto.response.ReservationListResponse;
 import com.example.petnow.dto.response.ReviewResponse;
 import com.example.petnow.entity.PlaceStatus;
 import com.example.petnow.entity.ReservationStatus;
+import com.example.petnow.entity.ReservationUseStatus;
 import com.example.petnow.mapper.PlaceMapper;
 import com.example.petnow.service.HostService;
 import com.example.petnow.service.MyProfileServiceImpl;
@@ -190,7 +191,7 @@ class UnstyledScreenShellTest {
         return new ReservationDetailResponse(
                 9L, "PN-20260805-0001", ReservationStatus.CONFIRMED,
                 LocalDateTime.of(2026, 8, 5, 14, 0), LocalDateTime.of(2026, 8, 5, 20, 0),
-                "지우", "연남동 윤슬 호스트", List.of(pet));
+                "지우", "연남동 윤슬 호스트", List.of(pet), ReservationUseStatus.AFTER_USE);
     }
 
     /** ReviewResponse 는 MyBatis 가 채우는 DTO 라 생성자·세터가 없다. 화면이 읽는 두 값만 스텁한다. */

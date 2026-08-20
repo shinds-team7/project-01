@@ -6,6 +6,7 @@ import com.example.petnow.dto.response.ReservationDetailResponse;
 import com.example.petnow.dto.response.ReservationListResponse;
 import com.example.petnow.entity.Pet;
 import com.example.petnow.entity.ReservationStatus;
+import com.example.petnow.entity.ReservationUseStatus;
 import com.example.petnow.mapper.PlaceMapper;
 import com.example.petnow.service.PetService;
 import com.example.petnow.service.ReservationService;
@@ -173,6 +174,7 @@ class ReservationWiringTest {
         response.setStatus(ReservationStatus.CONFIRMED);
         response.setPlaceName("연남동 윤슬 호스트");
         response.setPets(List.of());
+        response.setUseStatus(ReservationUseStatus.AFTER_USE);
         return response;
     }
 
