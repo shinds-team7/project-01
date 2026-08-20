@@ -4,6 +4,7 @@ import com.example.petnow.common.session.LoginRedirect;
 import com.example.petnow.common.session.LoginSession;
 import com.example.petnow.dto.request.PlaceFilterRequest;
 import com.example.petnow.dto.response.PlaceSearchResponse;
+import com.example.petnow.entity.PlaceType;
 import com.example.petnow.service.PetService;
 import com.example.petnow.service.PlaceService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -84,27 +85,39 @@ public class HomeController {
 
         // 검색 조건 카드의 다이얼로그를 채운다. 지역은 아직 place_addresses 가 비어 있으면 0건이다. (#7)
         model.addAttribute("regions", placeService.getFilterRegions());
+
+        // 장소 유형은 고정 목록이라 지역과 달리 DB 를 보지 않는다. 등록 폼과 같은 출처를 쓴다.
+        model.addAttribute("placeTypes", PlaceType.values());
         Long loginUserId = LoginSession.currentUserId(request);
         model.addAttribute("myPets", loginUserId == null ? List.of() : petService.getPetList(loginUserId));
         return "home";
     }
 
-    /** 장소명·소개글·호스트 닉네임으로 공개된 공간을 찾는다. (#264) */
+    /**
+     * 장소명·소개글·호스트 닉네임으로 공개된 공간을 찾는다. (#264)
+     *
+     * <p>{@code sort} 는 검색어와 함께 유지된다. 정렬을 바꿀 때마다 검색어가 날아가면
+     * 결과 화면에서 정렬을 쓸 수 없다.
+     */
     @GetMapping("/search")
     public String search(@RequestParam(required = false) String keyword,
+                         @RequestParam(required = false) String sort,
                          HttpServletRequest request,
                          Model model) {
         String normalizedKeyword = keyword == null ? "" : keyword.trim();
         boolean searched = !normalizedKeyword.isEmpty();
 
+        PlaceFilterRequest filter = new PlaceFilterRequest();
+        filter.setSort(sort);
+
         model.addAttribute("keyword", normalizedKeyword);
         model.addAttribute("searched", searched);
+        model.addAttribute("currentSort", filter.normalizedSort());
         if (!searched) {
             model.addAttribute("places", List.of());
             return "places/search";
         }
 
-        PlaceFilterRequest filter = new PlaceFilterRequest();
         filter.setKeyword(normalizedKeyword);
         PlaceSearchResponse result = placeService.searchPlaces(LoginSession.currentUserId(request), filter);
         model.addAttribute("places", result.getPlaces());
@@ -138,6 +151,9 @@ public class HomeController {
         model.addAttribute("kakaoMapJavascriptKey", kakaoMapJavascriptKey);
         model.addAttribute("kakaoMapEnabled", !kakaoMapJavascriptKey.isEmpty());
 
+        // 정렬 칩도 두 갈래가 같이 쓴다. 조건이 틀려 다시 그릴 때 켜져 있던 정렬이 풀리면 안 된다.
+        model.addAttribute("currentSort", filter.normalizedSort());
+
         if (bindingResult.hasErrors()) {
             model.addAttribute("filterErrors", filterErrors(bindingResult));
             model.addAttribute("places", List.of());
@@ -152,6 +168,7 @@ public class HomeController {
         model.addAttribute("dateLabel", result.getDateLabel());
         model.addAttribute("timeLabel", result.getTimeLabel());
         model.addAttribute("petLabel", result.getPetLabel());
+        model.addAttribute("typeLabel", result.getTypeLabel());
         return "nearby";
     }
 

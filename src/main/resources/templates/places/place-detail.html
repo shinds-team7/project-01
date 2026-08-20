@@ -2,8 +2,8 @@
 <!--/*
   장소 상세 = 프로토타입의 "DETAIL" 화면.
 
-  프로토타입은 평점·리뷰 수·지역·호스팅 연차를 하드코딩해 두었지만
-  PlaceDetailResponse 에는 없는 값이라 옮기지 않았다. (#182 의 함정 1)
+  평점은 places.average_rating 을 PlaceDetailResponse.averageRating 으로 실어 보여준다.
+  리뷰 수·지역·호스팅 연차는 여전히 서버에 없는 값이라 옮기지 않았다. (#182 의 함정 1)
   리뷰 영역은 /reviews/place/{placeId} 로 넘겨 실제 목록에서 보게 했다.
 
   찜·사진 갤러리·지도는 아직 서버가 없어 화면에 두지 않았다.
@@ -31,6 +31,16 @@
 
         <h1 class="detail-title" th:text="${place.name}">장소명</h1>
         <p class="detail-meta">
+            <!--/*
+              평균 별점. 리뷰가 없으면(average_rating = 0.00) 별점과 그 뒤 구분점을 함께 뺀다.
+              점만 남아 "· · 리뷰 보기" 로 보이지 않게 sep 을 별점 쪽에 붙여 둔다.
+            */-->
+            <span class="rating" th:if="${place.hasRating()}">
+                <span class="ico" aria-hidden="true">star</span>
+                <span th:text="${#numbers.formatDecimal(place.averageRating, 1, 1)}">4.8</span>
+                <span class="sr-only">점</span>
+            </span>
+            <span class="sep" th:if="${place.hasRating()}">·</span>
             <span th:if="${place.placeType != null}" th:text="${place.placeType.label}">장소 유형</span>
             <span class="sep" th:if="${place.areaSize != null}">·</span>
             <span th:if="${place.areaSize != null}" th:text="${place.areaSize} + '평'">장소 면적</span>

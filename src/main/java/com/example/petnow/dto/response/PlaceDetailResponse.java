@@ -39,4 +39,15 @@ public class PlaceDetailResponse {
     private PlaceStatus status;
     private boolean visible;
     private boolean bookmarked;
+
+    /**
+     * 평균 별점. {@code places.average_rating} 을 그대로 읽는다.
+     * 리뷰가 없으면 {@code 0.00} 이고, 그 경우 화면은 별점 대신 리뷰 유도 문구를 그린다.
+     */
+    private BigDecimal averageRating;
+
+    /** 별점을 그릴지. 판단 근거는 {@link PlaceListResponse#hasRating()} 과 같다. */
+    public boolean hasRating() {
+        return averageRating != null && averageRating.compareTo(BigDecimal.ZERO) > 0;
+    }
 }
