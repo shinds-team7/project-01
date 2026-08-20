@@ -2,6 +2,7 @@ package com.example.petnow.service;
 
 import com.example.petnow.dto.request.PlaceCreateRequest;
 import com.example.petnow.dto.request.PlaceFilterRequest;
+import com.example.petnow.dto.request.PlaceUpdateRequest;
 import com.example.petnow.dto.response.PlaceDetailResponse;
 import com.example.petnow.dto.response.PlaceListResponse;
 import com.example.petnow.dto.response.PlaceSearchResponse;
@@ -11,6 +12,10 @@ import java.util.List;
 public interface PlaceService {
 
     void createPlace(Long userId, PlaceCreateRequest request);
+
+    PlaceUpdateRequest getUpdateForm(Long userId, Long placeId);
+
+    void updatePlace(Long userId, Long placeId, PlaceUpdateRequest request);
 
     List<PlaceListResponse> getPublishedPlaces();
 

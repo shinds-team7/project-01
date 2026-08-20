@@ -4,6 +4,7 @@ import com.example.petnow.common.argument.LoginUser;
 import com.example.petnow.common.session.LoginSession;
 import com.example.petnow.dto.request.PlaceCreateRequest;
 import com.example.petnow.dto.request.PlaceFilterRequest;
+import com.example.petnow.dto.request.PlaceUpdateRequest;
 import com.example.petnow.entity.PlaceType;
 import com.example.petnow.service.PlaceService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -28,8 +29,8 @@ public class PlaceController {
 
     @GetMapping("/new")
     public String createForm(Model model) {
-        model.addAttribute("placeCreateRequest", new PlaceCreateRequest());
-        addCreateFormAttributes(model);
+        model.addAttribute("placeForm", new PlaceCreateRequest());
+        addFormAttributes(model);
 
         return "places/create";
     }
@@ -45,17 +46,43 @@ public class PlaceController {
      */
     @PostMapping("/create")
     public String create(@LoginUser Long loginUserId,
-                         @Valid @ModelAttribute("placeCreateRequest") PlaceCreateRequest request,
+                         @Valid @ModelAttribute("placeForm") PlaceCreateRequest request,
                          BindingResult bindingResult,
                          Model model) {
         if (bindingResult.hasErrors()) {
-            addCreateFormAttributes(model);
+            addFormAttributes(model);
             return "places/create";
         }
 
         placeService.createPlace(loginUserId, request);
 
         return "redirect:/places/success";
+    }
+
+    @GetMapping("/edit/{placeId}")
+    public String editForm(@LoginUser Long loginUserId,
+                           @PathVariable Long placeId,
+                           Model model) {
+        model.addAttribute("placeForm", placeService.getUpdateForm(loginUserId, placeId));
+        model.addAttribute("editPlaceId", placeId);
+        addFormAttributes(model);
+        return "places/create";
+    }
+
+    @PostMapping("/edit/{placeId}")
+    public String update(@LoginUser Long loginUserId,
+                         @PathVariable Long placeId,
+                         @Valid @ModelAttribute("placeForm") PlaceUpdateRequest request,
+                         BindingResult bindingResult,
+                         Model model) {
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("editPlaceId", placeId);
+            addFormAttributes(model);
+            return "places/create";
+        }
+
+        placeService.updatePlace(loginUserId, placeId, request);
+        return "redirect:/places/" + placeId;
     }
 
     @GetMapping("/success")
@@ -98,7 +125,7 @@ public class PlaceController {
         return "places/place-detail";
     }
 
-    private void addCreateFormAttributes(Model model) {
+    private void addFormAttributes(Model model) {
         model.addAttribute("placeTypes", PlaceType.values());
     }
 }

@@ -12,6 +12,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -66,6 +67,10 @@ public class ReservationServiceImpl implements ReservationService {
 		if (place == null) {
 			throw new BusinessException(PlaceErrorCode.PLACE_NOT_FOUND);
 		}
+
+        if (Objects.equals(place.getHostUserId(), userId)) {
+            throw new BusinessException(ReservationErrorCode.RESERVATION_ACCESS_DENIED);
+        }
 
 		ReservationType type = request.getReservationType();
 		if (type == ReservationType.SAME_DAY && !place.isSupportsHourly()) {

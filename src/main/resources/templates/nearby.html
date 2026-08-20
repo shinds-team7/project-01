@@ -462,11 +462,15 @@
                 if (!window.kakao || !window.kakao.maps) return false;
 
                 const kakao = window.kakao;
+                /*
+                 * 캔버스는 기본적으로 display:none 이다. 숨은 상태에서 Map 을 만들면 SDK 가
+                 * 크기를 0으로 읽어 타일 일부만 모서리에 그린다. 먼저 표시해 실제 크기를 확보한다.
+                 */
+                mapBox.classList.add("is-live");
                 const map = new kakao.maps.Map(canvas, {
                     center: new kakao.maps.LatLng(origin.lat, origin.lng),
                     level: DEFAULT_LEVEL
                 });
-                mapBox.classList.add("is-live");
 
                 const bounds = new kakao.maps.LatLngBounds();
                 let plotted = 0;
@@ -494,16 +498,26 @@
                     if (map.getLevel() > MAX_LEVEL) map.setLevel(MAX_LEVEL);
                 }
 
-                /* 화면을 돌리면 지도 크기가 바뀐다. 중심은 유지한 채 다시 그린다. */
-                let resizeTimer = 0;
-                window.addEventListener("resize", () => {
-                    window.clearTimeout(resizeTimer);
-                    resizeTimer = window.setTimeout(() => {
+                /*
+                 * 최초 표시, 모바일 회전, 데스크톱 브레이크포인트·사이드바 변화처럼 지도 영역의
+                 * 실제 크기가 바뀌는 모든 경우에 다시 배치한다. 중심은 relayout 전후로 유지한다.
+                 */
+                let resizeFrame = 0;
+                const scheduleRelayout = () => {
+                    window.cancelAnimationFrame(resizeFrame);
+                    resizeFrame = window.requestAnimationFrame(() => {
                         const center = map.getCenter();
                         map.relayout();
                         map.setCenter(center);
-                    }, 200);
-                });
+                    });
+                };
+
+                scheduleRelayout();
+                window.addEventListener("resize", scheduleRelayout);
+                if (typeof window.ResizeObserver === "function") {
+                    const resizeObserver = new ResizeObserver(scheduleRelayout);
+                    resizeObserver.observe(mapBox);
+                }
 
                 return true;
             }
@@ -569,6 +583,7 @@
                             drawn = drawMap(origin, Boolean(here), entries);
                         } catch (error) {
                             /* 지도만 포기한다. 목록은 그대로 둔다. */
+                            mapBox?.classList.remove("is-live");
                             drawn = false;
                         }
                         report(Boolean(here), filtered, withoutPoint, drawn, entries.length);

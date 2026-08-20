@@ -71,6 +71,24 @@ class NearbyMapRenderingTest {
     }
 
     @Test
+    @DisplayName("지도 캔버스를 표시한 뒤 초기화하고 크기 변화마다 다시 배치한다")
+    void initializesMapAfterShowingResponsiveCanvas() throws Exception {
+        given(placeService.searchPlaces(isNull(), any(PlaceFilterRequest.class)))
+                .willReturn(searchResult(List.of(withCoordinates())));
+
+        String html = mockMvc.perform(get("/nearby"))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+
+        assertThat(html.indexOf("mapBox.classList.add(\"is-live\")"))
+                .isLessThan(html.indexOf("new kakao.maps.Map"));
+        assertThat(html)
+                .contains("scheduleRelayout()")
+                .contains("map.relayout()")
+                .contains("ResizeObserver");
+    }
+
+    @Test
     @DisplayName("서버 전용 REST API 키는 화면에 실리지 않는다")
     void neverLeaksRestApiKey() throws Exception {
         given(placeService.searchPlaces(isNull(), any(PlaceFilterRequest.class)))
