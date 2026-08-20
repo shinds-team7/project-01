@@ -49,4 +49,30 @@
           AND deleted_at IS NULL
 
     </select>
+
+    <select id="findByProviderAndProviderId"
+            resultType="com.example.petnow.entity.User">
+        SELECT id, email, nickname, password, phone, profile_image_url, provider, provider_id
+        FROM users
+        WHERE provider = #{provider}
+          AND provider_id = #{providerId}
+          AND deleted_at IS NULL
+    </select>
+
+    <insert id="signupKakao"
+            parameterType="com.example.petnow.entity.User"
+            useGeneratedKeys="true"
+            keyProperty="id">
+
+        INSERT INTO users (
+            nickname,
+            provider,
+            provider_id
+        )
+        VALUES (
+                   #{nickname},
+                   #{provider},
+                   #{providerId}
+               )
+    </insert>
 </mapper>

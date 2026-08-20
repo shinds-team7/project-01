@@ -54,8 +54,15 @@ cloud:
       base-url: ${AWS_S3_BASE_URL:}
 
 kakao:
+  map:
+    # 지도 SDK 가 브라우저에서 쓰는 JavaScript 키. HTML 에 그대로 실려 나가는 것이 정상이다. (#277)
+    # 숨길 수 없으므로 카카오 개발자 콘솔의 플랫폼 > 웹에 도메인을 등록해 사용처를 제한한다.
+    # http://localhost:8080 과 https://petnow.duckdns.org 을 둘 다 등록해야 로컬·운영이 같이 산다.
+    # 비워 두면 /nearby 는 지도 없이 목록만 그린다. 앱은 그대로 뜬다.
+    javascript-key: ${KAKAO_MAP_JAVASCRIPT_KEY:}
   local-api:
     # REST API 키는 서버에서만 사용하며 템플릿·JavaScript로 전달하지 않는다.
+    # 아래 키와 위 javascript-key 가 같은 값이면 KakaoKeyGuard 가 기동을 막는다.
     rest-api-key: ${KAKAO_REST_API_KEY:}
     base-url: https://dapi.kakao.com
     connect-timeout: 2s

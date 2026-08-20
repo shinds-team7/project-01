@@ -28,6 +28,8 @@ public interface ReservationMapper {
 
 	ReservationDetailResponse detailReservation(Long reservationId);
 
+    ReservationDetailResponse detailReservationForHost(@Param("reservationId") Long reservationId, @Param("hostUserId") Long hostUserId);
+
 	Reservation findById(Long reservationId);
 
 	int cancelReservation(Long reservationId);
@@ -42,4 +44,5 @@ public interface ReservationMapper {
 
     int deleteReservationSlotsByReservationId(Long reservationId);
 
+    int deleteReservationPets(Long reservationId);
 }

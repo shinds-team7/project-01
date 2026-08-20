@@ -2,6 +2,7 @@ package com.example.petnow.service;
 
 import com.example.petnow.dto.request.UserLoginRequest;
 import com.example.petnow.dto.request.UserSignupRequest;
+import com.example.petnow.dto.response.KakaoUserResponse;
 import com.example.petnow.dto.response.LoginUser;
 import com.example.petnow.dto.response.UserMyPageResponse;
 import com.example.petnow.entity.User;
@@ -102,6 +103,7 @@ public class AuthServiceImpl implements AuthService {
      */
     private void mitigateAgainstTimingAttack(String rawPassword) {
         passwordEncoder.matches(rawPassword, userNotFoundEncodedPassword);
+
     }
 
     @Override
@@ -114,5 +116,27 @@ public class AuthServiceImpl implements AuthService {
         }
 
         return  UserMyPageResponse.from(user);
+    }
+
+    @Override
+    public LoginUser loginOrSignupKakao(KakaoUserResponse kakaoUser) {
+
+        User user = authMapper.findByProviderAndProviderId(
+            "KAKAO",
+            kakaoUser.getKakaoId().toString()
+        );
+
+        if (user == null) {
+
+            user = User.builder()
+                .nickname(kakaoUser.getNickname())
+                .provider("KAKAO")
+                .providerId(kakaoUser.getKakaoId().toString())
+                .build();
+
+            authMapper.signupKakao(user);
+        }
+
+        return LoginUser.from(user);
     }
 }

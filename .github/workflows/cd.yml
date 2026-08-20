@@ -138,22 +138,33 @@ jobs:
       # 컨테이너가 실제로 HTTP 응답을 하는지 확인한다.
       - name: Smoke test
         run: |
+          # SERVICE_BASE_URL 에 끝 슬래시가 붙어 있어도 "//nearby" 가 되지 않게 벗겨낸다.
+          # 이중 슬래시는 앱이 멀쩡해도 404 가 날 수 있어, 배포는 성공했는데
+          # 스모크 테스트만 계속 실패하는 상황을 만든다.
+          base="${{ vars.SERVICE_BASE_URL }}"
+          base="${base%/}"
+
           for i in $(seq 1 30); do
+            echo "========== Attempt $i/30 =========="
+
             code=$(curl \
-              --connect-timeout 3 \
-              --max-time 5 \
-              -s -o /dev/null \
+              --connect-timeout 10 \
+              --max-time 15 \
+              -sS -o /dev/null \
               -w '%{http_code}' \
-              "${{ vars.SERVICE_BASE_URL }}/nearby" || true)
+              "$base/nearby" || true)
+
+            echo "HTTP status: $code"
 
             if [ "$code" = "200" ]; then
-              echo "up (HTTP $code)"
+              echo "Smoke test passed (HTTP $code)"
               exit 0
             fi
 
-            echo "waiting... ($i/30, last=$code)"
+            echo "waiting..."
             sleep 5
           done
 
-          echo "앱이 2분 안에 응답하지 않음"
+          echo "앱이 2분 안에 응답하지 않음 (마지막 응답: $code, URL: $base/nearby)"
+          echo "컨테이너 상태를 EC2 에서 확인할 것: docker ps -a / docker logs petnow-app"
           exit 1
