@@ -19,6 +19,13 @@
       th:replace="~{fragments/base :: page(${placeId != null} ? '장소 리뷰' : '내 리뷰', 'my', ~{::main})}">
 <body>
 <main id="main-content" class="app-main">
+    <style>
+        .sort-tabs { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:6px; margin-bottom:16px; padding:4px; border-radius:12px; background:#f3f4f6; }
+        .sort-tabs a { padding:10px 6px; border-radius:9px; text-align:center; font-size:13px; font-weight:700; color:var(--muted); }
+        .sort-tabs a.is-active { background:#fff; color:var(--ink); box-shadow:0 1px 4px rgba(0,0,0,.08); }
+        .sort-tabs a:focus-visible { outline:2px solid var(--green); outline-offset:2px; }
+    </style>
+
     <div class="topbar">
         <a class="topbar-back" th:href="${placeId != null} ? @{/places/{id}(id=${placeId})} : @{/mypage}"
            aria-label="뒤로 가기">
@@ -86,16 +93,28 @@
                 <!--/* 내 리뷰 목록에서만 수정·삭제를 보여준다. */-->
                 <div class="card-actions" th:if="${placeId == null}">
                     <a th:href="@{/reviews/{id}/edit(id=${review.id})}">수정하기</a>
-                    <button type="submit" class="is-danger" th:form="|delete-review-${review.id}|">삭제하기</button>
+                    <button type="button" class="is-danger" data-modal-open
+                            th:attr="aria-controls=|review-delete-${review.id}|">삭제하기</button>
                 </div>
-                <form th:if="${placeId == null}"
-                      th:id="|delete-review-${review.id}|"
-                      th:action="@{/reviews/{id}/delete(id=${review.id})}"
-                      method="post"
-                      onsubmit="return confirm('삭제한 리뷰는 복구할 수 없어요. 정말 삭제할까요?');"></form>
+
+                <dialog class="modal" th:if="${placeId == null}"
+                        th:id="|review-delete-${review.id}|"
+                        th:attr="aria-labelledby=|review-delete-title-${review.id}|">
+                    <form class="modal-inner" method="post"
+                          th:action="@{/reviews/{id}/delete(id=${review.id})}">
+                        <h2 th:id="|review-delete-title-${review.id}|">리뷰를 삭제할까요?</h2>
+                        <p>삭제한 리뷰는 복구할 수 없어요.</p>
+                        <div class="modal-actions">
+                            <button class="btn btn-ghost" type="button" data-modal-close>취소</button>
+                            <button class="btn btn-danger" type="submit">삭제하기</button>
+                        </div>
+                    </form>
+                </dialog>
             </li>
         </ul>
     </div>
+
+    <script th:src="@{/js/modal.js}"></script>
 </main>
 </body>
 </html>
