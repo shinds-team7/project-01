@@ -93,6 +93,18 @@ class MyProfileServiceImplTest {
     }
 
     @Test
+    @DisplayName("카카오 계정이면 프로필 응답에 카카오 사용자 여부를 표시한다")
+    void profileMarksKakaoUser() {
+        User kakaoUser = user("카카오초코", null, null);
+        given(kakaoUser.getProvider()).willReturn("KAKAO");
+        given(myProfileMapper.findById(7L)).willReturn(kakaoUser);
+
+        MyProfileResponse profile = service.getProfile(7L);
+
+        assertThat(profile.isKakaoUser()).isTrue();
+    }
+
+    @Test
     @DisplayName("현재 비밀번호가 맞으면 새 비밀번호를 해시해 저장한다")
     void changePasswordEncodesNewPassword() {
         User current = user("초코", "stored-hash", null);
