@@ -37,3 +37,14 @@ server:
         # 비워 뒀던 값. 2026-08-18 Let's Encrypt 인증서가 붙었고 nginx 가 http 를 전부 301 로
         # https 에 올리므로 이제 켠다. 세션 쿠키가 평문 구간으로 새지 않는다.
         secure: true
+
+kakao:
+  # 카카오 OAuth 의 client_id 는 REST API 키와 같은 값이지만, 로그인을 지도와 다른
+  # 카카오 앱으로 분리할 여지를 두려고 KAKAO_REST_API_KEY 를 재활용하지 않고 따로 받는다.
+  client-id: ${KAKAO_CLIENT_ID}
+  # 콘솔의 앱 설정 > 보안에서 "Client Secret 사용" 이 ON 이라 필수다.
+  # 비어 있으면 토큰 발급이 KOE010 으로 떨어진다.
+  client-secret: ${KAKAO_CLIENT_SECRET}
+  # 콘솔의 카카오 로그인 > Redirect URI 에 등록된 값과 한 글자도 다르면 KOE006 이 난다.
+  # 화이트리스트와 맞춰야 하는 값이라 app.public-url 로 조립하지 않고 그대로 박아 둔다.
+  redirect-uri: https://petnow.duckdns.org/auth/kakao/callback
