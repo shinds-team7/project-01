@@ -45,11 +45,13 @@
           그래서 카드를 세로로 넉넉히 띄우고, 뱃지는 줄지 않게(flex:none) 고정한다. (#7)
         */-->
         <div class="card-stack" th:unless="${#lists.isEmpty(reservations)}">
-            <a class="card reservation-card"
-               th:each="reservation : ${reservations}"
-               th:href="@{/reservation/detail(reservationId=${reservation.reservationId})}">
+            <div class="card reservation-card" th:each="reservation : ${reservations}">
                 <span class="reservation-card-copy">
-                    <strong class="reservation-card-title" th:text="${reservation.placeName}">연남동 윤슬 호스트</strong>
+                    <a class="reservation-card-title" th:if="${reservation.placeId != null}"
+                       th:href="@{/places/{id}(id=${reservation.placeId})}"
+                       th:text="${reservation.placeName}">연남동 윤슬 호스트</a>
+                    <strong class="reservation-card-title" th:unless="${reservation.placeId != null}"
+                            th:text="${reservation.placeName}">연남동 윤슬 호스트</strong>
                     <span class="reservation-card-when">
                         <span class="ico" aria-hidden="true">calendar_today</span>
                         <span th:text="${reservation.checkIn != null
@@ -68,19 +70,23 @@
                           th:text="${#numbers.formatInteger(reservation.totalPrice, 0, 'COMMA')} + '원'">48,000원</span>
                 </span>
 
-                <span class="reservation-row-badges">
-                    <span class="badge reservation-card-badge" th:if="${reservation.reservationUseStatus != null}"
-                          th:classappend="${reservation.reservationUseStatus.name() == 'BEFORE_USE' ? 'badge-use-before'
-                                          : (reservation.reservationUseStatus.name() == 'IN_USE' ? 'badge-use-now' : 'badge-use-after')}"
-                          th:text="${reservation.reservationUseStatus.name() == 'BEFORE_USE' ? '이용 전'
-                                   : (reservation.reservationUseStatus.name() == 'IN_USE' ? '이용 중' : '이용 완료')}">이용 전</span>
-                    <span class="badge reservation-card-badge"
-                          th:classappend="${reservation.reservationStatus?.name() == 'CONFIRMED' ? 'badge-green'
-                                          : (reservation.reservationStatus?.name() == 'CANCELED' ? 'badge-danger' : 'badge-warn')}"
-                          th:text="${reservation.reservationStatus?.name() == 'CONFIRMED' ? '예약 확정'
-                                   : (reservation.reservationStatus?.name() == 'CANCELED' ? '취소됨' : '응답 대기')}">응답 대기</span>
+                <span class="reservation-card-actions">
+                    <span class="reservation-row-badges">
+                        <span class="badge reservation-card-badge" th:if="${reservation.reservationUseStatus != null}"
+                              th:classappend="${reservation.reservationUseStatus.name() == 'BEFORE_USE' ? 'badge-use-before'
+                                              : (reservation.reservationUseStatus.name() == 'IN_USE' ? 'badge-use-now' : 'badge-use-after')}"
+                              th:text="${reservation.reservationUseStatus.name() == 'BEFORE_USE' ? '이용 전'
+                                       : (reservation.reservationUseStatus.name() == 'IN_USE' ? '이용 중' : '이용 완료')}">이용 전</span>
+                        <span class="badge reservation-card-badge"
+                              th:classappend="${reservation.reservationStatus?.name() == 'CONFIRMED' ? 'badge-green'
+                                              : (reservation.reservationStatus?.name() == 'CANCELED' ? 'badge-danger' : 'badge-warn')}"
+                              th:text="${reservation.reservationStatus?.name() == 'CONFIRMED' ? '예약 확정'
+                                       : (reservation.reservationStatus?.name() == 'CANCELED' ? '취소됨' : '응답 대기')}">응답 대기</span>
+                    </span>
+                    <a class="reservation-card-detail"
+                       th:href="@{/reservation/detail(reservationId=${reservation.reservationId})}">예약 상세 보기</a>
                 </span>
-            </a>
+            </div>
         </div>
     </div>
 </main>
