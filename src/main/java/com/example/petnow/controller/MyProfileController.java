@@ -116,7 +116,13 @@ public class MyProfileController {
     }
 
     @GetMapping("/password")
-    public String passwordForm(@ModelAttribute PasswordChangeRequest passwordChangeRequest) {
+    public String passwordForm(@ModelAttribute PasswordChangeRequest passwordChangeRequest,
+                               @LoginUser Long loginUserId,
+                               RedirectAttributes redirectAttributes) {
+        if (myProfileService.getProfile(loginUserId).isKakaoUser()) {
+            redirectAttributes.addFlashAttribute("socialPasswordBlocked", true);
+            return "redirect:/my/profile";
+        }
         return "mypage/passwordEdit";
     }
 
@@ -125,6 +131,10 @@ public class MyProfileController {
                                  BindingResult bindingResult,
                                  @LoginUser Long loginUserId,
                                  RedirectAttributes redirectAttributes) {
+        if (myProfileService.getProfile(loginUserId).isKakaoUser()) {
+            redirectAttributes.addFlashAttribute("socialPasswordBlocked", true);
+            return "redirect:/my/profile";
+        }
 
         if (bindingResult.hasErrors()) {
             return "mypage/passwordEdit";

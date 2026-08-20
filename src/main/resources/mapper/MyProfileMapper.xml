@@ -12,7 +12,8 @@
                nickname,
                password,
                phone,
-               profile_image_url
+               profile_image_url,
+               provider
         FROM users
         WHERE id = #{userId} AND deleted_at IS NULL
     </select>

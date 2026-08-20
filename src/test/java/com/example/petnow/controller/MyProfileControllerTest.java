@@ -109,6 +109,8 @@ class MyProfileControllerTest {
     @Test
     @DisplayName("새 비밀번호 확인이 다르면 서비스 호출 없이 폼을 다시 그린다")
     void passwordMismatchRerendersForm() throws Exception {
+        given(myProfileService.getProfile(7L)).willReturn(profile("초코", null));
+
         mockMvc.perform(post("/my/password")
                         .param("currentPassword", "oldPassword1")
                         .param("newPassword", "newPassword1")
@@ -126,6 +128,7 @@ class MyProfileControllerTest {
     @Test
     @DisplayName("현재 비밀번호가 틀리면 해당 필드 오류로 표시한다")
     void invalidCurrentPasswordRerendersForm() throws Exception {
+        given(myProfileService.getProfile(7L)).willReturn(profile("초코", null));
         willThrow(new BusinessException(UserErrorCode.INVALID_CURRENT_PASSWORD))
                 .given(myProfileService).changePassword(eq(7L), any(PasswordChangeRequest.class));
 
@@ -142,6 +145,8 @@ class MyProfileControllerTest {
     @Test
     @DisplayName("비밀번호 변경 성공 시 성공 배너로 리다이렉트한다")
     void passwordChangeRedirectsWithBanner() throws Exception {
+        given(myProfileService.getProfile(7L)).willReturn(profile("초코", null));
+
         mockMvc.perform(post("/my/password")
                         .param("currentPassword", "oldPassword1")
                         .param("newPassword", "newPassword1")
@@ -150,6 +155,34 @@ class MyProfileControllerTest {
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/my/profile"))
                 .andExpect(flash().attribute("passwordUpdated", true));
+    }
+
+    @Test
+    @DisplayName("카카오 로그인 사용자는 비밀번호 변경 화면으로 들어갈 수 없다")
+    void kakaoUserCannotOpenPasswordForm() throws Exception {
+        given(myProfileService.getProfile(7L)).willReturn(kakaoProfile());
+
+        mockMvc.perform(get("/my/password").session(loggedIn()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/my/profile"))
+                .andExpect(flash().attribute("socialPasswordBlocked", true));
+    }
+
+    @Test
+    @DisplayName("카카오 로그인 사용자는 비밀번호 변경 요청도 차단된다")
+    void kakaoUserCannotChangePassword() throws Exception {
+        given(myProfileService.getProfile(7L)).willReturn(kakaoProfile());
+
+        mockMvc.perform(post("/my/password")
+                        .param("currentPassword", "oldPassword1")
+                        .param("newPassword", "newPassword1")
+                        .param("newPasswordConfirm", "newPassword1")
+                        .session(loggedIn()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/my/profile"))
+                .andExpect(flash().attribute("socialPasswordBlocked", true));
+
+        then(myProfileService).should(never()).changePassword(eq(7L), any(PasswordChangeRequest.class));
     }
 
     @Test
@@ -166,6 +199,15 @@ class MyProfileControllerTest {
                 .email("choco@petnow.kr")
                 .phone("010-1111-2222")
                 .profileImageUrl(profileImageUrl)
+                .build();
+    }
+
+    private MyProfileResponse kakaoProfile() {
+        return MyProfileResponse.builder()
+                .nickname("카카오초코")
+                .email("kakao@petnow.kr")
+                .phone("010-1111-2222")
+                .provider("KAKAO")
                 .build();
     }
 
