@@ -19,6 +19,11 @@ public class PlaceDetailResponse {
     private String nickname;
     private String name;
     private String description;
+    private String sido;
+    private String sigungu;
+    private String eupmyeondong;
+    private String roadAddress;
+    private String address;
     private PlaceType placeType;
     private BigDecimal areaSize;
     private Integer capacity;
@@ -32,6 +37,8 @@ public class PlaceDetailResponse {
     private String otherOptions;
     private BigDecimal hourlyPrice;
     private BigDecimal nightlyPrice;
+    private BigDecimal averageRating;
+    private Integer reviewCount;
     private boolean supportsHourly;
     private boolean supportsPackage;
     private LocalTime packageCheckInTime;
@@ -39,4 +46,9 @@ public class PlaceDetailResponse {
     private PlaceStatus status;
     private boolean visible;
     private boolean bookmarked;
+
+    /** 별점 데이터가 있는지. */
+    public boolean hasRating() {
+        return averageRating != null && averageRating.compareTo(BigDecimal.ZERO) > 0;
+    }
 }

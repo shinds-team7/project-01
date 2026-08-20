@@ -7,6 +7,7 @@ import static org.mockito.BDDMockito.given;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
@@ -17,6 +18,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.example.petnow.dto.request.ReservationRequest;
 import com.example.petnow.dto.response.PlaceSlotResponse;
+import com.example.petnow.dto.response.PlaceSlotPeriodResponse;
 import com.example.petnow.dto.response.ReservationStepResponse;
 import com.example.petnow.entity.Place;
 import com.example.petnow.entity.ReservationType;
@@ -114,6 +116,42 @@ class ReservationServiceImplTest {
         assertEquals(BigDecimal.valueOf(30_000), response.getTotalPrice());
     }
 
+    @Test
+    void packageCheckoutDateStaysSelectableWhenSlotsAfterCheckoutAreBlocked() {
+        LocalDate checkInDate = LocalDate.now().plusDays(1);
+        LocalDate checkOutDate = checkInDate.plusDays(1);
+        List<PlaceSlotResponse> allSlots = packageBoundarySlots(checkInDate);
+        List<PlaceSlotResponse> reservationSlots = allSlots.stream()
+                .filter(slot -> !slot.getStartAt().isBefore(checkInDate.atTime(15, 0)))
+                .filter(slot -> slot.getStartAt().isBefore(checkOutDate.atTime(12, 0)))
+                .toList();
+
+        given(placeMapper.findById(1L)).willReturn(Place.builder()
+                .id(1L)
+                .supportsPackage(true)
+                .nightlyPrice(BigDecimal.valueOf(50_000))
+                .build());
+        given(placeAvailabilityMapper.findSlotPeriodByPlaceId(1L))
+                .willReturn(new PlaceSlotPeriodResponse(checkInDate, checkOutDate));
+        given(placeAvailabilityMapper.findSlotsByPlaceAndPeriod(
+                1L, checkInDate.atStartOfDay(), checkOutDate.plusDays(1).atStartOfDay()))
+                .willReturn(allSlots);
+        given(placeAvailabilityMapper.findSlotsByPlaceAndPeriod(
+                1L, checkInDate.atTime(15, 0), checkOutDate.atTime(12, 0)))
+                .willReturn(reservationSlots);
+
+        ReservationStepResponse selectStep = reservationService.resolvePackage(1L, null, null);
+        ReservationStepResponse confirmStep = reservationService.resolvePackage(
+                1L,
+                checkInDate.toString(),
+                checkOutDate.toString());
+
+        assertEquals(true, selectStep.getDays().get(0).isSelectable());
+        assertEquals(true, selectStep.getDays().get(1).isSelectable());
+        assertEquals("confirm", confirmStep.getStep());
+        assertEquals(checkOutDate.atTime(12, 0), confirmStep.getCheckOut());
+    }
+
     private PlaceSlotResponse slot(Long id, LocalDateTime startAt) {
         return PlaceSlotResponse.builder()
                 .slotId(id)
@@ -121,5 +159,23 @@ class ReservationServiceImplTest {
                 .endAt(startAt.plusHours(3))
                 .status("OPEN")
                 .build();
+    }
+
+    private List<PlaceSlotResponse> packageBoundarySlots(LocalDate checkInDate) {
+        List<PlaceSlotResponse> slots = new ArrayList<>();
+        long slotId = 1L;
+        for (int day = 0; day < 2; day++) {
+            for (int hour = 0; hour < 24; hour += 3) {
+                boolean open = (day == 0 && hour >= 15) || (day == 1 && hour < 12);
+                LocalDateTime startAt = checkInDate.plusDays(day).atTime(hour, 0);
+                slots.add(PlaceSlotResponse.builder()
+                        .slotId(slotId++)
+                        .startAt(startAt)
+                        .endAt(startAt.plusHours(3))
+                        .status(open ? "OPEN" : "BLOCKED")
+                        .build());
+            }
+        }
+        return slots;
     }
 }

@@ -32,6 +32,8 @@ class PlaceMapperStatementTest {
     /** /nearby 가 실제로 타는 쿼리다. 여기에 좌표가 없으면 지도에 마커가 하나도 찍히지 않는다. (#7) */
     private static final String FIND_BY_FILTER =
             "com.example.petnow.mapper.PlaceMapper.findByFilter";
+    private static final String FIND_DETAIL_BY_ID =
+            "com.example.petnow.mapper.PlaceMapper.findDetailById";
     private static final String UPSERT_ADDRESS =
             "com.example.petnow.mapper.PlaceMapper.upsertAddress";
 
@@ -81,6 +83,31 @@ class PlaceMapperStatementTest {
         assertThat(sql).contains("pa.longitude");
         assertThat(sql).contains("left join place_addresses");
         assertThat(sql).doesNotContain("inner join place_addresses");
+    }
+
+    @Test
+    @DisplayName("장소 상세는 저장된 평균 별점과 삭제되지 않은 리뷰 수를 가져온다")
+    void findDetailSelectsRatingSummary() {
+        String sql = sqlOf(FIND_DETAIL_BY_ID, Map.of("placeId", 3L));
+
+        assertThat(sql)
+                .contains("average_rating as averagerating")
+                .contains("as reviewcount")
+                .contains("rv.deleted_at is null");
+    }
+
+    @Test
+    @DisplayName("장소 상세는 주소가 없는 장소도 유지하며 공개 주소 필드만 가져온다")
+    void findDetailSelectsPublicAddressWithLeftJoin() {
+        String sql = sqlOf(FIND_DETAIL_BY_ID, Map.of("placeId", 3L));
+
+        assertThat(sql)
+                .contains("left join place_addresses pa on pa.place_id = p.id")
+                .contains("pa.sido as sido")
+                .contains("pa.sigungu as sigungu")
+                .contains("pa.eupmyeondong as eupmyeondong")
+                .contains("pa.road_address as roadaddress")
+                .doesNotContain("detail_address");
     }
 
     @Test

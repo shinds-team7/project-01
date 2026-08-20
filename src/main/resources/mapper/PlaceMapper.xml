@@ -151,6 +151,7 @@
         p.provides_yard AS providesYard,
         p.provides_walk AS providesWalk,
         p.hourly_price AS hourlyPrice,
+        p.average_rating AS averageRating,
         pa.latitude AS latitude,
         pa.longitude AS longitude
         FROM places p
@@ -163,33 +164,46 @@
     <select id="findDetailById"
             resultType="com.example.petnow.dto.response.PlaceDetailResponse">
         SELECT
-        id,
-        host_user_id AS hostUserId,
-        host_user_nickname AS nickname,
-        name,
-        description,
-        place_type AS placeType,
-        area_size AS areaSize,
-        capacity,
-        allows_small_dog AS allowsSmallDog,
-        allows_medium_dog AS allowsMediumDog,
-        allows_large_dog AS allowsLargeDog,
-        provides_home_camera AS providesHomeCamera,
-        provides_realtime_photo AS providesRealtimePhoto,
-        provides_yard AS providesYard,
-        provides_walk AS providesWalk,
-        other_options AS otherOptions,
-        hourly_price AS hourlyPrice,
-        nightly_price AS nightlyPrice,
-        supports_hourly AS supportsHourly,
-        supports_package AS supportsPackage,
-        package_check_in_time AS packageCheckInTime,
-        package_check_out_time AS packageCheckOutTime,
-        status,
-        is_visible AS visible
-        FROM places
-        WHERE id = #{placeId}
-        AND deleted_at IS NULL
+        p.id,
+        p.host_user_id AS hostUserId,
+        p.host_user_nickname AS nickname,
+        p.name,
+        p.description,
+        pa.sido AS sido,
+        pa.sigungu AS sigungu,
+        pa.eupmyeondong AS eupmyeondong,
+        pa.road_address AS roadAddress,
+        p.place_type AS placeType,
+        p.area_size AS areaSize,
+        p.capacity,
+        p.allows_small_dog AS allowsSmallDog,
+        p.allows_medium_dog AS allowsMediumDog,
+        p.allows_large_dog AS allowsLargeDog,
+        p.provides_home_camera AS providesHomeCamera,
+        p.provides_realtime_photo AS providesRealtimePhoto,
+        p.provides_yard AS providesYard,
+        p.provides_walk AS providesWalk,
+        p.other_options AS otherOptions,
+        p.hourly_price AS hourlyPrice,
+        p.nightly_price AS nightlyPrice,
+        p.average_rating AS averageRating,
+        (
+            SELECT COUNT(*)
+            FROM reviews rv
+            JOIN reservations rr ON rr.id = rv.reservation_id
+            WHERE rr.place_id = p.id
+            AND rv.deleted_at IS NULL
+        ) AS reviewCount,
+        p.supports_hourly AS supportsHourly,
+        p.supports_package AS supportsPackage,
+        p.package_check_in_time AS packageCheckInTime,
+        p.package_check_out_time AS packageCheckOutTime,
+        p.status,
+        p.is_visible AS visible
+        FROM places p
+        LEFT JOIN place_addresses pa ON pa.place_id = p.id
+        WHERE p.id = #{placeId}
+        AND p.deleted_at IS NULL
     </select>
     <update id="updateOperatingPolicy">
         UPDATE places
@@ -261,6 +275,11 @@
         p.provides_yard AS providesYard,
         p.provides_walk AS providesWalk,
         p.hourly_price AS hourlyPrice,
+        <!--
+          별점순 정렬(sort=rating)이 읽는 것과 같은 컬럼이다. 정렬 키를 화면에 보여주지 않으면
+          왜 이 순서인지 알 수 없으므로 목록 조회에서 항상 같이 읽는다.
+        -->
+        p.average_rating AS averageRating,
         <!--
           지도 마커용 좌표. (#277) 조인은 지역 조건 때문에 이미 있으므로 컬럼만 더 읽는다.
           LEFT JOIN 이라 주소가 없거나 아직 지오코딩되지 않은 장소는 NULL 로 나오고,

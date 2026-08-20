@@ -154,6 +154,16 @@
             if (!payDialog.open) payDialog.showModal();
         });
 
+        // 아이를 고르는 순간 경고가 사라져야 한다. 고르고도 빨간 문구가 남아 있으면
+        // 무엇을 더 해야 하는지 알 수 없다.
+        payForm.addEventListener("change", (event) => {
+            if (!errorNotice) return;
+            if (!event.target.matches('input[name="petIds"]')) return;
+            if (payForm.querySelectorAll('input[name="petIds"]:checked').length > 0) {
+                errorNotice.hidden = true;
+            }
+        });
+
         closeButton?.addEventListener("click", () => payDialog.close());
 
         confirmButton?.addEventListener("click", () => {

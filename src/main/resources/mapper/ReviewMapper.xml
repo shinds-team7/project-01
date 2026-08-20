@@ -30,6 +30,7 @@
             res.place_id     AS placeId,
             DATE(res.check_in_at)  AS checkInAt,
             p.name           AS placeName,
+            u.nickname       AS reviewerName,
             r.content        AS content,
             r.rating         AS rating
         FROM reviews r
@@ -37,6 +38,9 @@
             ON r.reservation_id = res.id
         JOIN places p
             ON res.place_id = p.id
+        LEFT JOIN users u
+            ON res.guest_user_id = u.id
+            AND u.deleted_at IS NULL
         WHERE res.guest_user_id = #{memberId}
             AND r.deleted_at IS NULL
         ORDER BY r.created_at DESC
@@ -51,6 +55,7 @@
             res.place_id     AS placeId,
             DATE(res.check_in_at)  AS checkInAt,
             p.name           AS placeName,
+            u.nickname       AS reviewerName,
             r.content        AS content,
             r.rating         AS rating
         FROM reviews r
@@ -58,6 +63,9 @@
             ON r.reservation_id = res.id
         JOIN places p
             ON res.place_id = p.id
+        LEFT JOIN users u
+            ON res.guest_user_id = u.id
+            AND u.deleted_at IS NULL
         WHERE res.place_id = #{placeId}
             AND r.deleted_at IS NULL
         <choose>
@@ -71,6 +79,32 @@
                 ORDER BY r.created_at DESC
             </otherwise>
         </choose>
+    </select>
+
+    <!--
+      호스트 홈 리뷰 탭. 내가 가진 장소들에 달린 리뷰를 최신순으로 모은다.
+      정렬 선택지를 주지 않아 findReviewsByPlaceId 와 달리 <choose> 가 없다.
+      soft delete 된 장소의 리뷰는 호스트 화면에서도 뺀다.
+    -->
+    <select id="findReviewsByHostUserId" parameterType="long" resultType="com.example.petnow.dto.response.ReviewResponse">
+        SELECT
+            r.id             AS id,
+            r.reservation_id AS reservationId,
+            res.guest_user_id    AS memberId,
+            res.place_id     AS placeId,
+            DATE(res.check_in_at)  AS checkInAt,
+            p.name           AS placeName,
+            r.content        AS content,
+            r.rating         AS rating
+        FROM reviews r
+        JOIN reservations res
+            ON r.reservation_id = res.id
+        JOIN places p
+            ON res.place_id = p.id
+        WHERE p.host_user_id = #{hostUserId}
+            AND r.deleted_at IS NULL
+            AND p.deleted_at IS NULL
+        ORDER BY r.created_at DESC
     </select>
 
     <select id="findPlaceIdByReservationId" resultType="Long">

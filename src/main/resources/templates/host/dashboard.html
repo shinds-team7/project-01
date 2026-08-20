@@ -4,11 +4,16 @@
 
   GET /host 가 이 화면을 그린다. (#179 로 manage.html 을 대체했다)
 
-  ${places} 는 HostPlaceListResponse(id·name·status)다.
-  프로토타입 카드의 평점·예약 건수는 집계 쿼리가 없어 옮기지 않았다.
+  탭마다 컨트롤러가 채우는 모델이 다르다.
+    booking → ${reservations}(ReservationListResponse) · ${status}
+    reviews → ${reviews}(ReviewResponse, 내 장소 전체를 최신순으로)
+    places  → ${places}(HostPlaceListResponse: id·name·status·averageRating)
 
-  예약 요청·리뷰 탭은 호스트용 조회 API 가 아직 없어 빈 상태로 둔다.
-  붙일 자리는 #100(예약 승인/거부)에서 이어간다.
+  장소 카드 평점은 places.average_rating 을 그대로 읽는다.
+  프로토타입 카드의 예약 건수는 집계 쿼리가 없어 옮기지 않았다.
+
+  예약 요청 카드를 누르면 GET /reservation/{id} 의 호스트 예약 상세로 가고
+  거기서 승인·거절한다.
 
   장소 정보 수정과 예약 가능 시간 관리는 서로 다른 화면으로 연결한다.
 */-->
@@ -30,7 +35,7 @@
             <a th:href="@{/host(tab='places')}" th:classappend="${activeTab == 'places'} ? 'is-active'">내 호스팅</a>
         </div>
 
-        <!--/* 예약 요청 탭 — 호스트용 예약 조회 API 가 없어 아직 비어 있다 (#100) */-->
+        <!--/* 예약 요청 탭 — HostController 가 status 필터로 채운다 (#100) */-->
         <div th:if="${activeTab == 'booking'}">
             <div class="tab-row">
                 <a th:href="@{/host(tab='booking', status='PENDING')}"
@@ -44,32 +49,75 @@
                 <strong th:text="${status == 'PENDING' ? '대기 중인 예약이 없어요' : '예약 요청을 불러올 수 없어요'}">예약 요청을 불러올 수 없어요</strong>
             </div>
 
-            <div class="list" th:unless="${#lists.isEmpty(reservations)}">
-                <a class="card list-row" th:each="r : ${reservations}"
+            <!--/*
+              예약 요청 카드. 예약 목록(/reservation/list)과 같은 카드 규격을 쓴다.
+              장소명 아래에 예약 일시를 두고, 상태 뱃지는 줄지 않게 고정해 줄바꿈을 막는다. (#9)
+            */-->
+            <div class="card-stack" th:unless="${#lists.isEmpty(reservations)}">
+                <a class="card reservation-card" th:each="r : ${reservations}"
                    th:href="@{/reservation/{id}(id=${r.reservationId})}">
-            <span class="list-row-label">
-                <strong th:text="${r.placeName}">연남동 윤슬 호스트</strong>
-                <small th:text="${#temporals.format(r.checkIn, 'M월 d일 HH:mm')} + ' ~ ' + ${#temporals.format(r.checkOut, 'M월 d일 HH:mm')}">
-                    8월 5일 15:00 ~ 8월 6일 12:00
-                </small>
-            </span>
-                    <span class="badge"
+                    <span class="reservation-card-copy">
+                        <strong class="reservation-card-title" th:text="${r.placeName}">연남동 윤슬 호스트</strong>
+                        <span class="reservation-card-when">
+                            <span class="ico" aria-hidden="true">calendar_today</span>
+                            <span th:text="${r.checkIn != null and r.checkOut != null
+                                             ? #temporals.format(r.checkIn, 'M월 d일 HH:mm') + ' ~ '
+                                               + #temporals.format(r.checkOut, 'M월 d일 HH:mm')
+                                             : '일정 미정'}">8월 5일 15:00 ~ 8월 6일 12:00</span>
+                        </span>
+                        <span class="reservation-card-price" th:if="${r.totalPrice != null}"
+                              th:text="${#numbers.formatInteger(r.totalPrice, 0, 'COMMA')} + '원'">48,000원</span>
+                    </span>
+
+                    <span class="badge reservation-card-badge"
                           th:classappend="${r.reservationStatus.name() == 'CONFIRMED' ? 'badge-green'
-                  : (r.reservationStatus.name() == 'CANCELED' ? 'badge-danger' : 'badge-warn')}"
+                                          : (r.reservationStatus.name() == 'CANCELED' ? 'badge-danger' : 'badge-warn')}"
                           th:text="${r.reservationStatus.name() == 'CONFIRMED' ? '예약 확정'
-           : (r.reservationStatus.name() == 'CANCELED' ? '취소됨' : '응답 대기')}">
-                응답 대기
-            </span>
+                                   : (r.reservationStatus.name() == 'CANCELED' ? '취소됨' : '응답 대기')}">응답 대기</span>
                 </a>
             </div>
         </div>
 
-        <!--/* 리뷰 탭 — 호스트용 리뷰 조회 API 가 없어 아직 비어 있다 */-->
-        <div th:if="${activeTab == 'reviews'}" class="empty">
-            <span class="ico" aria-hidden="true">reviews</span>
-            <strong>리뷰를 불러올 수 없어요</strong>
-            <p>호스트용 리뷰 조회 API 가 연결되면 여기에 표시됩니다.</p>
-        </div>
+        <!--/*
+          리뷰 탭 — 내 장소 전체에 달린 리뷰를 최신순으로 모아 본다.
+          카드 규격은 내 리뷰 목록(reviews/list.html)과 같은 것을 쓴다.
+          장소명을 누르면 그 장소 하나만 보는 리뷰 관리 화면으로 간다.
+        */-->
+        <th:block th:if="${activeTab == 'reviews'}">
+            <div class="empty" th:if="${reviews == null or #lists.isEmpty(reviews)}">
+                <span class="ico" aria-hidden="true">reviews</span>
+                <strong>아직 등록된 리뷰가 없어요</strong>
+                <p>돌봄이 끝난 예약에 보호자가 후기를 남기면 여기에 모입니다.</p>
+            </div>
+
+            <ul class="my-review-list" th:unless="${reviews == null or #lists.isEmpty(reviews)}">
+                <li class="card-plain" th:each="review : ${reviews}">
+                    <div class="my-review-top">
+                        <div class="media">
+                            <span class="ico" aria-hidden="true">weekend</span>
+                        </div>
+                        <div class="my-review-head">
+                            <a class="place-name"
+                               th:href="@{/host/places/{id}/reviews(id=${review.placeId})}"
+                               th:text="${review.placeName}">성수 조용한 단독주택 마당</a>
+
+                            <small th:if="${review.checkInAt != null}"
+                                   th:text="${#temporals.format(review.checkInAt, 'yyyy년 M월 d일')} + ' 이용'">2026년 7월 18일 이용</small>
+
+                            <p class="rating">
+                                <span class="ico" aria-hidden="true">star</span>
+                                <span th:text="${review.rating}">5</span>
+                                <span class="sr-only">점</span>
+                            </p>
+                        </div>
+                    </div>
+
+                    <p class="my-review-body" th:text="${review.content}">
+                        마당이 넓어서 우리 강아지가 정말 좋아했어요.
+                    </p>
+                </li>
+            </ul>
+        </th:block>
 
         <th:block th:if="${activeTab == 'places'}">
             <div class="section-head">
@@ -99,6 +147,16 @@
                                       th:classappend="${place.status.name() == 'PUBLISHED'} ? 'badge-green' : 'badge-warn'"
                                       th:text="${place.status.label}">게시 상태</span>
                             </span>
+                            <!--/*
+                              평균 별점. 호스트가 자기 공간 평판을 대시보드에서 바로 보게 한다.
+                              리뷰가 없으면(0.00) 그리지 않는다 — 첫 리뷰 전에 0.0 이 뜨면
+                              호스트에게 잘못된 신호가 된다.
+                            */-->
+                            <span class="rating" th:if="${place.hasRating()}">
+                                <span class="ico" aria-hidden="true">star</span>
+                                <span th:text="${#numbers.formatDecimal(place.averageRating, 1, 1)}">4.8</span>
+                                <span class="sr-only">점</span>
+                            </span>
                             <span class="place-summary-more">
                                 게시글 보기 <span class="ico" aria-hidden="true">chevron_right</span>
                             </span>
@@ -113,7 +171,11 @@
                            th:href="@{/host/places/{id}/availability(id=${place.id})}">
                             <span class="ico" aria-hidden="true">schedule</span>예약 가능 시간 관리
                         </a>
-                        <a class="btn btn-ghost" th:href="@{/reviews/place/{id}(id=${place.id})}">
+                        <!--/*
+                          리뷰 "관리"라 보호자용 공개 목록(/reviews/place/{id})이 아니라
+                          장소 주인만 여는 호스트 화면으로 보낸다.
+                        */-->
+                        <a class="btn btn-ghost" th:href="@{/host/places/{id}/reviews(id=${place.id})}">
                             <span class="ico" aria-hidden="true">reviews</span>리뷰 관리
                         </a>
                         <button class="btn btn-danger btn-icon" type="button" disabled

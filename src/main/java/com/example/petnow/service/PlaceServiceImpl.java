@@ -11,6 +11,7 @@ import com.example.petnow.dto.response.PlaceSearchResponse;
 import com.example.petnow.entity.Pet;
 import com.example.petnow.entity.Place;
 import com.example.petnow.entity.PlaceStatus;
+import com.example.petnow.entity.PlaceType;
 import com.example.petnow.entity.User;
 import com.example.petnow.exception.AuthErrorCode;
 import com.example.petnow.exception.BusinessException;
@@ -24,6 +25,7 @@ import com.example.petnow.mapper.PlaceMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -32,6 +34,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -134,10 +138,23 @@ public class PlaceServiceImpl implements PlaceService {
             throw new BusinessException(PlaceErrorCode.PLACE_NOT_FOUND);
         }
 
+        place.setAddress(resolvePublicAddress(place));
         place.setBookmarked(loginUserId != null
                 && bookmarkMapper.existsByUserAndPlace(loginUserId, placeId));
 
         return place;
+    }
+
+    private String resolvePublicAddress(PlaceDetailResponse place) {
+        if (StringUtils.hasText(place.getRoadAddress())) {
+            return place.getRoadAddress().trim();
+        }
+
+        String address = Stream.of(place.getSido(), place.getSigungu(), place.getEupmyeondong())
+                .filter(StringUtils::hasText)
+                .map(String::trim)
+                .collect(Collectors.joining(" "));
+        return StringUtils.hasText(address) ? address : null;
     }
 
     // ───────────────────────── 조건 필터링 (#7) ─────────────────────────
@@ -163,6 +180,7 @@ public class PlaceServiceImpl implements PlaceService {
                 .dateLabel(dateLabel(request))
                 .timeLabel(timeLabel(request))
                 .petLabel(petLabel(selectedPets))
+                .typeLabel(typeLabel(request.getPlaceType()))
                 .build();
     }
 
@@ -310,6 +328,11 @@ public class PlaceServiceImpl implements PlaceService {
         }
         String first = pets.get(0).getName();
         return pets.size() == 1 ? first : first + " 외 " + (pets.size() - 1) + "마리";
+    }
+
+    /** 장소 유형은 한 개만 고를 수 있어 "외 n곳" 규칙이 없다. 라벨을 그대로 쓴다. */
+    private static String typeLabel(PlaceType placeType) {
+        return placeType == null ? null : placeType.getLabel();
     }
 
     private void validateOwner(Long userId, Long placeId) {

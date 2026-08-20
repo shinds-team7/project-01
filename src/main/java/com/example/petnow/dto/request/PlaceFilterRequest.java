@@ -60,6 +60,22 @@ public class PlaceFilterRequest {
     /** 정렬 키. 값 검증은 매퍼의 allowlist 가 한다. */
     private String sort;
 
+    /** 매퍼 {@code findByFilter} 의 정렬 allowlist. 여기에 없는 값은 최신순으로 떨어진다. */
+    private static final String SORT_PRICE = "price";
+    private static final String SORT_RATING = "rating";
+    public static final String SORT_LATEST = "latest";
+
+    /**
+     * 화면이 어느 정렬 칩을 켤지 고르는 값.
+     *
+     * <p>매퍼는 allowlist 밖의 값을 조용히 최신순으로 떨어뜨린다. 화면이 {@code sort} 원본을 그대로
+     * 비교하면 {@code ?sort=xxx} 같은 입력에서 아무 칩도 안 켜져 "정렬이 안 걸린 것"처럼 보인다.
+     * 매퍼와 같은 판정을 여기서 한 번 하고 화면은 그 결과만 쓴다.
+     */
+    public String normalizedSort() {
+        return SORT_PRICE.equals(sort) || SORT_RATING.equals(sort) ? sort : SORT_LATEST;
+    }
+
     /** 반려견을 한 마리라도 골랐는지. 비로그인 판단에 쓴다. */
     public boolean hasPetSelection() {
         return petIds != null && petIds.stream().anyMatch(id -> id != null);

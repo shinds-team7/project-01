@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -304,7 +305,7 @@ public class ReservationServiceImpl implements ReservationService {
 
         // 날짜 필터 없이 들어온 사용자(예: 내 주변 → 장소 상세 → 요청)는 어떤 날짜에 슬롯이 열려
         // 있는지 모른다. 고를 수 있는 날짜를 항상 함께 내려서 화면이 불가 날짜를 막게 한다.
-        List<PackageDayResponse> days = buildDays(placeId, false);
+        List<PackageDayResponse> days = buildHourlyDays(placeId);
 
         if (date == null || date.trim().isEmpty()) {
             return ReservationStepResponse.builder()
@@ -378,7 +379,7 @@ public class ReservationServiceImpl implements ReservationService {
         if (place == null) {
             throw new BusinessException(PlaceErrorCode.PLACE_NOT_FOUND);
         }
-        List<PackageDayResponse> days = buildDays(placeId, true);
+        List<PackageDayResponse> days = buildPackageDays(placeId, place);
 
         if (startDate == null || startDate.trim().isEmpty()) {
             return ReservationStepResponse.builder()
@@ -502,13 +503,7 @@ public class ReservationServiceImpl implements ReservationService {
             .build();
     }
 
-    /**
-     * 고를 수 있는 날짜 목록을 만든다.
-     *
-     * <p>{@code requireAllOpen} 이 true 면 그날 슬롯이 전부 OPEN 이어야 고를 수 있다(패키지 예약).
-     * false 면 OPEN 슬롯이 하나라도 있으면 고를 수 있다(시 예약). 지난 날짜는 어느 쪽이든 막는다.
-     */
-    private List<PackageDayResponse> buildDays(Long placeId, boolean requireAllOpen) {
+    private List<PackageDayResponse> buildHourlyDays(Long placeId) {
         PlaceSlotPeriodResponse period = placeAvailabilityMapper.findSlotPeriodByPlaceId(placeId);
         if (period == null || period.getFromDate() == null || period.getToDate() == null) {
             return Collections.emptyList();
@@ -540,17 +535,14 @@ public class ReservationServiceImpl implements ReservationService {
             LocalDate date = sortedDates.get(i);
             List<PlaceSlotResponse> daySlots = slotsByDate.get(date);
 
-            boolean allOpen = true;
             boolean anyOpen = false;
             for (int j=0; j<daySlots.size(); j++) {
                 if ("OPEN".equals(daySlots.get(j).getStatus())) {
                     anyOpen = true;
-                } else {
-                    allOpen = false;
                 }
             }
 
-            boolean selectable = (requireAllOpen ? allOpen : anyOpen) && !date.isBefore(today);
+            boolean selectable = anyOpen && !date.isBefore(today);
 
             days.add(PackageDayResponse.builder()
                 .date(date)
@@ -559,6 +551,74 @@ public class ReservationServiceImpl implements ReservationService {
         }
 
         return days;
+    }
+
+    private List<PackageDayResponse> buildPackageDays(Long placeId, Place place) {
+        PlaceSlotPeriodResponse period = placeAvailabilityMapper.findSlotPeriodByPlaceId(placeId);
+        if (period == null || period.getFromDate() == null || period.getToDate() == null) {
+            return Collections.emptyList();
+        }
+
+        LocalDate fromDate = period.getFromDate();
+        LocalDate toDate = period.getToDate();
+        List<PlaceSlotResponse> slots = placeAvailabilityMapper.findSlotsByPlaceAndPeriod(
+                placeId,
+                fromDate.atStartOfDay(),
+                toDate.plusDays(1).atStartOfDay());
+        Map<LocalDateTime, PlaceSlotResponse> slotsByStart = slots.stream()
+                .collect(Collectors.toMap(PlaceSlotResponse::getStartAt, slot -> slot));
+
+        LocalTime checkInTime = place.getPackageCheckInTime() != null
+                ? place.getPackageCheckInTime()
+                : PlaceAvailabilityServiceImpl.DEFAULT_PACKAGE_CHECK_IN_TIME;
+        LocalTime checkOutTime = place.getPackageCheckOutTime() != null
+                ? place.getPackageCheckOutTime()
+                : PlaceAvailabilityServiceImpl.DEFAULT_PACKAGE_CHECK_OUT_TIME;
+
+        List<LocalDate> dates = new ArrayList<>();
+        for (LocalDate date = fromDate; !date.isAfter(toDate); date = date.plusDays(1)) {
+            dates.add(date);
+        }
+
+        Set<LocalDate> selectableDates = new HashSet<>();
+        LocalDate today = LocalDate.now();
+        for (int startIndex = 0; startIndex < dates.size(); startIndex++) {
+            LocalDate startDate = dates.get(startIndex);
+            if (startDate.isBefore(today)) {
+                continue;
+            }
+            for (int endIndex = startIndex + 1; endIndex < dates.size(); endIndex++) {
+                LocalDate endDate = dates.get(endIndex);
+                if (isOpenPackageRange(
+                        slotsByStart,
+                        startDate.atTime(checkInTime),
+                        endDate.atTime(checkOutTime))) {
+                    selectableDates.add(startDate);
+                    selectableDates.add(endDate);
+                }
+            }
+        }
+
+        return dates.stream()
+                .map(date -> PackageDayResponse.builder()
+                        .date(date)
+                        .selectable(selectableDates.contains(date))
+                        .build())
+                .toList();
+    }
+
+    private boolean isOpenPackageRange(Map<LocalDateTime, PlaceSlotResponse> slotsByStart,
+                                       LocalDateTime checkIn,
+                                       LocalDateTime checkOut) {
+        for (LocalDateTime cursor = checkIn;
+             cursor.isBefore(checkOut);
+             cursor = cursor.plusHours(SLOT_HOURS)) {
+            PlaceSlotResponse slot = slotsByStart.get(cursor);
+            if (slot == null || !"OPEN".equals(slot.getStatus())) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private PackageDayResponse findDay(List<PackageDayResponse> days, String dateStr) {

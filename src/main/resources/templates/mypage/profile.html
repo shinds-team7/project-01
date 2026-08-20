@@ -40,7 +40,7 @@
             </div>
         </section>
 
-        <div class="list">
+        <div class="list my-account-list">
             <div class="list-row">
                 <span class="list-row-label">닉네임</span>
                 <strong th:text="${profile.nickname}">보호자</strong>
@@ -63,7 +63,7 @@
             <span class="ico" aria-hidden="true">lock</span> 비밀번호 변경
         </a>
 
-        <div class="notice notice-green">
+        <div class="notice notice-green my-account-hint">
             <span class="ico" aria-hidden="true">verified_user</span>
             <p>연락처를 최신으로 유지하면 호스트가 예약 관련 안내를 더 빠르게 전달할 수 있어요.</p>
         </div>
@@ -86,7 +86,6 @@
             </div>
         </form>
     </dialog>
-
     <script th:src="@{/js/modal.js}"></script>
 </main>
 </body>

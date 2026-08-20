@@ -85,6 +85,7 @@
     <select id="viewReservationList" resultType="com.example.petnow.dto.response.ReservationListResponse">
         SELECT
         r.id AS reservationId,
+        r.place_id AS placeId,
         pl.name AS placeName,
         r.total_price AS totalPrice,
         r.status AS reservationStatus,
@@ -116,6 +117,7 @@
     <select id="viewReservationListByHost" resultType="com.example.petnow.dto.response.ReservationListResponse">
         SELECT
             r.id AS reservationId,
+            r.place_id AS placeId,
             pl.name AS placeName,
             r.total_price AS totalPrice,
             r.status AS reservationStatus,

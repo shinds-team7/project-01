@@ -4,13 +4,20 @@ import java.util.List;
 
 import com.example.petnow.common.argument.LoginUser;
 import com.example.petnow.dto.response.ReservationListResponse;
+import com.example.petnow.entity.Place;
 import com.example.petnow.entity.ReservationStatus;
+import com.example.petnow.entity.ReviewSortType;
+import com.example.petnow.exception.BusinessException;
+import com.example.petnow.exception.PlaceErrorCode;
+import com.example.petnow.mapper.PlaceMapper;
 import com.example.petnow.service.HostService;
 import com.example.petnow.service.ReservationService;
+import com.example.petnow.service.ReviewService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -21,11 +28,9 @@ public class HostController {
 
     private final HostService hostService;
     private final ReservationService reservationService;
+    private final ReviewService reviewService;
+    private final PlaceMapper placeMapper;
 
-    /*
-    TODO: if 분기문에 Reservation에 대한 model값을 채워주세요
-    TODO: else if 분기문에 Review에 대한 model값을 채워주세요
-     */
     @GetMapping
     public String dashboard(@LoginUser Long loginUserId,
                             @RequestParam(defaultValue = "places") String tab,
@@ -48,11 +53,41 @@ public class HostController {
             model.addAttribute("status", status);
 
         } else if ("reviews".equals(tab)) {
+            // 내 장소 전체에 달린 리뷰를 최신순 한 묶음으로 본다.
+            // 장소별로 나눠 보는 건 카드에서 GET /host/places/{placeId}/reviews 로 들어간다.
+            model.addAttribute("reviews", reviewService.getReviewsForHost(loginUserId));
 
         } else {
             model.addAttribute("places", hostService.getPlacesByUserId(loginUserId));
         }
 
         return "host/dashboard";
+    }
+
+    /**
+     * 장소 하나의 리뷰 관리 화면. 호스트 홈 리뷰 탭과 내 호스팅 탭의 "리뷰 관리" 가 여기로 온다.
+     *
+     * <p>보호자용 {@code GET /reviews/place/{placeId}} 와 목록 자체는 같지만, 그쪽은 로그인 없이도
+     * 열리는 공개 화면이다. 이 화면은 평균 별점 요약과 작성자 표기가 붙어 있어 장소 주인에게만 연다.
+     */
+    @GetMapping("/places/{placeId}/reviews")
+    public String placeReviews(@LoginUser Long hostUserId,
+                               @PathVariable Long placeId,
+                               Model model) {
+        model.addAttribute("place", findOwnedPlace(hostUserId, placeId));
+        model.addAttribute("reviews", reviewService.getReviewsByPlace(placeId, ReviewSortType.LATEST));
+        return "host/reviews";
+    }
+
+    /** 남의 장소 리뷰를 URL 만 바꿔 들여다보지 못하게 막는다. HostAvailabilityController 와 같은 규칙이다. */
+    private Place findOwnedPlace(Long hostUserId, Long placeId) {
+        Place place = placeMapper.findById(placeId);
+        if (place == null) {
+            throw new BusinessException(PlaceErrorCode.PLACE_NOT_FOUND);
+        }
+        if (!hostUserId.equals(place.getHostUserId())) {
+            throw new BusinessException(PlaceErrorCode.PLACE_ACCESS_DENIED);
+        }
+        return place;
     }
 }

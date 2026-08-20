@@ -27,7 +27,7 @@
             <div class="summary-copy">
                 <strong th:text="${place.name}">장소명</strong>
                 <small>
-                    <span th:if="${place.supportsHourly}">시 예약</span>
+                    <span th:if="${place.supportsHourly}">시간 예약</span>
                     <span th:if="${place.supportsHourly and place.supportsPackage}"> · </span>
                     <span th:if="${place.supportsPackage}">패키지 예약</span>
                 </small>
@@ -41,7 +41,7 @@
             <div class="option-grid">
                 <label>
                     <input type="checkbox" th:field="*{supportsHourly}">
-                    <span>시 예약 지원</span>
+                    <span>시간 예약 지원</span>
                 </label>
                 <label>
                     <input id="supportsPackage" type="checkbox" th:field="*{supportsPackage}">
