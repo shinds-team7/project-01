@@ -52,7 +52,7 @@ class HomeShellRenderingTest {
                 .andExpect(view().name("home"))
                 .andExpect(content().string(containsString("/css/home.css")))
                 .andExpect(content().string(containsString("class=\"site-header\"")))
-                .andExpect(content().string(containsString("/css/pet-now.css")))
+                .andExpect(content().string(containsString("/css/home-classic.css")))
                 .andExpect(content().string(containsString("/auth/login")))
                 .andExpect(content().string(containsString("편안한 하루</em>를 맡겨요")));
     }
