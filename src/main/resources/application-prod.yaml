@@ -22,3 +22,9 @@ logging:
   level:
     root: warn
     com.example.petnow: info
+
+
+kakao:
+  client-id: ${KAKAO_CLIENT_ID}  #실제_REST_API_키
+  client-secret: ${KAKAO_CLIENT_SECRET} #실제_CLIENT_SECRET
+  redirect-uri: https://petnow.duckdns.org/auth/kakao/callback
