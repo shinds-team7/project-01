@@ -18,16 +18,15 @@
             <a class="hero-btn is-back" th:href="@{/places}" aria-label="목록으로">
                 <span class="ico" aria-hidden="true">arrow_back_ios_new</span>
             </a>
-            <form th:action="@{/bookmarks/{id}/toggle(id=${place.id})}" method="post">
-                <input type="hidden" name="redirectTo" th:value="@{/places/{id}(id=${place.id})}">
-                <button type="submit"
-                        class="hero-btn is-like"
-                        th:classappend="${place.bookmarked} ? ' is-on'"
-                        th:attr="aria-pressed=${place.bookmarked}"
-                        th:aria-label="${place.bookmarked} ? '찜 취소' : '찜하기'">
-                    <span class="ico" aria-hidden="true">favorite</span>
-                </button>
-            </form>
+            <button type="button"
+                    class="hero-btn is-like"
+                    th:classappend="${place.bookmarked} ? ' is-on'"
+                    th:data-place-id="${place.id}"
+                    th:attr="aria-pressed=${place.bookmarked}"
+                    th:aria-label="${place.bookmarked} ? '찜 취소' : '찜하기'"
+                    data-bookmark-toggle>
+                <span class="ico" aria-hidden="true">favorite</span>
+            </button>
         </div>
 
         <h1 class="detail-title" th:text="${place.name}">장소명</h1>
@@ -87,6 +86,7 @@
         </div>
         <a class="btn btn-dark" th:href="@{/reservation/booking-request(placeId=${place.id})}">예약 요청하기</a>
     </div>
+    <script th:src="@{/js/bookmark.js}"></script>
 </main>
 </body>
 </html>
