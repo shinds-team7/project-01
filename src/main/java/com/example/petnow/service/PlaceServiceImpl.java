@@ -3,6 +3,7 @@ package com.example.petnow.service;
 import com.example.petnow.dto.request.PlaceCreateRequest;
 import com.example.petnow.dto.request.PlaceFilterCriteria;
 import com.example.petnow.dto.request.PlaceFilterRequest;
+import com.example.petnow.dto.request.PlaceUpdateRequest;
 import com.example.petnow.dto.response.PlaceDetailResponse;
 import com.example.petnow.dto.response.PetListResponse;
 import com.example.petnow.dto.response.PlaceListResponse;
@@ -17,6 +18,7 @@ import com.example.petnow.exception.PlaceErrorCode;
 import com.example.petnow.exception.ReservationErrorCode;
 import com.example.petnow.exception.UserErrorCode;
 import com.example.petnow.mapper.AuthMapper;
+import com.example.petnow.mapper.BookmarkMapper;
 import com.example.petnow.mapper.PetMapper;
 import com.example.petnow.mapper.PlaceMapper;
 import lombok.RequiredArgsConstructor;
@@ -41,6 +43,7 @@ public class PlaceServiceImpl implements PlaceService {
     private final AuthMapper authMapper;
     private final PetMapper petMapper;
     private final PlaceGeocodingService placeGeocodingService;
+    private final BookmarkMapper bookmarkMapper;
 
     @Override
     @Transactional
@@ -87,6 +90,29 @@ public class PlaceServiceImpl implements PlaceService {
 
     @Override
     @Transactional(readOnly = true)
+    public PlaceUpdateRequest getUpdateForm(Long userId, Long placeId) {
+        validateOwner(userId, placeId);
+        PlaceUpdateRequest request = placeMapper.findUpdateForm(placeId);
+        if (request == null) {
+            throw new BusinessException(PlaceErrorCode.PLACE_NOT_FOUND);
+        }
+        return request;
+    }
+
+    @Override
+    @Transactional
+    public void updatePlace(Long userId, Long placeId, PlaceUpdateRequest request) {
+        validateOwner(userId, placeId);
+        String otherOptions = request.isOtherOptionsEnabled() ? request.getOtherOptions() : null;
+        if (placeMapper.update(placeId, userId, request, otherOptions) != 1) {
+            throw new BusinessException(PlaceErrorCode.PLACE_UPDATE_FAILED);
+        }
+        placeMapper.upsertAddress(placeId, SEOUL, request.getSigungu(), request.getRoadAddress());
+        placeGeocodingService.geocodeAndUpdate(placeId, request.getRoadAddress());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public List<PlaceListResponse> getPublishedPlaces() {
         return placeMapper.findAllPublished();
     }
@@ -107,6 +133,9 @@ public class PlaceServiceImpl implements PlaceService {
         if (!owner && !publiclyAccessible) {
             throw new BusinessException(PlaceErrorCode.PLACE_NOT_FOUND);
         }
+
+        place.setBookmarked(loginUserId != null
+                && bookmarkMapper.existsByUserAndPlace(loginUserId, placeId));
 
         return place;
     }
@@ -281,5 +310,15 @@ public class PlaceServiceImpl implements PlaceService {
         }
         String first = pets.get(0).getName();
         return pets.size() == 1 ? first : first + " 외 " + (pets.size() - 1) + "마리";
+    }
+
+    private void validateOwner(Long userId, Long placeId) {
+        Place place = placeMapper.findById(placeId);
+        if (place == null) {
+            throw new BusinessException(PlaceErrorCode.PLACE_NOT_FOUND);
+        }
+        if (userId == null || !userId.equals(place.getHostUserId())) {
+            throw new BusinessException(PlaceErrorCode.PLACE_ACCESS_DENIED);
+        }
     }
 }

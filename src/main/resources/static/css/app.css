@@ -2933,6 +2933,26 @@ textarea.control {
     color: inherit;
 }
 
+.bookmark-card {
+    position: relative;
+}
+
+.bookmark-card-link {
+    display: block;
+    color: inherit;
+    text-decoration: none;
+}
+
+.bookmark-card-link:hover {
+    color: inherit;
+}
+
+.bookmark-card .like-btn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+}
+
 .place-card .media {
     height: 172px;
 }
@@ -3133,6 +3153,10 @@ textarea.control {
 
 .detail-hero .hero-btn.is-like {
     right: 16px;
+}
+
+.detail-hero .hero-btn.is-like.is-on {
+    color: #ef4444;
 }
 
 .detail-title {

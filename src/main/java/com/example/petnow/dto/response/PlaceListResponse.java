@@ -27,6 +27,7 @@ public class PlaceListResponse {
     private boolean providesYard;
     private boolean providesWalk;
     private BigDecimal hourlyPrice;
+    private boolean bookmarked;
 
     /**
      * 지도에 찍을 위도. {@code place_addresses} 에 주소 행이 없거나 아직 지오코딩되지 않았으면 {@code null} 이다. (#277)

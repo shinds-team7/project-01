@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.petnow.mapper.BookmarkMapper">
+
+    <select id="existsByUserAndPlace" resultType="boolean">
+        SELECT EXISTS (
+            SELECT 1
+            FROM bookmarks
+            WHERE user_id = #{userId}
+              AND place_id = #{placeId}
+        )
+    </select>
+
+    <insert id="insert">
+        INSERT INTO bookmarks (
+            user_id,
+            place_id
+        ) VALUES (
+            #{userId},
+            #{placeId}
+        )
+    </insert>
+
+    <delete id="delete">
+        DELETE FROM bookmarks
+        WHERE user_id = #{userId}
+          AND place_id = #{placeId}
+    </delete>
+
+    <select id="findPlacesByUserId"
+            resultType="com.example.petnow.dto.response.PlaceListResponse">
+        SELECT
+            p.id,
+            p.host_user_nickname AS nickname,
+            p.name,
+            p.description,
+            p.place_type AS placeType,
+            p.allows_small_dog AS allowsSmallDog,
+            p.allows_medium_dog AS allowsMediumDog,
+            p.allows_large_dog AS allowsLargeDog,
+            p.provides_home_camera AS providesHomeCamera,
+            p.provides_realtime_photo AS providesRealtimePhoto,
+            p.provides_yard AS providesYard,
+            p.provides_walk AS providesWalk,
+            p.hourly_price AS hourlyPrice,
+            pa.latitude AS latitude,
+            pa.longitude AS longitude,
+            TRUE AS bookmarked
+        FROM bookmarks b
+        JOIN places p ON p.id = b.place_id
+        LEFT JOIN place_addresses pa ON pa.place_id = p.id
+        WHERE b.user_id = #{userId}
+          AND p.status = 'PUBLISHED'
+          AND p.is_visible = TRUE
+          AND p.deleted_at IS NULL
+        ORDER BY b.created_at DESC, b.id DESC
+    </select>
+</mapper>

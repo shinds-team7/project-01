@@ -1,6 +1,8 @@
 package com.example.petnow.controller;
 
 import com.example.petnow.common.constant.SessionConst;
+import com.example.petnow.dto.request.PlaceUpdateRequest;
+import com.example.petnow.entity.PlaceType;
 import com.example.petnow.service.PlaceService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -12,16 +14,22 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 import java.util.regex.Pattern;
+import java.math.BigDecimal;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.then;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.hamcrest.Matchers.containsString;
 
 @WebMvcTest(PlaceController.class)
 class PlaceCreateFormTest {
@@ -53,7 +61,7 @@ class PlaceCreateFormTest {
                         .param("roadAddress", "서울특별시 성동구 왕십리로 83-21"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("places/create"))
-                .andExpect(model().attributeHasFieldErrors("placeCreateRequest", "sigungu"));
+                .andExpect(model().attributeHasFieldErrors("placeForm", "sigungu"));
 
         then(placeService).should(never()).createPlace(any(), any());
     }
@@ -65,9 +73,42 @@ class PlaceCreateFormTest {
                         .param("sigungu", "성동구"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("places/create"))
-                .andExpect(model().attributeHasFieldErrors("placeCreateRequest", "roadAddress"));
+                .andExpect(model().attributeHasFieldErrors("placeForm", "roadAddress"));
 
         then(placeService).should(never()).createPlace(any(), any());
+    }
+
+    @Test
+    @DisplayName("장소 수정 폼은 기존 값을 채우고 수정 주소로 제출한다")
+    void editFormProvidesExistingValues() throws Exception {
+        PlaceUpdateRequest request = validUpdateRequest();
+        given(placeService.getUpdateForm(1L, 3L)).willReturn(request);
+
+        mockMvc.perform(get("/places/edit/3").session(loggedIn()))
+                .andExpect(status().isOk())
+                .andExpect(view().name("places/create"))
+                .andExpect(content().string(containsString("게시글 수정")))
+                .andExpect(content().string(containsString("action=\"/places/edit/3\"")))
+                .andExpect(content().string(containsString("value=\"햇살 가득한 마당\"")));
+    }
+
+    @Test
+    @DisplayName("장소 수정 성공 후 공개 상세로 이동한다")
+    void updatesPlaceAndRedirectsToDetail() throws Exception {
+        mockMvc.perform(post("/places/edit/3").session(loggedIn())
+                        .param("name", "햇살 가득한 마당")
+                        .param("description", "수정한 소개")
+                        .param("sigungu", "성동구")
+                        .param("roadAddress", "서울특별시 성동구 왕십리로 1")
+                        .param("placeType", "HOUSE")
+                        .param("areaSize", "42")
+                        .param("capacity", "2")
+                        .param("hourlyPrice", "12000")
+                        .param("nightlyPrice", "48000"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/places/3"));
+
+        then(placeService).should().updatePlace(eq(1L), eq(3L), any(PlaceUpdateRequest.class));
     }
 
     private MockHttpServletRequestBuilder validPlaceRequest() {
@@ -86,5 +127,19 @@ class PlaceCreateFormTest {
         MockHttpSession session = new MockHttpSession();
         session.setAttribute(SessionConst.LOGIN_USER_ID, 1L);
         return session;
+    }
+
+    private PlaceUpdateRequest validUpdateRequest() {
+        PlaceUpdateRequest request = new PlaceUpdateRequest();
+        request.setName("햇살 가득한 마당");
+        request.setDescription("반려견이 편하게 쉴 수 있는 공간입니다.");
+        request.setSigungu("성동구");
+        request.setRoadAddress("서울특별시 성동구 왕십리로 1");
+        request.setPlaceType(PlaceType.HOUSE);
+        request.setAreaSize(new BigDecimal("42"));
+        request.setCapacity(2);
+        request.setHourlyPrice(new BigDecimal("12000"));
+        request.setNightlyPrice(new BigDecimal("48000"));
+        return request;
     }
 }

@@ -20,6 +20,12 @@ public enum PlaceErrorCode implements ErrorCode {
             "장소 등록에 실패했습니다."
     ),
 
+    PLACE_UPDATE_FAILED(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            "PLACE_UPDATE_FAILED",
+            "장소 수정에 실패했습니다."
+    ),
+
     PLACE_ACCESS_DENIED(
             HttpStatus.FORBIDDEN,
             "PLACE_ACCESS_DENIED",

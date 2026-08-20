@@ -7,11 +7,8 @@
     GET /reviews/place/{id}    → 장소별 리뷰. 모델에 placeId 가 있다.
   수정·삭제는 내 리뷰일 때만 의미가 있어 placeId 가 없을 때만 그린다.
 
-  ⚠ 수정·삭제 엔드포인트(GET /reviews/{id}/edit · POST /reviews/{id}/delete)가
-    ReviewController 에 없다. 예전에는 없는 경로로 링크가 걸려 있었지만, 그때는
-    /reviews/my 로 들어갈 입구 자체가 없어 아무도 누를 수 없었다.
-    이번에 마이페이지에 입구를 만들면서 처음으로 눌리게 되므로, 링크 대신
-    비활성 버튼으로 둔다. 엔드포인트가 생기면 disabled 를 떼고 form·a 로 바꾸면 된다.
+  내 리뷰의 수정은 GET /reviews/{id}/edit, 삭제는 POST /reviews/{id}/delete 로 처리한다.
+  삭제 버튼은 공용 modal.js 로 확인창을 연 뒤 모달 안의 폼을 제출한다.
 
 
   [reviews 원소가 쓰는 필드] ReviewResponse
@@ -22,6 +19,13 @@
       th:replace="~{fragments/base :: page(${placeId != null} ? '장소 리뷰' : '내 리뷰', 'my', ~{::main})}">
 <body>
 <main id="main-content" class="app-main">
+    <style>
+        .sort-tabs { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:6px; margin-bottom:16px; padding:4px; border-radius:12px; background:#f3f4f6; }
+        .sort-tabs a { padding:10px 6px; border-radius:9px; text-align:center; font-size:13px; font-weight:700; color:var(--muted); }
+        .sort-tabs a.is-active { background:#fff; color:var(--ink); box-shadow:0 1px 4px rgba(0,0,0,.08); }
+        .sort-tabs a:focus-visible { outline:2px solid var(--green); outline-offset:2px; }
+    </style>
+
     <div class="topbar">
         <a class="topbar-back" th:href="${placeId != null} ? @{/places/{id}(id=${placeId})} : @{/mypage}"
            aria-label="뒤로 가기">
@@ -86,14 +90,31 @@
                     마당이 넓어서 우리 강아지가 정말 좋아했어요.
                 </p>
 
-                <!--/* 내 리뷰 목록에서만 수정·삭제를 보여준다. 서버가 붙기 전까지는 비활성. */-->
+                <!--/* 내 리뷰 목록에서만 수정·삭제를 보여준다. */-->
                 <div class="card-actions" th:if="${placeId == null}">
-                    <button type="button" disabled title="리뷰 수정 기능은 준비 중이에요">수정하기</button>
-                    <button type="button" class="is-danger" disabled title="리뷰 삭제 기능은 준비 중이에요">삭제하기</button>
+                    <a th:href="@{/reviews/{id}/edit(id=${review.id})}">수정하기</a>
+                    <button type="button" class="is-danger" data-modal-open
+                            th:attr="aria-controls=|review-delete-${review.id}|">삭제하기</button>
                 </div>
+
+                <dialog class="modal" th:if="${placeId == null}"
+                        th:id="|review-delete-${review.id}|"
+                        th:attr="aria-labelledby=|review-delete-title-${review.id}|">
+                    <form class="modal-inner" method="post"
+                          th:action="@{/reviews/{id}/delete(id=${review.id})}">
+                        <h2 th:id="|review-delete-title-${review.id}|">리뷰를 삭제할까요?</h2>
+                        <p>삭제한 리뷰는 복구할 수 없어요.</p>
+                        <div class="modal-actions">
+                            <button class="btn btn-ghost" type="button" data-modal-close>취소</button>
+                            <button class="btn btn-danger" type="submit">삭제하기</button>
+                        </div>
+                    </form>
+                </dialog>
             </li>
         </ul>
     </div>
+
+    <script th:src="@{/js/modal.js}"></script>
 </main>
 </body>
 </html>
