@@ -106,6 +106,7 @@ public class PlaceServiceImpl implements PlaceService {
             throw new BusinessException(PlaceErrorCode.PLACE_UPDATE_FAILED);
         }
         placeMapper.upsertAddress(placeId, SEOUL, request.getSigungu(), request.getRoadAddress());
+        placeGeocodingService.geocodeAndUpdate(placeId, request.getRoadAddress());
     }
 
     @Override
