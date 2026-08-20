@@ -49,22 +49,31 @@
                 <strong th:text="${status == 'PENDING' ? '대기 중인 예약이 없어요' : '예약 요청을 불러올 수 없어요'}">예약 요청을 불러올 수 없어요</strong>
             </div>
 
-            <div class="list" th:unless="${#lists.isEmpty(reservations)}">
-                <a class="card list-row" th:each="r : ${reservations}"
+            <!--/*
+              예약 요청 카드. 예약 목록(/reservation/list)과 같은 카드 규격을 쓴다.
+              장소명 아래에 예약 일시를 두고, 상태 뱃지는 줄지 않게 고정해 줄바꿈을 막는다. (#9)
+            */-->
+            <div class="card-stack" th:unless="${#lists.isEmpty(reservations)}">
+                <a class="card reservation-card" th:each="r : ${reservations}"
                    th:href="@{/reservation/{id}(id=${r.reservationId})}">
-            <span class="list-row-label">
-                <strong th:text="${r.placeName}">연남동 윤슬 호스트</strong>
-                <small th:text="${#temporals.format(r.checkIn, 'M월 d일 HH:mm')} + ' ~ ' + ${#temporals.format(r.checkOut, 'M월 d일 HH:mm')}">
-                    8월 5일 15:00 ~ 8월 6일 12:00
-                </small>
-            </span>
-                    <span class="badge"
+                    <span class="reservation-card-copy">
+                        <strong class="reservation-card-title" th:text="${r.placeName}">연남동 윤슬 호스트</strong>
+                        <span class="reservation-card-when">
+                            <span class="ico" aria-hidden="true">calendar_today</span>
+                            <span th:text="${r.checkIn != null and r.checkOut != null
+                                             ? #temporals.format(r.checkIn, 'M월 d일 HH:mm') + ' ~ '
+                                               + #temporals.format(r.checkOut, 'M월 d일 HH:mm')
+                                             : '일정 미정'}">8월 5일 15:00 ~ 8월 6일 12:00</span>
+                        </span>
+                        <span class="reservation-card-price" th:if="${r.totalPrice != null}"
+                              th:text="${#numbers.formatInteger(r.totalPrice, 0, 'COMMA')} + '원'">48,000원</span>
+                    </span>
+
+                    <span class="badge reservation-card-badge"
                           th:classappend="${r.reservationStatus.name() == 'CONFIRMED' ? 'badge-green'
-                  : (r.reservationStatus.name() == 'CANCELED' ? 'badge-danger' : 'badge-warn')}"
+                                          : (r.reservationStatus.name() == 'CANCELED' ? 'badge-danger' : 'badge-warn')}"
                           th:text="${r.reservationStatus.name() == 'CONFIRMED' ? '예약 확정'
-           : (r.reservationStatus.name() == 'CANCELED' ? '취소됨' : '응답 대기')}">
-                응답 대기
-            </span>
+                                   : (r.reservationStatus.name() == 'CANCELED' ? '취소됨' : '응답 대기')}">응답 대기</span>
                 </a>
             </div>
         </div>

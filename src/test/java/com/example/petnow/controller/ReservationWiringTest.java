@@ -23,6 +23,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.not;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -83,6 +84,7 @@ class ReservationWiringTest {
         given(reservationService.getReservationList(1L, "BEFORE_USE"))
                 .willReturn(List.of(new ReservationListResponse(
                         9L,
+                        3L,
                         "연남동 윤슬 호스트",
                         new BigDecimal("48000"),
                         ReservationStatus.CONFIRMED,
@@ -98,9 +100,33 @@ class ReservationWiringTest {
                 .andExpect(content().string(containsString("/reservation/list?useStatus=AFTER_USE")))
                 .andExpect(content().string(containsString("예약 이용상태 필터")))
                 .andExpect(content().string(containsString("badge-use-before")))
-                .andExpect(content().string(containsString("이용 전")));
+                .andExpect(content().string(containsString("이용 전")))
+                .andExpect(content().string(containsString("href=\"/places/3\"")))
+                .andExpect(content().string(containsString("href=\"/reservation/detail?reservationId=9\"")))
+                .andExpect(content().string(not(containsString("<a class=\"card reservation-card\""))));
 
         then(reservationService).should().getReservationList(1L, "BEFORE_USE");
+    }
+
+    @Test
+    @DisplayName("장소 ID가 없는 과거 예약은 숙소명을 링크 없는 평문으로 보여준다")
+    void reservationListFallsBackWhenPlaceIdIsMissing() throws Exception {
+        given(reservationService.getReservationList(1L, null))
+                .willReturn(List.of(new ReservationListResponse(
+                        9L,
+                        null,
+                        "삭제된 장소",
+                        new BigDecimal("48000"),
+                        ReservationStatus.CONFIRMED,
+                        LocalDateTime.now().plusDays(2),
+                        LocalDateTime.now().plusDays(2).plusHours(6))));
+
+        mockMvc.perform(get("/reservation/list").session(loggedIn()))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString(
+                        "<strong class=\"reservation-card-title\">삭제된 장소</strong>")))
+                .andExpect(content().string(not(containsString("href=\"/places/"))))
+                .andExpect(content().string(containsString("href=\"/reservation/detail?reservationId=9\"")));
     }
 
     @Test

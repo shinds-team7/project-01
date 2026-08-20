@@ -164,34 +164,46 @@
     <select id="findDetailById"
             resultType="com.example.petnow.dto.response.PlaceDetailResponse">
         SELECT
-        id,
-        host_user_id AS hostUserId,
-        host_user_nickname AS nickname,
-        name,
-        description,
-        place_type AS placeType,
-        area_size AS areaSize,
-        capacity,
-        allows_small_dog AS allowsSmallDog,
-        allows_medium_dog AS allowsMediumDog,
-        allows_large_dog AS allowsLargeDog,
-        provides_home_camera AS providesHomeCamera,
-        provides_realtime_photo AS providesRealtimePhoto,
-        provides_yard AS providesYard,
-        provides_walk AS providesWalk,
-        other_options AS otherOptions,
-        hourly_price AS hourlyPrice,
-        nightly_price AS nightlyPrice,
-        average_rating AS averageRating,
-        supports_hourly AS supportsHourly,
-        supports_package AS supportsPackage,
-        package_check_in_time AS packageCheckInTime,
-        package_check_out_time AS packageCheckOutTime,
-        status,
-        is_visible AS visible
-        FROM places
-        WHERE id = #{placeId}
-        AND deleted_at IS NULL
+        p.id,
+        p.host_user_id AS hostUserId,
+        p.host_user_nickname AS nickname,
+        p.name,
+        p.description,
+        pa.sido AS sido,
+        pa.sigungu AS sigungu,
+        pa.eupmyeondong AS eupmyeondong,
+        pa.road_address AS roadAddress,
+        p.place_type AS placeType,
+        p.area_size AS areaSize,
+        p.capacity,
+        p.allows_small_dog AS allowsSmallDog,
+        p.allows_medium_dog AS allowsMediumDog,
+        p.allows_large_dog AS allowsLargeDog,
+        p.provides_home_camera AS providesHomeCamera,
+        p.provides_realtime_photo AS providesRealtimePhoto,
+        p.provides_yard AS providesYard,
+        p.provides_walk AS providesWalk,
+        p.other_options AS otherOptions,
+        p.hourly_price AS hourlyPrice,
+        p.nightly_price AS nightlyPrice,
+        p.average_rating AS averageRating,
+        (
+            SELECT COUNT(*)
+            FROM reviews rv
+            JOIN reservations rr ON rr.id = rv.reservation_id
+            WHERE rr.place_id = p.id
+            AND rv.deleted_at IS NULL
+        ) AS reviewCount,
+        p.supports_hourly AS supportsHourly,
+        p.supports_package AS supportsPackage,
+        p.package_check_in_time AS packageCheckInTime,
+        p.package_check_out_time AS packageCheckOutTime,
+        p.status,
+        p.is_visible AS visible
+        FROM places p
+        LEFT JOIN place_addresses pa ON pa.place_id = p.id
+        WHERE p.id = #{placeId}
+        AND p.deleted_at IS NULL
     </select>
     <update id="updateOperatingPolicy">
         UPDATE places

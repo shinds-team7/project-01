@@ -10,9 +10,8 @@
   내 리뷰의 수정은 GET /reviews/{id}/edit, 삭제는 POST /reviews/{id}/delete 로 처리한다.
   삭제 버튼은 공용 modal.js 로 확인창을 연 뒤 모달 안의 폼을 제출한다.
 
-
   [reviews 원소가 쓰는 필드] ReviewResponse
-    id · placeId · placeName · checkInAt · rating · content
+    id · placeId · placeName · reviewerName · checkInAt · rating · content
 
 */-->
 <html lang="ko" xmlns:th="http://www.thymeleaf.org"
@@ -37,25 +36,25 @@
     <div class="screen">
         <div class="notice notice-danger" role="alert" th:if="${deleteError}" th:text="${deleteError}"></div>
 
-        <!--/* 정렬 탭. 장소별 리뷰(placeId 있음)이면서 리뷰가 있을 때만 보여준다. /reviews/my 는 정렬 미지원. */-->
+        <!--/*
+          정렬 필터. 장소별 리뷰(placeId 있음)이면서 리뷰가 있을 때만 보여준다. /reviews/my 는 정렬 미지원.
+          링크 세 개를 칸으로 끊어 버튼처럼 보이게 하고, 고른 칸에만 색이 들어간다.
+        */-->
         <div class="sort-tabs" th:if="${placeId != null and !#lists.isEmpty(reviews)}" role="tablist" aria-label="리뷰 정렬">
             <a role="tab"
                th:href="@{/reviews/place/{id}(id=${placeId}, sort='LATEST')}"
                th:classappend="${currentSort == 'LATEST'} ? ' is-active'"
-               th:aria-selected="${currentSort == 'LATEST'}"
-               th:text="'최신순'">최신순</a>
+               th:aria-selected="${currentSort == 'LATEST'}">최신순</a>
 
             <a role="tab"
                th:href="@{/reviews/place/{id}(id=${placeId}, sort='RATING_DESC')}"
                th:classappend="${currentSort == 'RATING_DESC'} ? ' is-active'"
-               th:aria-selected="${currentSort == 'RATING_DESC'}"
-               th:text="'별점 높은순'">별점 높은순</a>
+               th:aria-selected="${currentSort == 'RATING_DESC'}">별점 높은순</a>
 
             <a role="tab"
                th:href="@{/reviews/place/{id}(id=${placeId}, sort='RATING_ASC')}"
                th:classappend="${currentSort == 'RATING_ASC'} ? ' is-active'"
-               th:aria-selected="${currentSort == 'RATING_ASC'}"
-               th:text="'별점 낮은순'">별점 낮은순</a>
+               th:aria-selected="${currentSort == 'RATING_ASC'}">별점 낮은순</a>
         </div>
 
         <div class="empty" th:if="${#lists.isEmpty(reviews)}">
@@ -72,16 +71,20 @@
                         <span class="ico" aria-hidden="true">weekend</span>
                     </div>
                     <div class="my-review-head">
-                        <a class="place-name" th:href="@{/places/{id}(id=${review.placeId})}"
+                        <a class="place-name" th:if="${placeId == null}"
+                           th:href="@{/places/{id}(id=${review.placeId})}"
                            th:text="${review.placeName}">성수 조용한 단독주택 마당</a>
+                        <span class="place-name" th:if="${placeId != null}"
+                              th:text="${review.reviewerName != null ? review.reviewerName : '알 수 없음'}">작성자</span>
 
                         <small th:if="${review.checkInAt != null}"
                                th:text="${#temporals.format(review.checkInAt, 'yyyy년 M월 d일')} + ' 이용'">2026년 7월 18일 이용</small>
 
-                        <p class="rating">
-                            <span class="ico" aria-hidden="true">star</span>
-                            <span th:text="${review.rating}">5</span>
-                            <span class="sr-only">점</span>
+                        <!--/* 숫자 대신 별을 그린다. 못 채운 칸은 흐린 별로 남겨 몇 점인지 한눈에 보이게 한다. */-->
+                        <p class="review-stars" th:aria-label="|별점 ${review.rating}점|">
+                            <span class="ico is-filled" aria-hidden="true"
+                                  th:each="star : ${#numbers.sequence(1, 5)}"
+                                  th:classappend="${star > review.rating} ? ' is-off'">star</span>
                         </p>
                     </div>
                 </div>

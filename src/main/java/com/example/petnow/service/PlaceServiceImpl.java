@@ -25,6 +25,7 @@ import com.example.petnow.mapper.PlaceMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -33,6 +34,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -135,10 +138,23 @@ public class PlaceServiceImpl implements PlaceService {
             throw new BusinessException(PlaceErrorCode.PLACE_NOT_FOUND);
         }
 
+        place.setAddress(resolvePublicAddress(place));
         place.setBookmarked(loginUserId != null
                 && bookmarkMapper.existsByUserAndPlace(loginUserId, placeId));
 
         return place;
+    }
+
+    private String resolvePublicAddress(PlaceDetailResponse place) {
+        if (StringUtils.hasText(place.getRoadAddress())) {
+            return place.getRoadAddress().trim();
+        }
+
+        String address = Stream.of(place.getSido(), place.getSigungu(), place.getEupmyeondong())
+                .filter(StringUtils::hasText)
+                .map(String::trim)
+                .collect(Collectors.joining(" "));
+        return StringUtils.hasText(address) ? address : null;
     }
 
     // ───────────────────────── 조건 필터링 (#7) ─────────────────────────

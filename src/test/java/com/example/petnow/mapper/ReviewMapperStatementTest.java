@@ -4,7 +4,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.InputStream;
 import java.util.Locale;
+import java.util.Map;
 
+import com.example.petnow.entity.ReviewSortType;
 import org.apache.ibatis.builder.xml.XMLMapperBuilder;
 import org.apache.ibatis.mapping.MappedStatement;
 import org.apache.ibatis.session.Configuration;
@@ -27,6 +29,7 @@ import org.junit.jupiter.api.Test;
 class ReviewMapperStatementTest {
 
     private static final String REVIEW_MAPPER = "mapper/ReviewMapper.xml";
+    private static final String NAMESPACE = "com.example.petnow.mapper.ReviewMapper.";
     private static final String FIND_BY_HOST =
             "com.example.petnow.mapper.ReviewMapper.findReviewsByHostUserId";
 
@@ -41,6 +44,22 @@ class ReviewMapperStatementTest {
             assertThat(in).as("매퍼 XML 을 찾지 못했다: %s", REVIEW_MAPPER).isNotNull();
             new XMLMapperBuilder(in, configuration, REVIEW_MAPPER, configuration.getSqlFragments()).parse();
         }
+    }
+
+    @Test
+    @DisplayName("내 리뷰와 장소 리뷰는 활성 작성자 닉네임을 응답에 싣는다")
+    void reviewListsSelectActiveReviewerName() {
+        assertReviewerJoin(sqlOf("findReviewsByMemberId", Map.of("memberId", 1L)));
+        assertReviewerJoin(sqlOf("findReviewsByPlaceId", Map.of(
+                "placeId", 3L,
+                "sort", ReviewSortType.LATEST)));
+    }
+
+    private void assertReviewerJoin(String sql) {
+        assertThat(sql)
+                .contains("u.nickname as reviewername")
+                .contains("left join users u")
+                .contains("u.deleted_at is null");
     }
 
     @Test
@@ -67,6 +86,13 @@ class ReviewMapperStatementTest {
         String sql = sqlOf(FIND_BY_HOST);
 
         assertThat(sql).contains("order by r.created_at desc");
+    }
+
+    private String sqlOf(String statementName, Object parameter) {
+        MappedStatement statement = configuration.getMappedStatement(NAMESPACE + statementName);
+        return statement.getBoundSql(parameter).getSql()
+                .replaceAll("\\s+", " ")
+                .toLowerCase(Locale.ROOT);
     }
 
     /** 공백을 하나로 줄이고 소문자로 낮춰 비교한다. 줄바꿈·들여쓰기가 바뀌어도 테스트가 흔들리지 않게. */

@@ -17,6 +17,7 @@ import lombok.Setter;
 @AllArgsConstructor
 public class ReservationListResponse {
 	private Long reservationId;
+	private Long placeId;
 	private String placeName;
 	private BigDecimal totalPrice;
 	private ReservationStatus reservationStatus;

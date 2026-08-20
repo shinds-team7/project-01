@@ -176,7 +176,7 @@ class UnstyledScreenShellTest {
 
     private ReservationListResponse listItem() {
         return new ReservationListResponse(
-                9L, "연남동 윤슬 호스트", new BigDecimal("48000"), ReservationStatus.CONFIRMED,
+                9L, 3L, "연남동 윤슬 호스트", new BigDecimal("48000"), ReservationStatus.CONFIRMED,
                 LocalDateTime.of(2026, 8, 5, 14, 0), LocalDateTime.of(2026, 8, 5, 20, 0));
     }
 

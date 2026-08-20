@@ -19,6 +19,11 @@ public class PlaceDetailResponse {
     private String nickname;
     private String name;
     private String description;
+    private String sido;
+    private String sigungu;
+    private String eupmyeondong;
+    private String roadAddress;
+    private String address;
     private PlaceType placeType;
     private BigDecimal areaSize;
     private Integer capacity;
@@ -32,6 +37,8 @@ public class PlaceDetailResponse {
     private String otherOptions;
     private BigDecimal hourlyPrice;
     private BigDecimal nightlyPrice;
+    private BigDecimal averageRating;
+    private Integer reviewCount;
     private boolean supportsHourly;
     private boolean supportsPackage;
     private LocalTime packageCheckInTime;
@@ -40,13 +47,7 @@ public class PlaceDetailResponse {
     private boolean visible;
     private boolean bookmarked;
 
-    /**
-     * 평균 별점. {@code places.average_rating} 을 그대로 읽는다.
-     * 리뷰가 없으면 {@code 0.00} 이고, 그 경우 화면은 별점 대신 리뷰 유도 문구를 그린다.
-     */
-    private BigDecimal averageRating;
-
-    /** 별점을 그릴지. 판단 근거는 {@link PlaceListResponse#hasRating()} 과 같다. */
+    /** 별점 데이터가 있는지. */
     public boolean hasRating() {
         return averageRating != null && averageRating.compareTo(BigDecimal.ZERO) > 0;
     }
