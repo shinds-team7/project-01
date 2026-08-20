@@ -3,11 +3,15 @@ package com.example.petnow.entity;
 import java.time.LocalDateTime;
 
 public enum ReservationUseStatus {
-	BEFORE_USE, IN_USE, AFTER_USE;
+	BEFORE_USE, IN_USE, AFTER_USE, NOT_CONFIRMED;
 
 	// 예약 승인/거부 구현 후 수정 예정. 임시 구현
-	public static ReservationUseStatus calculate(ReservationStatus useStatus, LocalDateTime checkIn, LocalDateTime checkOut) {
+	public static ReservationUseStatus calculate(ReservationStatus status, LocalDateTime checkIn, LocalDateTime checkOut) {
 		LocalDateTime now = LocalDateTime.now();
+
+        if (status != ReservationStatus.CONFIRMED) {
+            return NOT_CONFIRMED;
+        }
 
 		if (now.isBefore(checkIn)) {
 			return BEFORE_USE;
@@ -29,4 +33,6 @@ public enum ReservationUseStatus {
 	public boolean getIsAfterUse() {
 		return this == AFTER_USE;
 	}
+
+    public boolean getIsNotConfirmed() { return this == NOT_CONFIRMED; }
 }
