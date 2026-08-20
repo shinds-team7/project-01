@@ -77,7 +77,9 @@
         ON DUPLICATE KEY UPDATE
         sido = VALUES(sido),
         sigungu = VALUES(sigungu),
-        road_address = VALUES(road_address)
+        road_address = VALUES(road_address),
+        latitude = NULL,
+        longitude = NULL
     </insert>
 
     <select id="findById"
