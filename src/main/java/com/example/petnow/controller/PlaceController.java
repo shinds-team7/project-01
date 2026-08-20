@@ -3,6 +3,7 @@ package com.example.petnow.controller;
 import com.example.petnow.common.argument.LoginUser;
 import com.example.petnow.common.session.LoginSession;
 import com.example.petnow.dto.request.PlaceCreateRequest;
+import com.example.petnow.dto.request.PlaceFilterRequest;
 import com.example.petnow.dto.request.PlaceUpdateRequest;
 import com.example.petnow.entity.PlaceType;
 import com.example.petnow.service.PlaceService;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
 @RequestMapping("/places")
@@ -88,9 +90,24 @@ public class PlaceController {
         return "places/success";
     }
 
+    /**
+     * 공개 목록. 정렬만 받는 조건 없는 검색이다.
+     *
+     * <p>{@code getPublishedPlaces()} 대신 {@code searchPlaces()} 를 쓴다. 조건을 하나도 안 건
+     * {@code findByFilter} 는 {@code findAllPublished} 와 WHERE 절이 같아 결과가 같고, 대신
+     * 정렬 allowlist 를 그대로 얻는다. 목록 화면에만 따로 정렬을 붙이면 {@code /nearby}·{@code /search}
+     * 와 정렬 규칙이 갈라진다.
+     */
     @GetMapping
-    public String list(Model model) {
-        model.addAttribute("places", placeService.getPublishedPlaces());
+    public String list(@RequestParam(required = false) String sort,
+                       HttpServletRequest request,
+                       Model model) {
+        PlaceFilterRequest filter = new PlaceFilterRequest();
+        filter.setSort(sort);
+
+        model.addAttribute("places",
+                placeService.searchPlaces(LoginSession.currentUserId(request), filter).getPlaces());
+        model.addAttribute("currentSort", filter.normalizedSort());
 
         return "places/list";
     }

@@ -14,6 +14,11 @@
             <input class="search-field" type="search" name="keyword" th:value="${keyword}"
                    placeholder="장소, 소개, 호스트 이름으로 검색해보세요"
                    aria-label="장소 검색어" autofocus>
+            <!--/*
+              고른 정렬을 다음 검색까지 들고 간다. 최신순은 기본값이라 굳이 실어 보내지 않는다.
+              이게 없으면 정렬을 바꾼 뒤 검색어를 고치는 순간 정렬이 풀린다.
+            */-->
+            <input type="hidden" name="sort" th:if="${currentSort != 'latest'}" th:value="${currentSort}">
             <button class="search-submit" type="submit" aria-label="검색">
                 <span class="ico" aria-hidden="true">search</span>
             </button>
@@ -26,9 +31,22 @@
         </div>
 
         <th:block th:if="${searched}">
+            <!--/* 정렬 칩은 결과가 있을 때만. 0건에서 정렬을 바꿔봐야 여전히 0건이다. */-->
             <div class="sort-row">
                 <p class="result-count"
                    th:text="|'${keyword}' 검색 결과 ${#lists.size(places)}개|">검색 결과 0개</p>
+                <div class="chip-row" role="tablist" aria-label="정렬 기준"
+                     th:unless="${#lists.isEmpty(places)}">
+                    <a class="chip" role="tab" th:href="@{/search(keyword=${keyword})}"
+                       th:classappend="${currentSort == 'latest'} ? ' is-active'"
+                       th:aria-selected="${currentSort == 'latest'}">최신순</a>
+                    <a class="chip" role="tab" th:href="@{/search(keyword=${keyword}, sort='price')}"
+                       th:classappend="${currentSort == 'price'} ? ' is-active'"
+                       th:aria-selected="${currentSort == 'price'}">가격 낮은순</a>
+                    <a class="chip" role="tab" th:href="@{/search(keyword=${keyword}, sort='rating')}"
+                       th:classappend="${currentSort == 'rating'} ? ' is-active'"
+                       th:aria-selected="${currentSort == 'rating'}">별점 높은순</a>
+                </div>
             </div>
 
             <div class="place-list" th:unless="${#lists.isEmpty(places)}">
@@ -54,6 +72,12 @@
                         <p class="place-loc">
                             <span class="ico" aria-hidden="true">person</span>
                             <span th:text="${place.nickname}">호스트 닉네임</span>
+                        </p>
+                        <!--/* 리뷰가 없으면(0.00) 줄 자체를 그리지 않는다. places/list.html 과 같은 규칙. */-->
+                        <p class="rating" th:if="${place.hasRating()}">
+                            <span class="ico" aria-hidden="true">star</span>
+                            <span th:text="${#numbers.formatDecimal(place.averageRating, 1, 1)}">4.8</span>
+                            <span class="sr-only">점</span>
                         </p>
                         <p class="place-price" th:if="${place.hourlyPrice != null}">
                             <span th:text="${#numbers.formatInteger(place.hourlyPrice, 0, 'COMMA')} + '원'">12,000원</span>

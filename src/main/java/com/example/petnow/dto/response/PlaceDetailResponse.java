@@ -46,4 +46,9 @@ public class PlaceDetailResponse {
     private PlaceStatus status;
     private boolean visible;
     private boolean bookmarked;
+
+    /** 별점 데이터가 있는지. */
+    public boolean hasRating() {
+        return averageRating != null && averageRating.compareTo(BigDecimal.ZERO) > 0;
+    }
 }

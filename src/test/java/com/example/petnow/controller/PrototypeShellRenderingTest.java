@@ -6,6 +6,7 @@ import com.example.petnow.dto.response.PackageDayResponse;
 import com.example.petnow.dto.response.PetListResponse;
 import com.example.petnow.dto.response.PlaceDetailResponse;
 import com.example.petnow.dto.response.PlaceListResponse;
+import com.example.petnow.dto.response.PlaceSearchResponse;
 import com.example.petnow.dto.response.PlaceSlotResponse;
 import com.example.petnow.dto.response.ReservationDetailResponse;
 import com.example.petnow.dto.response.ReservationStepResponse;
@@ -97,7 +98,9 @@ class PrototypeShellRenderingTest {
     @Test
     @DisplayName("장소 목록이 앱 셸로 그려지고 카드 본문까지 실제로 렌더된다")
     void placeListRendersCards() throws Exception {
-        given(placeService.getPublishedPlaces()).willReturn(List.of(placeListItem()));
+        // GET /places 는 조건 없는 정렬 검색이라 searchPlaces 를 탄다 (정렬 allowlist 공유).
+        given(placeService.searchPlaces(any(), any()))
+                .willReturn(PlaceSearchResponse.builder().places(List.of(placeListItem())).build());
 
         mockMvc.perform(get("/places"))
                 .andExpect(status().isOk())
@@ -116,7 +119,8 @@ class PrototypeShellRenderingTest {
     @Test
     @DisplayName("공개된 장소가 없으면 앱 셸의 빈 상태를 그린다")
     void placeListRendersEmptyState() throws Exception {
-        given(placeService.getPublishedPlaces()).willReturn(List.of());
+        given(placeService.searchPlaces(any(), any()))
+                .willReturn(PlaceSearchResponse.builder().places(List.of()).build());
 
         mockMvc.perform(get("/places"))
                 .andExpect(status().isOk())

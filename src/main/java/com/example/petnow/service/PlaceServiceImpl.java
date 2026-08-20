@@ -11,6 +11,7 @@ import com.example.petnow.dto.response.PlaceSearchResponse;
 import com.example.petnow.entity.Pet;
 import com.example.petnow.entity.Place;
 import com.example.petnow.entity.PlaceStatus;
+import com.example.petnow.entity.PlaceType;
 import com.example.petnow.entity.User;
 import com.example.petnow.exception.AuthErrorCode;
 import com.example.petnow.exception.BusinessException;
@@ -179,6 +180,7 @@ public class PlaceServiceImpl implements PlaceService {
                 .dateLabel(dateLabel(request))
                 .timeLabel(timeLabel(request))
                 .petLabel(petLabel(selectedPets))
+                .typeLabel(typeLabel(request.getPlaceType()))
                 .build();
     }
 
@@ -326,6 +328,11 @@ public class PlaceServiceImpl implements PlaceService {
         }
         String first = pets.get(0).getName();
         return pets.size() == 1 ? first : first + " 외 " + (pets.size() - 1) + "마리";
+    }
+
+    /** 장소 유형은 한 개만 고를 수 있어 라벨을 그대로 쓴다. */
+    private static String typeLabel(PlaceType placeType) {
+        return placeType == null ? null : placeType.getLabel();
     }
 
     private void validateOwner(Long userId, Long placeId) {

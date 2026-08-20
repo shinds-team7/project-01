@@ -93,6 +93,15 @@
                     <span class="ico home-search-caret" aria-hidden="true">expand_more</span>
                 </button>
             </div>
+            <div class="home-search-line" aria-hidden="true"></div>
+            <div class="home-search-row">
+                <button class="home-search-field" type="button" data-modal-open aria-controls="type-modal">
+                    <span class="ico" aria-hidden="true">home_work</span>
+                    <span class="home-search-value" data-filter-summary="type"
+                          th:text="${typeLabel} ?: '장소 유형 선택'">장소 유형 선택</span>
+                    <span class="ico home-search-caret" aria-hidden="true">expand_more</span>
+                </button>
+            </div>
             <button class="btn btn-primary btn-block home-search-submit" type="submit">
                 <span class="ico" aria-hidden="true">search</span>검색하기
             </button>
@@ -190,6 +199,37 @@
                 </div>
             </dialog>
 
+            <!--/*
+              장소 유형. PlaceFilterRequest.placeType 이 단일 enum 이라 라디오로 받는다.
+              체크박스로 두면 여러 개가 제출돼 마지막 값만 남고 나머지는 조용히 버려진다.
+
+              "전체"는 value="" 다. 빈 문자열은 스프링이 enum 바인딩에서 null 로 읽어
+              조건 자체가 빠진다. 한번 고른 유형을 되돌릴 방법이 이것뿐이다.
+            */-->
+            <dialog class="modal filter-modal" id="type-modal" aria-labelledby="type-modal-title">
+                <div class="modal-inner">
+                    <h2 id="type-modal-title">장소 유형 선택</h2>
+                    <p>한 가지 유형만 고를 수 있어요.</p>
+                    <div class="option-grid filter-option-grid">
+                        <!--/* 켜진 값 판단은 카드의 다른 필드와 같이 *Label 모델 값으로 한다. */-->
+                        <label>
+                            <input type="radio" name="placeType" value=""
+                                   th:checked="${typeLabel == null}">
+                            <span>전체</span>
+                        </label>
+                        <label th:each="type : ${placeTypes}">
+                            <input type="radio" name="placeType" th:value="${type.name()}"
+                                   th:checked="${typeLabel != null and typeLabel == type.label}">
+                            <span th:text="${type.label}">아파트</span>
+                        </label>
+                    </div>
+                    <div class="modal-actions">
+                        <button class="btn btn-ghost" type="button" data-modal-close>닫기</button>
+                        <button class="btn btn-primary" type="button" data-modal-close data-filter-apply>적용</button>
+                    </div>
+                </div>
+            </dialog>
+
             <!--/* 반려견. 체크박스라 같은 아이를 두 번 고를 수 없고, 서버도 중복을 한 번 더 걷어낸다. */-->
             <dialog class="modal filter-modal" id="pet-modal" aria-labelledby="pet-modal-title">
                 <div class="modal-inner">
@@ -232,6 +272,15 @@
                 <span class="home-recent-loc">
                     <span class="ico" aria-hidden="true">home_work</span>
                     <span th:text="${place.placeType != null ? place.placeType.label : '유형 미정'}">장소 유형</span>
+                </span>
+                <!--/*
+                  평균 별점. 카드가 <a> 라 블록 요소를 넣을 수 없어 span 으로 쓴다.
+                  .rating 은 inline-flex 라 그대로 붙는다. 리뷰가 없으면(0.00) 그리지 않는다.
+                */-->
+                <span class="rating" th:if="${place.hasRating()}">
+                    <span class="ico" aria-hidden="true">star</span>
+                    <span th:text="${#numbers.formatDecimal(place.averageRating, 1, 1)}">4.8</span>
+                    <span class="sr-only">점</span>
                 </span>
                 <span class="home-recent-price"
                       th:text="${place.hourlyPrice != null
@@ -323,6 +372,11 @@
                     .map((input) => input.closest("label").textContent.trim().split(" · ")[0]);
                 summaryOf("pet").textContent = summarize(petNames, "마리", "반려동물 선택");
                 if (petCount) petCount.textContent = petNames.length + "마리를 골랐어요.";
+
+                // 유형은 라디오라 언제나 하나가 켜져 있다. "전체"는 value 가 "" 여서 조건이 빠진 상태다.
+                const type = checked("placeType")[0];
+                summaryOf("type").textContent =
+                    type && type.value !== "" ? type.closest("label").textContent.trim() : "장소 유형 선택";
             }
 
             form.addEventListener("change", () => {

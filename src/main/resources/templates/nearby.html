@@ -31,6 +31,16 @@
 */-->
 <main id="main-content" class="app-main nearby-screen"
       th:attr="data-filtered=${filtered != null and filtered}">
+    <!--/*
+      정렬 칩만 쓰는 스타일. app.css 의 .chip 은 <a>·<span> 기준이라 button 에 그대로 쓰면
+      브라우저 기본 글꼴이 남는다(font 는 상속되지 않는다). app.css 를 건드리지 않으려고
+      이 화면 안에 둔다. host/availability.html 도 같은 방식이다.
+    */-->
+    <style>
+        .nearby-sort { margin-top: 12px; }
+        .nearby-sort button.chip { font: inherit; font-weight: 700; font-size: 13px; }
+    </style>
+
     <!--/* 지도가 뜨면 JS 가 is-live 를 붙여 도안(.map-pin)을 감춘다. 못 뜨면 도안이 그대로 남는다. */-->
     <div class="media map-preview nearby-map" id="nearby-map" aria-hidden="true">
         <div class="nearby-map-canvas" id="nearby-map-canvas"></div>
@@ -78,11 +88,51 @@
                     <span class="ico" aria-hidden="true">pets</span>
                     <span th:text="${petLabel}">반려동물</span>
                 </span>
+                <span class="chip is-active" th:if="${typeLabel != null}">
+                    <span class="ico" aria-hidden="true">home_work</span>
+                    <span th:text="${typeLabel}">장소 유형</span>
+                </span>
             </div>
             <a class="nearby-filter-edit" th:href="@{/home}">
                 <span class="ico" aria-hidden="true">tune</span>조건 바꾸기
             </a>
         </div>
+
+        <!--/*
+          정렬. 지금 걸려 있는 조건을 그대로 들고 다시 검색한다. (정렬 키는 PlaceMapper 의 allowlist)
+
+          링크(@{/nearby(regions=${...})})로 만들지 않는다. 값이 null 인 조건까지 `regions=` 처럼
+          빈 파라미터로 실려 나가고, 그러면 목록 조건이 IN ('') 이 되어 결과가 통째로 0건이 된다.
+          hidden input 은 th:each·th:if 로 "없으면 아예 안 그리기"가 되므로 그 함정이 없다.
+
+          같은 name 의 제출 버튼은 눌린 것 하나만 전송된다는 표준 동작을 쓴다. JS 가 없어도 된다.
+        */-->
+        <form class="nearby-sort" method="get" th:action="@{/nearby}">
+            <input type="hidden" name="regions" th:each="region : ${placeFilter.regions}" th:value="${region}">
+            <input type="hidden" name="petIds" th:each="petId : ${placeFilter.petIds}" th:value="${petId}">
+            <input type="hidden" name="startDate" th:if="${placeFilter.startDate != null}"
+                   th:value="${placeFilter.startDate}">
+            <input type="hidden" name="endDate" th:if="${placeFilter.endDate != null}"
+                   th:value="${placeFilter.endDate}">
+            <input type="hidden" name="startTime" th:if="${placeFilter.startTime != null}"
+                   th:value="${#temporals.format(placeFilter.startTime, 'HH:mm')}">
+            <input type="hidden" name="endTime" th:if="${placeFilter.endTime != null}"
+                   th:value="${#temporals.format(placeFilter.endTime, 'HH:mm')}">
+            <input type="hidden" name="placeType" th:if="${placeFilter.placeType != null}"
+                   th:value="${placeFilter.placeType.name()}">
+
+            <div class="chip-row" role="group" aria-label="정렬 기준">
+                <button class="chip" type="submit" name="sort" value="latest"
+                        th:classappend="${currentSort == 'latest'} ? ' is-active'"
+                        th:attrappend="aria-pressed=${currentSort == 'latest'}">최신순</button>
+                <button class="chip" type="submit" name="sort" value="price"
+                        th:classappend="${currentSort == 'price'} ? ' is-active'"
+                        th:attrappend="aria-pressed=${currentSort == 'price'}">가격 낮은순</button>
+                <button class="chip" type="submit" name="sort" value="rating"
+                        th:classappend="${currentSort == 'rating'} ? ' is-active'"
+                        th:attrappend="aria-pressed=${currentSort == 'rating'}">별점 높은순</button>
+            </div>
+        </form>
 
         <!--/*
           안내 자리. 기본 위치로 떨어졌거나, 좌표가 없어 지도에 못 찍은 장소가 있거나,
@@ -137,6 +187,12 @@
                     <p class="place-loc">
                         <span class="ico" aria-hidden="true">person</span>
                         <span th:text="${place.nickname}">호스트 닉네임</span>
+                    </p>
+                    <!--/* 리뷰가 없으면(0.00) 줄 자체를 그리지 않는다. places/list.html 과 같은 규칙. */-->
+                    <p class="rating" th:if="${place.hasRating()}">
+                        <span class="ico" aria-hidden="true">star</span>
+                        <span th:text="${#numbers.formatDecimal(place.averageRating, 1, 1)}">4.8</span>
+                        <span class="sr-only">점</span>
                     </p>
                     <!--/* 내 위치를 실제로 얻었을 때만 JS 가 채우고 hidden 을 뗀다. */-->
                     <p class="place-distance" hidden>
@@ -406,11 +462,15 @@
                 if (!window.kakao || !window.kakao.maps) return false;
 
                 const kakao = window.kakao;
+                /*
+                 * 캔버스는 기본적으로 display:none 이다. 숨은 상태에서 Map 을 만들면 SDK 가
+                 * 크기를 0으로 읽어 타일 일부만 모서리에 그린다. 먼저 표시해 실제 크기를 확보한다.
+                 */
+                mapBox.classList.add("is-live");
                 const map = new kakao.maps.Map(canvas, {
                     center: new kakao.maps.LatLng(origin.lat, origin.lng),
                     level: DEFAULT_LEVEL
                 });
-                mapBox.classList.add("is-live");
 
                 const bounds = new kakao.maps.LatLngBounds();
                 let plotted = 0;
@@ -438,16 +498,26 @@
                     if (map.getLevel() > MAX_LEVEL) map.setLevel(MAX_LEVEL);
                 }
 
-                /* 화면을 돌리면 지도 크기가 바뀐다. 중심은 유지한 채 다시 그린다. */
-                let resizeTimer = 0;
-                window.addEventListener("resize", () => {
-                    window.clearTimeout(resizeTimer);
-                    resizeTimer = window.setTimeout(() => {
+                /*
+                 * 최초 표시, 모바일 회전, 데스크톱 브레이크포인트·사이드바 변화처럼 지도 영역의
+                 * 실제 크기가 바뀌는 모든 경우에 다시 배치한다. 중심은 relayout 전후로 유지한다.
+                 */
+                let resizeFrame = 0;
+                const scheduleRelayout = () => {
+                    window.cancelAnimationFrame(resizeFrame);
+                    resizeFrame = window.requestAnimationFrame(() => {
                         const center = map.getCenter();
                         map.relayout();
                         map.setCenter(center);
-                    }, 200);
-                });
+                    });
+                };
+
+                scheduleRelayout();
+                window.addEventListener("resize", scheduleRelayout);
+                if (typeof window.ResizeObserver === "function") {
+                    const resizeObserver = new ResizeObserver(scheduleRelayout);
+                    resizeObserver.observe(mapBox);
+                }
 
                 return true;
             }
@@ -513,6 +583,7 @@
                             drawn = drawMap(origin, Boolean(here), entries);
                         } catch (error) {
                             /* 지도만 포기한다. 목록은 그대로 둔다. */
+                            mapBox?.classList.remove("is-live");
                             drawn = false;
                         }
                         report(Boolean(here), filtered, withoutPoint, drawn, entries.length);
