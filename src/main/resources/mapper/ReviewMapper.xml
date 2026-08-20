@@ -94,7 +94,7 @@
             ON r.reservation_id = res.id
         JOIN places p
             ON res.place_id = p.id
-        WHERE r.id = #{id}
+        WHERE r.id = #{reviewId}
     </select>
 
     <select id="countReviewById" resultType="int">
