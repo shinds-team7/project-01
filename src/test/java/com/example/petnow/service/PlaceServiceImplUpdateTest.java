@@ -18,15 +18,18 @@ import static org.mockito.Mockito.verify;
 class PlaceServiceImplUpdateTest {
 
     private PlaceMapper placeMapper;
+    private PlaceGeocodingService placeGeocodingService;
     private PlaceServiceImpl placeService;
 
     @BeforeEach
     void setUp() {
         placeMapper = mock(PlaceMapper.class);
+        placeGeocodingService = mock(PlaceGeocodingService.class);
         placeService = new PlaceServiceImpl(
                 placeMapper,
                 mock(AuthMapper.class),
-                mock(PetMapper.class)
+                mock(PetMapper.class),
+                placeGeocodingService
         );
     }
 
@@ -41,6 +44,8 @@ class PlaceServiceImplUpdateTest {
         verify(placeMapper).update(3L, 1L, request, null);
         verify(placeMapper).upsertAddress(
                 3L, "서울특별시", "성동구", "서울특별시 성동구 왕십리로 1");
+        verify(placeGeocodingService).geocodeAndUpdate(
+                3L, "서울특별시 성동구 왕십리로 1");
     }
 
     @Test
