@@ -148,7 +148,7 @@ class PrototypeShellRenderingTest {
                 .andExpect(view().name("booking-request"))
                 .andExpect(content().string(containsString("/css/app.css")))
                 .andExpect(content().string(containsString("예약 유형을 선택해주세요")))
-                .andExpect(content().string(containsString("시 예약")))
+                .andExpect(content().string(containsString("시간 예약")))
                 // placeEntity 는 패키지를 열지 않았다. 열지 않은 유형은 아예 나오지 않아야 한다.
                 .andExpect(content().string(not(containsString("패키지 예약"))))
                 // 이식 전에는 매핑이 없는 /places/{id}/payment 로 보내 404 였다.
@@ -448,7 +448,7 @@ class PrototypeShellRenderingTest {
                 .areaSize(new BigDecimal("42"))
                 .capacity(2)
                 .hourlyPrice(new BigDecimal("12000"))
-                // 시 예약만 여는 장소다. 패키지 유형이 화면에 새는지도 같이 본다.
+                // 시간 예약만 여는 장소다. 패키지 유형이 화면에 새는지도 같이 본다.
                 .supportsHourly(true)
                 .status(PlaceStatus.PUBLISHED)
                 .visible(true)

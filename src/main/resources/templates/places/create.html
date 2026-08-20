@@ -33,8 +33,8 @@
     <form th:action="${editPlaceId == null} ? @{/places/create} : @{/places/edit/{id}(id=${editPlaceId})}"
           th:object="${placeForm}" method="post"
           enctype="multipart/form-data">
-        <div class="screen">
-            <p class="field-hint" style="margin-top:14px">정성껏 돌볼 수 있는 공간을 소개해주세요.</p>
+        <div class="screen host-post-form">
+            <p class="host-post-intro">정성껏 돌볼 수 있는 공간을 소개해주세요.</p>
 
             <div class="notice notice-danger" role="alert" th:if="${#fields.hasAnyErrors()}">
                 <span class="ico" aria-hidden="true">error</span>
@@ -139,7 +139,7 @@
 
             <fieldset class="field host-fieldset">
                 <legend>주거 형태</legend>
-                <div class="choice-row type-choices" style="margin-top:8px">
+                <div class="choice-row type-choices">
                     <label class="choice" th:each="type : ${placeTypes}">
                         <input type="radio" th:field="*{placeType}" th:value="${type}" required>
                         <span>

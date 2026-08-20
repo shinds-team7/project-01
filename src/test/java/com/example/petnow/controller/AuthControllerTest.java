@@ -5,6 +5,7 @@ import com.example.petnow.common.controller.HomeController;
 import com.example.petnow.dto.request.UserLoginRequest;
 import com.example.petnow.dto.request.UserSignupRequest;
 import com.example.petnow.dto.response.LoginUser;
+import com.example.petnow.dto.response.PetListResponse;
 import com.example.petnow.exception.AuthErrorCode;
 import com.example.petnow.exception.BusinessException;
 import com.example.petnow.service.AuthService;
@@ -19,6 +20,8 @@ import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.allOf;
@@ -226,6 +229,24 @@ class AuthControllerTest {
                         containsString("/auth/logout"),
                         // 하드코딩된 예시 이름이 남아 있으면 안 된다
                         not(containsString("지우 보호자님")))));
+    }
+
+    @Test
+    @DisplayName("홈 헤더는 사용자 닉네임이 아니라 등록한 아이 이름으로 '○○ 보호자님' 을 그린다")
+    void homeRendersPetNameAsGuardianTitle() throws Exception {
+        LoginUser guardian = LoginUser.builder().id(9L).nickname("선영").email("sunyoung@petnow.kr").build();
+        MockHttpSession session = new MockHttpSession();
+        session.setAttribute(SessionConst.LOGIN_USER_ID, guardian.getId());
+        session.setAttribute(SessionConst.LOGIN_USER, guardian);
+
+        given(petService.getPetList(guardian.getId()))
+                .willReturn(List.of(PetListResponse.builder().id(3L).name("초코").build()));
+
+        mockMvc.perform(get("/home").session(session))
+                .andExpect(status().isOk())
+                .andExpect(content().string(allOf(
+                        containsString("초코 보호자님"),
+                        not(containsString("선영 보호자님")))));
     }
 
     @Test

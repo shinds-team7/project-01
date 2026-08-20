@@ -68,6 +68,18 @@ body {
     -webkit-font-smoothing: antialiased;
 }
 
+/*
+ * hidden 속성이 항상 이기게 한다.
+ *
+ * display 를 직접 지정한 클래스(.notice 의 display:flex 등)는 브라우저 기본
+ * [hidden] { display: none } 을 덮어 버린다. 그래서 `<div class="notice" hidden>` 이
+ * 계속 보이고, JS 로 el.hidden = true 를 줘도 사라지지 않는다.
+ * 예약 요청 화면의 "맡길 반려동물을 한 마리 이상 선택해주세요" 가 늘 떠 있던 원인이다.
+ */
+[hidden] {
+    display: none !important;
+}
+
 a {
     color: var(--green);
     text-decoration: none;
@@ -343,7 +355,7 @@ img {
 /* ─────────────────────── 화면 공통 요소 ─────────────────────── */
 /* 좌우 20px 여백 — 프로토타입의 기본 화면 패딩 */
 .screen {
-    padding: 0 20px 24px;
+    padding: 0 20px 40px;
 }
 
 @media (min-width: 1024px) {
@@ -551,6 +563,11 @@ img {
     min-width: 0;
 }
 
+/* 가격 줄이 바닥 쪽으로 눌려 보여 살짝 올린다 (디자인 피드백 — 상세 페이지) */
+.cta-bar .cta-copy {
+    padding-bottom: 5px;
+}
+
 .cta-bar .cta-price {
     font-weight: 800;
     font-size: 18px;
@@ -567,6 +584,29 @@ img {
 .cta-bar .btn {
     flex: none;
     padding: 15px 26px;
+}
+
+/*
+ * 좌우 절반씩 나눠 쓰는 하단 CTA. 예약 상세의 "예약 취소 / 리뷰 쓰기" 가 쓴다. (#8)
+ * 두 버튼이 정확히 반반을 차지하도록 flex:1 로 되돌린다.
+ */
+.cta-bar-split .btn {
+    flex: 1;
+    min-width: 0;
+    padding: 15px 12px;
+    white-space: nowrap;
+}
+
+/* 취소처럼 되돌릴 수 없는 동작 — 테두리만 있는 위험 버튼 */
+.btn-danger-ghost {
+    border-color: var(--danger);
+    color: var(--danger);
+    background: #fff;
+}
+
+.btn-danger-ghost:hover {
+    background: #fdeced;
+    color: var(--danger-on-soft);
 }
 
 @media (min-width: 768px) and (max-width: 1023px) {
@@ -606,6 +646,67 @@ img {
     box-shadow: var(--shadow-card);
     padding: 16px;
     border: none;
+}
+
+/*
+ * 예약 카드 — 예약 목록(/reservation/list)과 호스트 예약 요청 탭이 함께 쓴다.
+ *
+ * 한 줄짜리 list-row 로 그리면 상태 뱃지가 좁아져 "응답 대기" 가 줄바꿈되고
+ * 카드마다 높이가 달라진다. 카드 높이를 넉넉히 잡고 뱃지를 줄지 않게 고정한다. (#7 · #9)
+ */
+.reservation-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    min-height: 112px;
+    padding: 20px;
+    color: var(--ink);
+}
+
+.reservation-card:hover {
+    color: var(--ink);
+    border-color: var(--green);
+}
+
+.reservation-card-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+    min-width: 0;
+}
+
+.reservation-card-title {
+    font-weight: 800;
+    font-size: 15.5px;
+    letter-spacing: -0.2px;
+}
+
+.reservation-card-when {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 5px;
+    font-size: 13px;
+    color: var(--muted);
+}
+
+.reservation-card-when .ico {
+    font-size: 15px;
+    color: var(--faint);
+}
+
+.reservation-card-price {
+    font-weight: 800;
+    font-size: 14.5px;
+    color: var(--ink);
+}
+
+/* 뱃지는 글자 수가 달라도 줄바꿈되지 않게 고정 폭으로 둔다 */
+.reservation-card-badge {
+    flex: none;
+    white-space: nowrap;
+    align-self: flex-start;
 }
 
 /* 사진 자리를 대신하는 줄무늬 플레이스홀더 */
@@ -851,8 +952,15 @@ img {
     background: #fff;
 }
 
+/*
+ * 예시 문구(placeholder). 칸마다 크기가 달라 보이던 것은 입력칸이 아니라
+ * 브라우저 기본 글꼴 크기를 그대로 쓰던 textarea·select 탓이다. 크기를 한 곳에서 묶고,
+ * 실제 입력값과 헷갈리지 않게 색을 한 단계 더 연하게 둔다. (디자인 피드백 — 강아지 정보추가)
+ */
 .control::placeholder {
-    color: var(--muted-2);
+    font-size: 14px;
+    color: var(--faint);
+    font-weight: 500;
 }
 
 .control:focus {
@@ -1095,6 +1203,11 @@ textarea.control {
     line-height: 1.5;
     background: var(--line-soft);
     color: var(--muted);
+}
+
+/* 안내 문구가 연달아 놓이면 서로 붙어 한 덩어리로 읽힌다. 사이를 띄운다. */
+.notice + .notice {
+    margin-top: 14px;
 }
 
 .notice .ico {
@@ -1341,17 +1454,18 @@ textarea.control {
     margin-top: 6px;
 }
 
-/* 최근 조회한 호스트 */
+/* 최근 조회한 호스트 — 가로 스크롤 대신 2열 그리드로 편다 (좌우 슬라이드 금지, #2) */
 .home-recent {
-    display: flex;
-    gap: 12px;
-    margin: 0 -20px;
-    padding: 0 20px 4px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px 12px;
+    margin: 0;
+    padding: 0 0 4px;
 }
 
 .home-recent-card {
-    flex: none;
-    width: 148px;
+    width: auto;
+    min-width: 0;
     color: var(--ink);
 }
 
@@ -1392,6 +1506,7 @@ textarea.control {
 }
 
 .home-recent-empty {
+    grid-column: 1 / -1;
     margin: 0;
     padding: 26px 0;
     font-size: 13px;
@@ -1636,7 +1751,7 @@ textarea.control {
 }
 
 .my-menu {
-    margin-top: 26px;
+    margin-top: 18px;
     overflow: hidden;
     border: 1px solid var(--line-faint);
     border-radius: var(--r-md);
@@ -1777,6 +1892,58 @@ textarea.control {
     color: var(--muted);
     font-size: 11px;
 }
+
+/*
+ * 내 정보 화면의 회원 정보 목록.
+ * 항목 제목과 값이 같은 굵기라 어느 쪽이 값인지 읽히지 않아, 제목은 흐리고 가늘게,
+ * 값은 진하고 굵게 나눈다. 줄 간격도 함께 벌린다. (디자인 피드백 — 마이페이지)
+ */
+.my-account-list {
+    margin-top: 20px;
+}
+
+.my-account-list .list-row {
+    padding: 20px 18px;
+}
+
+.my-account-list .list-row-label {
+    font-weight: 600;
+    font-size: 13.5px;
+    color: var(--muted);
+}
+
+.my-account-list .list-row strong {
+    font-weight: 800;
+    font-size: 15px;
+    color: var(--ink);
+}
+
+/* 버튼 두 개 아래에 바로 붙던 안내 문구를 떼어 놓는다 */
+.my-account-hint {
+    margin-top: 26px;
+}
+
+/* 회원 탈퇴 — 실수로 누를 자리가 아니라 화면 맨 아래에 조용히 둔다 */
+.account-danger {
+    margin-top: 36px;
+    text-align: center;
+}
+
+.account-withdraw {
+    border: none;
+    background: none;
+    padding: 8px 12px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--muted);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    cursor: pointer;
+}
+
+.account-withdraw:hover {
+    color: var(--danger);
+}
 /* ─────────────────────── 반려동물 등록 · 정보 수정 ─────────────────────── */
 .pet-editor-page {
     min-height: 100vh;
@@ -1898,9 +2065,9 @@ textarea.control {
 .pet-editor-intro h2 {
     margin: 8px 0 9px;
     color: #fff;
-    font-size: clamp(26px, 7.2vw, 35px);
-    line-height: 1.15;
-    letter-spacing: -0.055em;
+    font-size: clamp(21px, 5.6vw, 27px);
+    line-height: 1.25;
+    letter-spacing: -0.02em;
 }
 
 .pet-editor-intro p {
@@ -2088,7 +2255,7 @@ textarea.control {
 }
 
 .pet-editor-fields .field-hint {
-    font-size: 10px;
+    font-size: 12px;
     line-height: 1.5;
 }
 
@@ -2098,8 +2265,15 @@ textarea.control {
     gap: 9px;
 }
 
+/*
+ * 취소(.btn-ghost 13px)와 저장(.btn-primary 16px)이 나란히 놓여 글꼴 크기가 어긋나 보였다.
+ * 같은 줄에 서는 두 버튼은 크기를 맞춘다. (디자인 피드백 — 강아지 정보 수정)
+ */
 .pet-editor-actions .btn {
     min-height: 52px;
+    padding: 15px 16px;
+    font-size: 15px;
+    font-weight: 800;
 }
 
 .pet-danger-link {
@@ -2109,7 +2283,7 @@ textarea.control {
     justify-content: center;
     gap: 5px;
     color: #b34b4b;
-    font-size: 10px;
+    font-size: 12.5px;
     font-weight: 700;
 }
 
@@ -2461,6 +2635,11 @@ textarea.control {
 
 .summary-row .summary-copy {
     min-width: 0;
+}
+
+/* 유형 뱃지와 장소명이 붙어 한 덩어리로 읽힌다 (디자인 피드백 — 예약 요청) */
+.summary-row .summary-copy .badge {
+    margin-bottom: 8px;
 }
 
 .summary-row .summary-copy strong {
@@ -3654,6 +3833,60 @@ textarea.control {
 }
 
 /* ─────────────────────── 내 리뷰 목록 ─────────────────────── */
+/*
+ * 리뷰 정렬 필터 — 링크 세 개를 칸으로 끊어 버튼처럼 보이게 한다.
+ * 고른 칸에만 초록이 들어가고, 아래 리뷰 목록과는 넉넉히 띄운다. (#11)
+ */
+.sort-tabs {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
+    gap: 8px;
+    margin: 4px 0 28px;
+}
+
+.sort-tabs > a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 11px 8px;
+    border: 1px solid var(--line);
+    border-radius: var(--r-sm);
+    background: #fff;
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--muted);
+    text-align: center;
+    white-space: nowrap;
+}
+
+.sort-tabs > a:hover {
+    border-color: var(--green);
+    color: var(--green-on-soft);
+}
+
+.sort-tabs > a.is-active {
+    border-color: var(--green);
+    background: var(--green-soft);
+    color: var(--green-on-soft);
+}
+
+/* 리뷰 별점 — 숫자 대신 별 다섯 칸으로 그리고, 못 채운 칸만 흐리게 둔다 */
+.review-stars {
+    display: flex;
+    gap: 1px;
+    margin: 7px 0 0;
+    color: var(--warn);
+}
+
+.review-stars .ico {
+    font-size: 17px;
+}
+
+.review-stars .ico.is-off {
+    color: var(--line);
+}
+
 .my-review-list {
     list-style: none;
     margin: 0;
@@ -3754,6 +3987,18 @@ textarea.control {
     flex-direction: column;
     gap: 14px;
     margin-top: 16px;
+}
+
+/*
+ * 탭 줄 바로 아래 오는 제목·카드가 필요 이상으로 내려가 있었다.
+ * 탭과 섹션 제목, 제목과 카드 사이를 각각 좁힌다. (디자인 피드백 — 호스트홈)
+ */
+.tab-row + .section-head {
+    margin-top: 14px;
+}
+
+.section-head + .card-stack {
+    margin-top: 4px;
 }
 
 /* 내 호스팅 장소 카드 */
@@ -4645,3 +4890,58 @@ button.home-search-field:disabled {
     font-size: 11.5px;
     color: var(--muted);
 }
+
+
+/*
+ * 게시글 작성 폼(/places/new)의 세로 리듬.
+ *
+ * 항목이 스무 개 가까이 이어지는데 제목·입력칸·안내문구가 저마다 다른 간격으로 놓여
+ * 어디서 한 묶음이 끝나는지 읽히지 않았다. 이 화면 안에서만 간격을 다시 잡는다.
+ * (디자인 피드백 — 게시글 작성)
+ */
+.host-post-intro {
+    margin: 20px 2px 6px;
+    font-size: 14px;
+    line-height: 1.55;
+    color: var(--muted);
+}
+
+.host-post-form .field {
+    margin-bottom: 22px;
+}
+
+/* 입력이 끝나고 다음 묶음이 시작되는 자리는 확실히 띄운다 */
+.host-post-form .field + .section-title,
+.host-post-form .field-split + .section-title,
+.host-post-form .host-fieldset + .section-title,
+.host-post-form .other-option + .section-title {
+    margin-top: 34px;
+}
+
+.host-post-form .host-fieldset legend {
+    margin-bottom: 2px;
+}
+
+.host-post-form .host-fieldset + .host-fieldset {
+    margin-top: 24px;
+}
+
+.host-post-form .option-grid {
+    gap: 16px 12px;
+    margin-top: 16px;
+}
+
+.host-post-form .type-choices {
+    margin-top: 12px;
+}
+
+/* 평수·최대 수용은 라벨과 입력칸이 붙어 한 줄처럼 보였다 */
+.host-post-form .field-split {
+    gap: 12px;
+}
+
+.host-post-form .field-split .field-label {
+    margin-bottom: 10px;
+}
+
+/* ===== codex 작업 구역 (병합 충돌 방지 — 이 아래에만 추가) ===== */

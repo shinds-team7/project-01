@@ -21,10 +21,18 @@
                 -->
                 <span class="home-hero-actions" th:if="${session.loginUser != null}">
                     <button type="button" aria-label="알림"><span class="ico" aria-hidden="true">notifications</span></button>
-                    <a class="profile-button" th:href="@{/mypage}">
-                        <span class="profile-avatar" th:text="${session.loginUser.initial}">초</span>
+                    <!--/*
+                      헤더는 "보호자님" 호칭이라 사용자 닉네임이 아니라 맡길 아이 이름을 붙인다.
+                      아이가 여러 마리면 첫 번째 아이를 대표로 쓰고, 아직 등록한 아이가 없으면
+                      기존처럼 닉네임으로 되돌아간다. (#5)
+                    */-->
+                    <a class="profile-button" th:href="@{/mypage}"
+                       th:with="guardianName=${(myPets != null and !#lists.isEmpty(myPets))
+                                                ? myPets[0].name : session.loginUser.nickname}">
+                        <span class="profile-avatar"
+                              th:text="${#strings.isEmpty(guardianName) ? '?' : #strings.substring(guardianName, 0, 1)}">초</span>
                         <span class="profile-copy"><small>반가워요</small><strong
-                                th:text="|${session.loginUser.nickname} 보호자님|">초코 보호자님</strong></span>
+                                th:text="|${guardianName} 보호자님|">초코 보호자님</strong></span>
                     </a>
                     <!--/* 로그아웃은 상태를 바꾸는 요청이라 링크가 아니라 POST 폼으로 보낸다. */-->
                     <form class="auth-logout" th:action="@{/auth/logout}" method="post">
@@ -209,14 +217,13 @@
                 </div>
             </dialog>
         </form>
-        </div>
 
         <!-- 최근 조회한 호스트 -->
         <div class="section-head">
             <h2 class="section-title">최근 조회한 호스트</h2>
             <a class="section-more" th:href="@{/places}">더보기 <span class="ico" aria-hidden="true">chevron_right</span></a>
         </div>
-        <div class="hscroll home-recent">
+        <div class="home-recent">
             <a class="home-recent-card" th:each="place : ${recentPlaces}" th:href="@{/places/{id}(id=${place.id})}">
                 <span class="media media-warm home-recent-media">
                     <span class="ico" aria-hidden="true">pets</span>
