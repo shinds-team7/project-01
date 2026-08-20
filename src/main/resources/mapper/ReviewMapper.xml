@@ -30,6 +30,7 @@
             res.place_id     AS placeId,
             DATE(res.check_in_at)  AS checkInAt,
             p.name           AS placeName,
+            u.nickname       AS reviewerName,
             r.content        AS content,
             r.rating         AS rating
         FROM reviews r
@@ -37,6 +38,9 @@
             ON r.reservation_id = res.id
         JOIN places p
             ON res.place_id = p.id
+        LEFT JOIN users u
+            ON res.guest_user_id = u.id
+            AND u.deleted_at IS NULL
         WHERE res.guest_user_id = #{memberId}
             AND r.deleted_at IS NULL
         ORDER BY r.created_at DESC
@@ -51,6 +55,7 @@
             res.place_id     AS placeId,
             DATE(res.check_in_at)  AS checkInAt,
             p.name           AS placeName,
+            u.nickname       AS reviewerName,
             r.content        AS content,
             r.rating         AS rating
         FROM reviews r
@@ -58,6 +63,9 @@
             ON r.reservation_id = res.id
         JOIN places p
             ON res.place_id = p.id
+        LEFT JOIN users u
+            ON res.guest_user_id = u.id
+            AND u.deleted_at IS NULL
         WHERE res.place_id = #{placeId}
             AND r.deleted_at IS NULL
         <choose>

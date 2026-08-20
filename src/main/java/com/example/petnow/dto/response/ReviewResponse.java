@@ -17,6 +17,7 @@ public class ReviewResponse {
     private Long memberId;              // reservations.guest_user_id
     private Long placeId;               // reservations.place_id
     private String placeName;           // places.name
+    private String reviewerName;
     private LocalDate checkInAt;    // reservations.check_in_at
     private String content;
     private int rating;

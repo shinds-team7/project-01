@@ -399,6 +399,7 @@ class PrototypeShellRenderingTest {
                 .andExpect(status().isOk())
                 .andExpect(view().name("reviews/list"))
                 .andExpect(content().string(containsString("/css/app.css")))
+                .andExpect(content().string(containsString("href=\"/places/1\"")))
                 .andExpect(content().string(containsString("성수 조용한 단독주택 마당")))
                 .andExpect(content().string(containsString("마당이 넓어서 좋았어요")))
                 .andExpect(content().string(containsString("수정하기")));
@@ -413,9 +414,23 @@ class PrototypeShellRenderingTest {
         mockMvc.perform(get("/reviews/place/1"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("reviews/list"))
+                .andExpect(content().string(containsString("<span class=\"place-name\">박지우</span>")))
+                .andExpect(content().string(not(containsString("<a class=\"place-name\""))))
                 .andExpect(content().string(containsString("마당이 넓어서 좋았어요")))
                 .andExpect(content().string(not(containsString("수정하기"))))
                 .andExpect(content().string(not(containsString("삭제하기"))));
+    }
+
+    @Test
+    @DisplayName("탈퇴한 작성자의 장소 리뷰는 알 수 없음으로 표시한다")
+    void placeReviewsFallBackWhenReviewerIsMissing() throws Exception {
+        ReviewResponse review = review();
+        given(review.getReviewerName()).willReturn(null);
+        given(reviewService.getReviewsByPlace(1L, ReviewSortType.LATEST)).willReturn(List.of(review));
+
+        mockMvc.perform(get("/reviews/place/1"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("<span class=\"place-name\">알 수 없음</span>")));
     }
 
     // ────────────────────────── 인증 ──────────────────────────
@@ -503,6 +518,7 @@ class PrototypeShellRenderingTest {
         given(review.getPlaceId()).willReturn(1L);
         given(review.getMemberId()).willReturn(1L);
         given(review.getPlaceName()).willReturn("성수 조용한 단독주택 마당");
+        given(review.getReviewerName()).willReturn("박지우");
         given(review.getRating()).willReturn(5);
         given(review.getContent()).willReturn("마당이 넓어서 좋았어요");
         given(review.getCheckInAt()).willReturn(LocalDate.of(2026, 7, 18));
