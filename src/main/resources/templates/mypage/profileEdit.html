@@ -82,8 +82,10 @@
             <!--/* 이메일은 로그인 아이디라 여기서 바꾸지 않는다. 값만 보여준다. */-->
             <div class="field">
                 <label class="field-label" for="email">이메일</label>
-                <input class="control" id="email" type="email" th:value="${profile.email}" disabled>
-                <p class="field-hint">이메일은 로그인에 쓰이는 값이라 바꿀 수 없어요.</p>
+                <input class="control" id="email" type="email" th:value="${profile.email}"
+                       th:disabled="${profile.kakaoUser}" readonly>
+                <p class="field-hint" th:if="${profile.kakaoUser}">카카오 로그인 계정의 이메일은 변경할 수 없습니다.</p>
+                <p class="field-hint" th:unless="${profile.kakaoUser}">카카오 로그인 계정의 이메일은 변경할 수 없습니다.</p>
             </div>
 
             <div class="pet-editor-actions" style="margin-top:24px">

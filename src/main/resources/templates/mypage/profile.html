@@ -27,6 +27,11 @@
             <span>비밀번호가 변경됐어요.</span>
         </div>
 
+        <div class="notice notice-green" role="status" th:if="${socialPasswordBlocked}">
+            <span class="ico" aria-hidden="true">info</span>
+            <span>카카오 로그인 계정은 비밀번호를 변경할 수 없습니다.</span>
+        </div>
+
         <section class="card card-raised my-account-profile" aria-labelledby="profile-title">
             <!--/* 프로필 이미지가 없으면 기존 이니셜 아바타를 폴백으로 쓴다. */-->
             <span class="my-account-avatar" aria-hidden="true">
@@ -59,9 +64,14 @@
             <span class="ico" aria-hidden="true">edit</span> 내 정보 수정
         </a>
 
-        <a class="btn btn-ghost btn-block" th:href="@{/my/password}" style="margin-top:10px">
+        <a class="btn btn-ghost btn-block" th:if="${!profile.kakaoUser}"
+           th:href="@{/my/password}" style="margin-top:10px">
             <span class="ico" aria-hidden="true">lock</span> 비밀번호 변경
         </a>
+        <button class="btn btn-ghost btn-block" th:if="${profile.kakaoUser}"
+                type="button" disabled style="margin-top:10px">
+            <span class="ico" aria-hidden="true">lock</span> 비밀번호 변경
+        </button>
 
         <div class="notice notice-green">
             <span class="ico" aria-hidden="true">verified_user</span>
