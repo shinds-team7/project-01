@@ -3038,6 +3038,17 @@ img {
         padding-inline: 8px;
     }
 
+/* 최근 조회한 호스트: 구버전 app-flow.css의 실제 카드 구조를 홈에 통합한다. */
+.recent-scroll { display: flex; gap: 14px; overflow-x: auto; padding: 0 0 4px; scrollbar-width: none; }
+.recent-scroll::-webkit-scrollbar { display: none; }
+.recent-card { flex: 0 0 168px; min-width: 0; color: inherit; text-decoration: none; }
+.recent-card .media-placeholder { display: flex; align-items: center; justify-content: center; height: 118px; border-radius: var(--radius-md); background: repeating-linear-gradient(45deg, #e5e7ea, #e5e7ea 12px, #dcdfe3 12px, #dcdfe3 24px); color: #aeb4bb; font-size: 30px; transition: transform 0.3s var(--ease); }
+.recent-card:hover .media-placeholder { transform: translateY(-2px); }
+.recent-card strong { display: block; margin-top: 10px; overflow: hidden; color: var(--ink-deep); font-size: 14.5px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+.recent-card small { display: flex; align-items: center; gap: 3px; margin-top: 4px; overflow: hidden; color: #8a8f96; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+.recent-card small .material-symbols-rounded { flex: none; font-size: 14px; }
+.recent-price { display: block; margin-top: 7px; color: var(--pet-green-dark); font-size: 14px; font-weight: 800; }
+
 @media (prefers-reduced-motion: reduce) {
     html {
         scroll-behavior: auto;
