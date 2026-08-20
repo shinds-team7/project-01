@@ -25,7 +25,6 @@ import com.example.petnow.dto.response.ReservationStepResponse;
 import com.example.petnow.dto.response.ReviewResponse;
 import com.example.petnow.entity.Place;
 import com.example.petnow.entity.Reservation;
-import com.example.petnow.entity.ReservationStatus;
 import com.example.petnow.exception.BusinessException;
 import com.example.petnow.exception.PlaceErrorCode;
 import com.example.petnow.exception.ReservationErrorCode;
@@ -200,29 +199,6 @@ public class ReservationController {
 		model.addAttribute("reservations", responseList);
 		return "reservations/reservationList";
 	}
-
-    @GetMapping("/host")
-    public String getReservationHostList(
-        @LoginUser Long userId,
-        @RequestParam(required = false, defaultValue = "booking") String tab,
-        @RequestParam(required = false, defaultValue = "ALL") String status,
-        Model model) {
-        model.addAttribute("tab", tab);
-        model.addAttribute("activeTab", tab);
-
-        if ("booking".equals(tab)) {
-            ReservationStatus filterStatus = "ALL".equalsIgnoreCase(status)
-                ? null
-                : ReservationStatus.valueOf(status.toUpperCase());
-
-            List<ReservationListResponse> reservations =
-                reservationService.getReservationByHost(userId, filterStatus);
-
-            model.addAttribute("reservations", reservations);
-            model.addAttribute("status", status.toUpperCase());
-        }
-        return "host/dashboard";
-    }
 
 	@PostMapping("/cancel")
 	public String cancel(@LoginUser Long userId, @Valid @ModelAttribute ReservationCancelRequest request, BindingResult bindingResult) {
