@@ -173,15 +173,36 @@ public class PlaceServiceImpl implements PlaceService {
     @Transactional(readOnly = true)
     public PlaceSearchResponse searchPlaces(Long loginUserId, PlaceFilterRequest request) {
         List<PetListResponse> selectedPets = resolveSelectedPets(loginUserId, request.getPetIds());
+        List<PlaceListResponse> places = placeMapper.findByFilter(toCriteria(request, selectedPets));
+        markBookmarked(loginUserId, places);
 
         return PlaceSearchResponse.builder()
-                .places(placeMapper.findByFilter(toCriteria(request, selectedPets)))
+                .places(places)
                 .regionLabel(regionLabel(request.getRegions()))
                 .dateLabel(dateLabel(request))
                 .timeLabel(timeLabel(request))
                 .petLabel(petLabel(selectedPets))
                 .typeLabel(typeLabel(request.getPlaceType()))
                 .build();
+    }
+
+    /**
+     * 목록 카드의 하트를 채운다.
+     *
+     * <p>비로그인이면 찜 자체가 없으므로 쿼리를 아예 보내지 않는다. 로그인 상태면 찜한 장소 id 를
+     * 한 번에 받아 맞춰 본다. 장소마다 존재 여부를 묻지 않는 이유는 {@code BookmarkMapper} 쪽에 적어 뒀다.
+     */
+    private void markBookmarked(Long loginUserId, List<PlaceListResponse> places) {
+        if (loginUserId == null || places.isEmpty()) {
+            return;
+        }
+        Set<Long> bookmarked = new LinkedHashSet<>(bookmarkMapper.findPlaceIdsByUserId(loginUserId));
+        if (bookmarked.isEmpty()) {
+            return;
+        }
+        for (PlaceListResponse place : places) {
+            place.setBookmarked(bookmarked.contains(place.getId()));
+        }
     }
 
     /**
