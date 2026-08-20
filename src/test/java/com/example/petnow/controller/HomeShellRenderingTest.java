@@ -45,14 +45,15 @@ class HomeShellRenderingTest {
     private PetService petService;
 
     @Test
-    @DisplayName("홈이 앱 셸과 하단 네비를 갖고 그려진다")
-    void homeRendersWithAppShell() throws Exception {
+    @DisplayName("홈이 구형 데스크톱 레이아웃과 로그인·회원가입 입구를 갖고 그려진다")
+    void homeRendersWithClassicHomeLayout() throws Exception {
         mockMvc.perform(get("/home"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("home"))
-                .andExpect(content().string(containsString("/css/app.css")))
-                .andExpect(content().string(containsString("class=\"app-nav\"")))
-                .andExpect(content().string(containsString("우리 동네 <em>펫시터</em>")));
+                .andExpect(content().string(containsString("/css/home.css")))
+                .andExpect(content().string(containsString("class=\"legacy-header\"")))
+                .andExpect(content().string(containsString("/auth/login")))
+                .andExpect(content().string(containsString("편안한 하루</em>를 맡겨요")));
     }
 
     @Test
@@ -119,6 +120,14 @@ class HomeShellRenderingTest {
                 .placeType(PlaceType.APARTMENT)
                 .hourlyPrice(BigDecimal.valueOf(hourlyPrice))
                 .build();
+    }
+
+    @Test
+    @DisplayName("검색은 준비 화면 대신 장소 목록으로 연결된다")
+    void navDestinationsResolve() throws Exception {
+        mockMvc.perform(get("/home"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("/js/home.js")));
     }
 
     @Test
