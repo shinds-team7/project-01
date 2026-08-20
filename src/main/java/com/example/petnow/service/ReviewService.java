@@ -17,6 +17,9 @@ public interface ReviewService {
     // 특정 장소의 리뷰 목록 조회
     List<ReviewResponse> getReviewsByPlace(Long placeId, ReviewSortType sort);
 
+    // 내가 호스팅하는 장소들에 달린 리뷰 목록 조회 (호스트 홈 리뷰 탭)
+    List<ReviewResponse> getReviewsForHost(Long hostUserId);
+
     // 리뷰 단건 조회
     ReviewResponse getReview(Long memberId, Long reviewId);
 
