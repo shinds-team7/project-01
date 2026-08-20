@@ -11,13 +11,13 @@
             <h1>찜한 호스트</h1>
         </div>
 
-        <div class="notice notice-green" role="status" th:if="${bookmarkUpdated}">
+        <div class="notice notice-green" role="status" data-bookmark-status hidden>
             <span class="ico" aria-hidden="true">check_circle</span>
-            <span th:text="${bookmarked} ? '찜 목록에 추가했어요.' : '찜을 취소했어요.'">찜 상태가 변경됐어요.</span>
+            <span data-bookmark-status-text>찜 상태가 변경됐어요.</span>
         </div>
 
         <div class="place-list bookmark-list" th:unless="${#lists.isEmpty(places)}">
-            <article class="place-card bookmark-card" th:each="place : ${places}">
+            <article class="place-card bookmark-card" th:each="place : ${places}" data-bookmark-card>
                 <a class="bookmark-card-link"
                    th:href="@{/places/{id}(id=${place.id})}"
                    th:aria-label="|${place.name} 상세보기|">
@@ -46,22 +46,26 @@
                         <p class="place-price" th:if="${place.hourlyPrice == null}">가격 문의</p>
                     </div>
                 </a>
-                <form th:action="@{/bookmarks/{id}/toggle(id=${place.id})}" method="post">
-                    <input type="hidden" name="redirectTo" th:value="@{/bookmarks}">
-                    <button class="like-btn is-on" type="submit" aria-label="찜 취소">
-                        <span class="ico" aria-hidden="true">favorite</span>
-                    </button>
-                </form>
+                <button class="like-btn is-on"
+                        type="button"
+                        th:data-place-id="${place.id}"
+                        aria-label="찜 취소"
+                        aria-pressed="true"
+                        data-bookmark-toggle
+                        data-remove-card-on-unbookmark>
+                    <span class="ico" aria-hidden="true">favorite</span>
+                </button>
             </article>
         </div>
 
-        <div class="empty" th:if="${#lists.isEmpty(places)}">
+        <div class="empty" th:hidden="${!#lists.isEmpty(places)}" data-bookmark-empty>
             <span class="ico" aria-hidden="true">favorite</span>
             <strong>아직 찜한 호스트가 없어요</strong>
             <p>마음에 드는 공간을 찜하면 여기에서 다시 볼 수 있어요.</p>
             <a class="btn btn-primary" th:href="@{/places}">공간 둘러보기</a>
         </div>
     </div>
+    <script th:src="@{/js/bookmark.js}"></script>
 </main>
 </body>
 </html>
