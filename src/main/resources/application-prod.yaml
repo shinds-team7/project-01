@@ -23,8 +23,28 @@ logging:
     root: warn
     com.example.petnow: info
 
+server:
+  # nginx(80/443)가 앞단에서 TLS 를 끊고 127.0.0.1:8080 으로 프록시한다. 이걸 켜지 않으면
+  # 앱은 요청을 평문 http 로 보고 리다이렉트 Location 을 http://... 로 만든다. 그러면
+  # https 로 들어온 사용자가 평문 http 를 한 번 거쳤다가 nginx 의 301 로 다시 올라온다.
+  # native = 톰캣 RemoteIpValve 가 X-Forwarded-Proto/For 를 읽어 scheme 을 복원한다.
+  # 전제: nginx 에 `proxy_set_header X-Forwarded-Proto $scheme;` 가 있어야 한다.
+  forward-headers-strategy: native
+  servlet:
+    session:
+      cookie:
+        # application.yaml 에서 "배포 앞단이 HTTPS 인지 확인한 뒤 prod 에서만 켤 것" 이라
+        # 비워 뒀던 값. 2026-08-18 Let's Encrypt 인증서가 붙었고 nginx 가 http 를 전부 301 로
+        # https 에 올리므로 이제 켠다. 세션 쿠키가 평문 구간으로 새지 않는다.
+        secure: true
 
 kakao:
-  client-id: ${KAKAO_CLIENT_ID}  #실제_REST_API_키
-  client-secret: ${KAKAO_CLIENT_SECRET} #실제_CLIENT_SECRET
+  # 카카오 OAuth 의 client_id 는 REST API 키와 같은 값이지만, 로그인을 지도와 다른
+  # 카카오 앱으로 분리할 여지를 두려고 KAKAO_REST_API_KEY 를 재활용하지 않고 따로 받는다.
+  client-id: ${KAKAO_CLIENT_ID}
+  # 콘솔의 앱 설정 > 보안에서 "Client Secret 사용" 이 ON 이라 필수다.
+  # 비어 있으면 토큰 발급이 KOE010 으로 떨어진다.
+  client-secret: ${KAKAO_CLIENT_SECRET}
+  # 콘솔의 카카오 로그인 > Redirect URI 에 등록된 값과 한 글자도 다르면 KOE006 이 난다.
+  # 화이트리스트와 맞춰야 하는 값이라 app.public-url 로 조립하지 않고 그대로 박아 둔다.
   redirect-uri: https://petnow.duckdns.org/auth/kakao/callback
