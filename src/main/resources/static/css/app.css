@@ -4964,3 +4964,18 @@ button.home-search-field:disabled {
 .reservation-card-detail:hover {
     color: var(--green);
 }
+
+.detail-address {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin: 8px 0 0;
+    font-size: 13px;
+    color: var(--muted);
+}
+
+.detail-address .ico {
+    flex: none;
+    font-size: 16px;
+    color: var(--green-dark);
+}

@@ -97,6 +97,20 @@ class PlaceMapperStatementTest {
     }
 
     @Test
+    @DisplayName("장소 상세는 주소가 없는 장소도 유지하며 공개 주소 필드만 가져온다")
+    void findDetailSelectsPublicAddressWithLeftJoin() {
+        String sql = sqlOf(FIND_DETAIL_BY_ID, Map.of("placeId", 3L));
+
+        assertThat(sql)
+                .contains("left join place_addresses pa on pa.place_id = p.id")
+                .contains("pa.sido as sido")
+                .contains("pa.sigungu as sigungu")
+                .contains("pa.eupmyeondong as eupmyeondong")
+                .contains("pa.road_address as roadaddress")
+                .doesNotContain("detail_address");
+    }
+
+    @Test
     @DisplayName("주소 수정 시 이전 좌표를 초기화한다")
     void upsertAddressClearsStaleCoordinates() {
         String sql = sqlOf(UPSERT_ADDRESS, Map.of(

@@ -19,6 +19,11 @@ public class PlaceDetailResponse {
     private String nickname;
     private String name;
     private String description;
+    private String sido;
+    private String sigungu;
+    private String eupmyeondong;
+    private String roadAddress;
+    private String address;
     private PlaceType placeType;
     private BigDecimal areaSize;
     private Integer capacity;

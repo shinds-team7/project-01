@@ -135,6 +135,8 @@ class PrototypeShellRenderingTest {
                 .andExpect(content().string(containsString("class=\"ico\" aria-hidden=\"true\">star")))
                 .andExpect(content().string(containsString("4.8")))
                 .andExpect(content().string(containsString("(리뷰 12)")))
+                .andExpect(content().string(containsString("location_on")))
+                .andExpect(content().string(containsString("서울특별시 성동구 왕십리로 1")))
                 .andExpect(content().string(containsString("/reservation/booking-request?placeId=1")))
                 .andExpect(content().string(containsString("예약 요청하기")));
     }
@@ -150,6 +152,18 @@ class PrototypeShellRenderingTest {
         mockMvc.perform(get("/places/1"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("평가 없음")));
+    }
+
+    @Test
+    @DisplayName("주소가 없는 장소 상세는 주소 줄 자체를 그리지 않는다")
+    void placeDetailHidesMissingAddress() throws Exception {
+        PlaceDetailResponse place = placeDetail();
+        place.setAddress(null);
+        given(placeService.getPlaceDetail(1L, null)).willReturn(place);
+
+        mockMvc.perform(get("/places/1"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(not(containsString("class=\"detail-address\""))));
     }
 
     // ────────────────────────── 예약 ──────────────────────────
@@ -442,6 +456,7 @@ class PrototypeShellRenderingTest {
         place.setNickname("김도윤");
         place.setName("성수 조용한 단독주택 마당");
         place.setDescription("마당이 있는 조용한 단독주택입니다.");
+        place.setAddress("서울특별시 성동구 왕십리로 1");
         place.setPlaceType(PlaceType.HOUSE);
         place.setAreaSize(new BigDecimal("42"));
         place.setCapacity(2);
