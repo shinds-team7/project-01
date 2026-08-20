@@ -18,6 +18,16 @@
             <a class="hero-btn is-back" th:href="@{/places}" aria-label="목록으로">
                 <span class="ico" aria-hidden="true">arrow_back_ios_new</span>
             </a>
+            <form th:action="@{/bookmarks/{id}/toggle(id=${place.id})}" method="post">
+                <input type="hidden" name="redirectTo" th:value="@{/places/{id}(id=${place.id})}">
+                <button type="submit"
+                        class="hero-btn is-like"
+                        th:classappend="${place.bookmarked} ? ' is-on'"
+                        th:attr="aria-pressed=${place.bookmarked}"
+                        th:aria-label="${place.bookmarked} ? '찜 취소' : '찜하기'">
+                    <span class="ico" aria-hidden="true">favorite</span>
+                </button>
+            </form>
         </div>
 
         <h1 class="detail-title" th:text="${place.name}">장소명</h1>

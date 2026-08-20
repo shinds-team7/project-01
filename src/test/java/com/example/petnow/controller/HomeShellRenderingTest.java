@@ -122,15 +122,6 @@ class HomeShellRenderingTest {
     }
 
     @Test
-    @DisplayName("아직 화면이 없는 찜은 404 가 아니라 준비 중 화면을 연다")
-    void unimplementedNavDestinationResolves() throws Exception {
-        mockMvc.perform(get("/bookmarks"))
-                .andExpect(status().isOk())
-                .andExpect(view().name("coming-soon"))
-                .andExpect(content().string(containsString("화면을 준비하고 있어요")));
-    }
-
-    @Test
     @DisplayName("내 주변이 준비 중 화면 대신 실제 목록을 그린다")
     void nearbyRendersPlaceList() throws Exception {
         given(placeService.searchPlaces(org.mockito.ArgumentMatchers.isNull(),

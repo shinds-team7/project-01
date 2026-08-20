@@ -18,6 +18,7 @@ import com.example.petnow.exception.PlaceErrorCode;
 import com.example.petnow.exception.ReservationErrorCode;
 import com.example.petnow.exception.UserErrorCode;
 import com.example.petnow.mapper.AuthMapper;
+import com.example.petnow.mapper.BookmarkMapper;
 import com.example.petnow.mapper.PetMapper;
 import com.example.petnow.mapper.PlaceMapper;
 import lombok.RequiredArgsConstructor;
@@ -42,6 +43,7 @@ public class PlaceServiceImpl implements PlaceService {
     private final AuthMapper authMapper;
     private final PetMapper petMapper;
     private final PlaceGeocodingService placeGeocodingService;
+    private final BookmarkMapper bookmarkMapper;
 
     @Override
     @Transactional
@@ -131,6 +133,9 @@ public class PlaceServiceImpl implements PlaceService {
         if (!owner && !publiclyAccessible) {
             throw new BusinessException(PlaceErrorCode.PLACE_NOT_FOUND);
         }
+
+        place.setBookmarked(loginUserId != null
+                && bookmarkMapper.existsByUserAndPlace(loginUserId, placeId));
 
         return place;
     }
