@@ -38,4 +38,5 @@ public class PlaceDetailResponse {
     private LocalTime packageCheckOutTime;
     private PlaceStatus status;
     private boolean visible;
+    private boolean bookmarked;
 }
