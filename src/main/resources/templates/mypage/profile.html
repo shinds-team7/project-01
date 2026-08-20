@@ -3,6 +3,12 @@
       th:replace="~{fragments/base :: page('내 정보', 'my', ~{::main})}">
 <body>
 <main id="main-content" class="app-main">
+    <style>
+        .account-danger-zone { margin-top:24px; padding-top:20px; border-top:1px solid var(--line-soft); }
+        .account-danger-zone p { margin:0 0 10px; font-size:12.5px; line-height:1.5; color:var(--muted); }
+        .account-danger-zone .btn { color:var(--danger); border-color:#f3c5c8; }
+    </style>
+
     <div class="topbar has-line">
         <a class="topbar-back" th:href="@{/mypage}" aria-label="마이페이지로 돌아가기">
             <span class="ico" aria-hidden="true">arrow_back_ios_new</span>
@@ -61,7 +67,27 @@
             <span class="ico" aria-hidden="true">verified_user</span>
             <p>연락처를 최신으로 유지하면 호스트가 예약 관련 안내를 더 빠르게 전달할 수 있어요.</p>
         </div>
+
+        <section class="account-danger-zone" aria-labelledby="withdraw-title">
+            <h2 class="section-title" id="withdraw-title">계정 관리</h2>
+            <p>탈퇴하면 이 계정으로 다시 로그인할 수 없어요.</p>
+            <button class="btn btn-ghost btn-block" type="button" data-modal-open
+                    aria-controls="withdraw-modal">회원 탈퇴</button>
+        </section>
     </div>
+
+    <dialog class="modal" id="withdraw-modal" aria-labelledby="withdraw-modal-title">
+        <form class="modal-inner" th:action="@{/my/withdraw}" method="post">
+            <h2 id="withdraw-modal-title">정말 탈퇴할까요?</h2>
+            <p>탈퇴 즉시 로그아웃되며 이 계정은 더 이상 이용할 수 없어요.</p>
+            <div class="modal-actions">
+                <button class="btn btn-ghost" type="button" data-modal-close>계속 이용</button>
+                <button class="btn btn-danger" type="submit">회원 탈퇴</button>
+            </div>
+        </form>
+    </dialog>
+
+    <script th:src="@{/js/modal.js}"></script>
 </main>
 </body>
 </html>
