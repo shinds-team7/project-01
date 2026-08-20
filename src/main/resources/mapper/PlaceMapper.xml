@@ -282,13 +282,6 @@
         p.provides_yard AS providesYard,
         p.provides_walk AS providesWalk,
         p.hourly_price AS hourlyPrice,
-        EXISTS (
-            SELECT 1 FROM place_availability availability
-            WHERE availability.place_id = p.id
-              AND availability.status = 'OPEN'
-              AND availability.start_at &gt;= CURDATE()
-              AND availability.start_at &lt; DATE_ADD(CURDATE(), INTERVAL 1 DAY)
-        ) AS availableToday,
         <!--
           별점순 정렬(sort=rating)이 읽는 것과 같은 컬럼이다. 정렬 키를 화면에 보여주지 않으면
           왜 이 순서인지 알 수 없으므로 목록 조회에서 항상 같이 읽는다.
