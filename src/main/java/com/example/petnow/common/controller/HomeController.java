@@ -89,22 +89,31 @@ public class HomeController {
         return "home";
     }
 
-    /** 장소명·소개글·호스트 닉네임으로 공개된 공간을 찾는다. (#264) */
+    /**
+     * 장소명·소개글·호스트 닉네임으로 공개된 공간을 찾는다. (#264)
+     *
+     * <p>{@code sort} 는 검색어와 함께 유지된다. 정렬을 바꿀 때마다 검색어가 날아가면
+     * 결과 화면에서 정렬을 쓸 수 없다.
+     */
     @GetMapping("/search")
     public String search(@RequestParam(required = false) String keyword,
+                         @RequestParam(required = false) String sort,
                          HttpServletRequest request,
                          Model model) {
         String normalizedKeyword = keyword == null ? "" : keyword.trim();
         boolean searched = !normalizedKeyword.isEmpty();
 
+        PlaceFilterRequest filter = new PlaceFilterRequest();
+        filter.setSort(sort);
+
         model.addAttribute("keyword", normalizedKeyword);
         model.addAttribute("searched", searched);
+        model.addAttribute("currentSort", filter.normalizedSort());
         if (!searched) {
             model.addAttribute("places", List.of());
             return "places/search";
         }
 
-        PlaceFilterRequest filter = new PlaceFilterRequest();
         filter.setKeyword(normalizedKeyword);
         PlaceSearchResponse result = placeService.searchPlaces(LoginSession.currentUserId(request), filter);
         model.addAttribute("places", result.getPlaces());
@@ -137,6 +146,9 @@ public class HomeController {
         // 조건 오류로 다시 그리는 경우에도 지도는 떠야 한다. 여기서 한 번만 담고 두 갈래가 같이 쓴다.
         model.addAttribute("kakaoMapJavascriptKey", kakaoMapJavascriptKey);
         model.addAttribute("kakaoMapEnabled", !kakaoMapJavascriptKey.isEmpty());
+
+        // 정렬 칩도 두 갈래가 같이 쓴다. 조건이 틀려 다시 그릴 때 켜져 있던 정렬이 풀리면 안 된다.
+        model.addAttribute("currentSort", filter.normalizedSort());
 
         if (bindingResult.hasErrors()) {
             model.addAttribute("filterErrors", filterErrors(bindingResult));

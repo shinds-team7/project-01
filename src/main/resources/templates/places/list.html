@@ -36,8 +36,24 @@
             </a>
         </div>
 
+        <!--/*
+          정렬. 서버의 allowlist(PlaceMapper.findByFilter)와 같은 세 값만 보낸다.
+          .sort-row 는 space-between 이라 개수는 왼쪽, 칩은 오른쪽에 붙는다.
+          어느 칩이 켜질지는 컨트롤러가 정규화해 넘긴 currentSort 가 정한다.
+        */-->
         <div class="sort-row">
             <p class="result-count" th:text="'총 ' + ${#lists.size(places)} + '개의 공간'">총 0개의 공간</p>
+            <div class="chip-row" role="tablist" aria-label="정렬 기준">
+                <a class="chip" role="tab" th:href="@{/places}"
+                   th:classappend="${currentSort == 'latest'} ? ' is-active'"
+                   th:aria-selected="${currentSort == 'latest'}">최신순</a>
+                <a class="chip" role="tab" th:href="@{/places(sort='price')}"
+                   th:classappend="${currentSort == 'price'} ? ' is-active'"
+                   th:aria-selected="${currentSort == 'price'}">가격 낮은순</a>
+                <a class="chip" role="tab" th:href="@{/places(sort='rating')}"
+                   th:classappend="${currentSort == 'rating'} ? ' is-active'"
+                   th:aria-selected="${currentSort == 'rating'}">별점 높은순</a>
+            </div>
         </div>
 
         <div class="place-list" th:unless="${#lists.isEmpty(places)}">
