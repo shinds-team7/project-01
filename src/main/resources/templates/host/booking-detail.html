@@ -22,11 +22,6 @@
     </div>
 
     <div class="screen">
-        <div class="notice">
-            <span class="ico" aria-hidden="true">info</span>
-            <span>호스트용 예약 승인·거절 API 가 연결되기 전 디자인 화면이에요.</span>
-        </div>
-
         <div class="section-head">
             <h2 class="section-title" style="margin:0"
                 th:text="${reservation?.placeName} ?: '성수 단독주택 마당'">성수 단독주택 마당</h2>
@@ -76,22 +71,22 @@
         <div class="info-rows">
             <div class="info-row">
                 <span>맡기기</span>
-                <span th:text="${reservation?.checkIn != null}
-                               ? ${#temporals.format(reservation.checkIn, 'yyyy.MM.dd (E) HH:mm')}
-                               : '일정 미정'">2026.08.02 (토) 13:00</span>
+                <span th:text="${#temporals.format(reservation.checkIn, 'yyyy.MM.dd (E) HH:mm')}">2026.08.02 (토) 13:00</span>
             </div>
             <div class="info-row">
                 <span>데려오기</span>
-                <span th:text="${reservation?.checkOut != null}
-                               ? ${#temporals.format(reservation.checkOut, 'yyyy.MM.dd (E) HH:mm')}
-                               : '일정 미정'">2026.08.02 (토) 18:00</span>
+                <span th:text="${#temporals.format(reservation.checkOut, 'yyyy.MM.dd (E) HH:mm')}">2026.08.02 (토) 18:00</span>
             </div>
         </div>
     </div>
 
-    <div class="cta-bar no-nav">
-        <button class="btn btn-danger" type="button" disabled style="flex:1">거절하기</button>
-        <button class="btn btn-primary" type="button" disabled style="flex:1.4">승인하기</button>
+    <div class="cta-bar no-nav" th:if="${reservation.status.name() == 'PENDING'}">
+        <form th:action="@{/reservation/{id}/reject(id=${reservation.reservationId})}" method="post" style="flex:1">
+            <button class="btn btn-danger btn-block" type="submit">거절하기</button>
+        </form>
+        <form th:action="@{/reservation/{id}/approve(id=${reservation.reservationId})}" method="post" style="flex:1.4">
+            <button class="btn btn-primary btn-block" type="submit">승인하기</button>
+        </form>
     </div>
 </main>
 </body>

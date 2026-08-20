@@ -4,6 +4,7 @@ import com.example.petnow.dto.request.ReviewCreateRequest;
 import com.example.petnow.dto.request.ReviewUpdateRequest;
 import com.example.petnow.dto.response.ReviewResponse;
 import com.example.petnow.entity.Review;
+import com.example.petnow.entity.ReviewSortType;
 import com.example.petnow.exception.BusinessException;
 import com.example.petnow.exception.ReviewErrorCode;
 import com.example.petnow.mapper.PlaceMapper;
@@ -58,8 +59,8 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     // 특정 장소의 리뷰 목록 조회
-    public List<ReviewResponse> getReviewsByPlace(Long placeId) {
-        return reviewMapper.findReviewsByPlaceId(placeId);
+    public List<ReviewResponse> getReviewsByPlace(Long placeId, ReviewSortType sort) {
+        return reviewMapper.findReviewsByPlaceId(placeId, sort);
     }
 
     // 리뷰 단건 조회 (수정 폼 화면 용)
@@ -67,7 +68,7 @@ public class ReviewServiceImpl implements ReviewService {
         ReviewResponse response = reviewMapper.findResponseById(reviewId)
             .orElseThrow(() -> new BusinessException(ReviewErrorCode.REVIEW_NOT_FOUND));
 
-        int count = reviewMapper.countReviewOwnedByMember(reviewId, memberId);
+        int count = reviewMapper.countReviewOwnedByMember(memberId, reviewId);
         if (count == 0) {
             throw new BusinessException(ReviewErrorCode.REVIEW_FORBIDDEN);
         }
