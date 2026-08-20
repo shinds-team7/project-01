@@ -54,6 +54,8 @@ public class WebConfig implements WebMvcConfigurer {
                 "/reservation/**",
                 "/bookmarks",
                 "/bookmarks/**",
+                "/api/bookmarks",
+                "/api/bookmarks/**",
                 // 장소 등록 흐름(폼 · 제출 · 완료). 공개 목록 GET /places 와 상세는 열어 둔다.
                 "/places/new",
                 "/places/create",
