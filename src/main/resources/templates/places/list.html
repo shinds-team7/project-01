@@ -2,11 +2,11 @@
 <!--/*
   장소 목록 = 프로토타입의 "SEARCH LIST + MAP" 화면.
 
-  프로토타입 카드는 지역·평점·리뷰 수를 보여주지만 PlaceListResponse 에는 셋 다 없다.
-  (#182 의 함정 1) 대신 DTO 에 있는 호스트 닉네임·수용 조건·시간당 요금으로 채웠다.
+  프로토타입 카드의 지역·리뷰 수는 PlaceListResponse 에 아직 없다. (#182 의 함정 1)
+  평점은 average_rating 을 실어 보여주고, 나머지는 호스트 닉네임·수용 조건·시간당 요금으로 채웠다.
 
-  검색창·필터 칩·지도 보기는 아직 매핑이 없어 /search 로 보낸다.
-  /search 는 HomeController 가 coming-soon 으로 처리한다. (#182 의 함정 3)
+  검색창은 GET /search(키워드), 조건 칩은 홈의 검색 조건 카드(→ GET /nearby),
+  지도 보기는 GET /nearby 로 간다. 정렬은 이 화면이 직접 받는다(?sort=price|rating).
 */-->
 <html lang="ko" xmlns:th="http://www.thymeleaf.org"
       th:replace="~{fragments/base :: page('펫시터 찾기', 'search', ~{::main})}">
@@ -23,15 +23,21 @@
             </a>
         </div>
 
+        <!--/*
+          조건 칩은 홈의 검색 조건 카드로 보낸다. 지역·날짜·시간·반려견·유형을 고르는 곳이
+          거기 하나뿐이고, 고른 결과는 GET /nearby 가 받는다. (#7)
+          예전에는 셋 다 /search 로 갔는데, /search 는 한 줄 검색어만 받아서
+          지역이나 날짜를 고를 방법이 없었다.
+        */-->
         <div class="chip-row filter-row">
-            <a class="chip" th:href="@{/search}">
+            <a class="chip" th:href="@{/home}">
                 <span class="ico" aria-hidden="true">location_on</span>지역 선택
                 <span class="ico" aria-hidden="true">expand_more</span>
             </a>
-            <a class="chip" th:href="@{/search}">
+            <a class="chip" th:href="@{/home}">
                 <span class="ico" aria-hidden="true">calendar_today</span>날짜 선택
             </a>
-            <a class="chip" th:href="@{/search}">
+            <a class="chip" th:href="@{/home}">
                 <span class="ico" aria-hidden="true">tune</span>상세 필터
             </a>
         </div>
