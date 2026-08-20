@@ -108,6 +108,8 @@ class PrototypeShellRenderingTest {
                 // 장소 이름에 "주택"이 들어 있어 텍스트만 보면 태그가 사라져도 통과한다. 칩 마크업까지 본다.
                 .andExpect(content().string(containsString("class=\"is-type\">주택")))
                 .andExpect(content().string(containsString("class=\"is-size\">소형견")))
+                .andExpect(content().string(containsString("<a class=\"chip\" href=\"/home\">")))
+                .andExpect(content().string(not(containsString("<a class=\"chip\" href=\"/search\">"))))
                 .andExpect(content().string(containsString("12,000원")));
     }
 

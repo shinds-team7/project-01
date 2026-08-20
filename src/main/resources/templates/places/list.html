@@ -5,8 +5,8 @@
   프로토타입 카드는 지역·평점·리뷰 수를 보여주지만 PlaceListResponse 에는 셋 다 없다.
   (#182 의 함정 1) 대신 DTO 에 있는 호스트 닉네임·수용 조건·시간당 요금으로 채웠다.
 
-  검색창·필터 칩·지도 보기는 아직 매핑이 없어 /search 로 보낸다.
-  /search 는 HomeController 가 coming-soon 으로 처리한다. (#182 의 함정 3)
+  검색창은 키워드 검색(/search), 조건 칩은 검색 조건 카드(/home), 지도 보기는
+  조건 검색 결과 화면(/nearby)으로 보낸다.
 */-->
 <html lang="ko" xmlns:th="http://www.thymeleaf.org"
       th:replace="~{fragments/base :: page('펫시터 찾기', 'search', ~{::main})}">
@@ -24,14 +24,14 @@
         </div>
 
         <div class="chip-row filter-row">
-            <a class="chip" th:href="@{/search}">
+            <a class="chip" th:href="@{/home}">
                 <span class="ico" aria-hidden="true">location_on</span>지역 선택
                 <span class="ico" aria-hidden="true">expand_more</span>
             </a>
-            <a class="chip" th:href="@{/search}">
+            <a class="chip" th:href="@{/home}">
                 <span class="ico" aria-hidden="true">calendar_today</span>날짜 선택
             </a>
-            <a class="chip" th:href="@{/search}">
+            <a class="chip" th:href="@{/home}">
                 <span class="ico" aria-hidden="true">tune</span>상세 필터
             </a>
         </div>
