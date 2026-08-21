@@ -26,6 +26,12 @@ public enum PlaceErrorCode implements ErrorCode {
             "장소 수정에 실패했습니다."
     ),
 
+    PLACE_PHOTO_NOT_FOUND(
+            HttpStatus.NOT_FOUND,
+            "PLACE_PHOTO_NOT_FOUND",
+            "해당 장소에 등록된 사진을 찾을 수 없습니다."
+    ),
+
     PLACE_ACCESS_DENIED(
             HttpStatus.FORBIDDEN,
             "PLACE_ACCESS_DENIED",
