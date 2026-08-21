@@ -10,8 +10,10 @@ import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -80,5 +82,7 @@ public class PlaceCreateRequest {
             message = "1박당 요금은 소수점 없이 입력해주세요."
     )
     private BigDecimal nightlyPrice;
+
+    private List<MultipartFile> images;
 
 }

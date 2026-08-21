@@ -5,6 +5,7 @@ import com.example.petnow.dto.request.PlaceFilterRequest;
 import com.example.petnow.dto.request.PlaceUpdateRequest;
 import com.example.petnow.dto.response.PlaceDetailResponse;
 import com.example.petnow.dto.response.PlaceListResponse;
+import com.example.petnow.dto.response.PlacePhotoResponse;
 import com.example.petnow.dto.response.PlaceSearchResponse;
 
 import java.util.List;
@@ -16,6 +17,10 @@ public interface PlaceService {
     PlaceUpdateRequest getUpdateForm(Long userId, Long placeId);
 
     void updatePlace(Long userId, Long placeId, PlaceUpdateRequest request);
+
+    List<PlacePhotoResponse> getPlacePhotosForEdit(Long userId, Long placeId);
+
+    void deletePlacePhoto(Long userId, Long placeId, Long photoId);
 
     List<PlaceListResponse> getPublishedPlaces();
 

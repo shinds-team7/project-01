@@ -2,6 +2,7 @@ package com.example.petnow.controller;
 
 import com.example.petnow.common.argument.LoginUser;
 import com.example.petnow.common.session.LoginSession;
+import com.example.petnow.common.storage.ImageCategory;
 import com.example.petnow.dto.request.PlaceCreateRequest;
 import com.example.petnow.dto.request.PlaceFilterRequest;
 import com.example.petnow.dto.request.PlaceUpdateRequest;
@@ -30,6 +31,7 @@ public class PlaceController {
     @GetMapping("/new")
     public String createForm(Model model) {
         model.addAttribute("placeForm", new PlaceCreateRequest());
+        model.addAttribute("remainingPhotoCount", ImageCategory.PLACE.getMaxCount());
         addFormAttributes(model);
 
         return "places/create";
@@ -50,12 +52,12 @@ public class PlaceController {
                          BindingResult bindingResult,
                          Model model) {
         if (bindingResult.hasErrors()) {
+            model.addAttribute("remainingPhotoCount", ImageCategory.PLACE.getMaxCount());
             addFormAttributes(model);
             return "places/create";
         }
 
         placeService.createPlace(loginUserId, request);
-
         return "redirect:/places/success";
     }
 
@@ -64,7 +66,7 @@ public class PlaceController {
                            @PathVariable Long placeId,
                            Model model) {
         model.addAttribute("placeForm", placeService.getUpdateForm(loginUserId, placeId));
-        model.addAttribute("editPlaceId", placeId);
+        addEditPhotoAttributes(loginUserId, placeId, model);
         addFormAttributes(model);
         return "places/create";
     }
@@ -76,7 +78,7 @@ public class PlaceController {
                          BindingResult bindingResult,
                          Model model) {
         if (bindingResult.hasErrors()) {
-            model.addAttribute("editPlaceId", placeId);
+            addEditPhotoAttributes(loginUserId, placeId, model);
             addFormAttributes(model);
             return "places/create";
         }
@@ -85,9 +87,25 @@ public class PlaceController {
         return "redirect:/places/" + placeId;
     }
 
+    @PostMapping("/edit/{placeId}/photos/{photoId}/delete")
+    public String deletePhoto(@LoginUser Long loginUserId,
+                              @PathVariable Long placeId,
+                              @PathVariable Long photoId) {
+        placeService.deletePlacePhoto(loginUserId, placeId, photoId);
+        return "redirect:/places/edit/" + placeId;
+    }
+
     @GetMapping("/success")
     public String createSuccess() {
         return "places/success";
+    }
+
+    private void addEditPhotoAttributes(Long loginUserId, Long placeId, Model model) {
+        var photos = placeService.getPlacePhotosForEdit(loginUserId, placeId);
+        model.addAttribute("editPlaceId", placeId);
+        model.addAttribute("existingPlacePhotos", photos);
+        model.addAttribute("remainingPhotoCount",
+                Math.max(0, ImageCategory.PLACE.getMaxCount() - photos.size()));
     }
 
     /**
