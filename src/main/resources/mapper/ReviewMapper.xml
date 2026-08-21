@@ -32,7 +32,8 @@
             p.name           AS placeName,
             u.nickname       AS reviewerName,
             r.content        AS content,
-            r.rating         AS rating
+            r.rating         AS rating,
+            rr.content       AS replyContent
         FROM reviews r
         JOIN reservations res
             ON r.reservation_id = res.id
@@ -41,6 +42,8 @@
         LEFT JOIN users u
             ON res.guest_user_id = u.id
             AND u.deleted_at IS NULL
+        LEFT JOIN review_replies rr
+            ON rr.review_id = r.id
         WHERE res.guest_user_id = #{memberId}
             AND r.deleted_at IS NULL
         ORDER BY r.created_at DESC
@@ -57,7 +60,8 @@
             p.name           AS placeName,
             u.nickname       AS reviewerName,
             r.content        AS content,
-            r.rating         AS rating
+            r.rating         AS rating,
+            rr.content       AS replyContent
         FROM reviews r
         JOIN reservations res
             ON r.reservation_id = res.id
@@ -66,6 +70,8 @@
         LEFT JOIN users u
             ON res.guest_user_id = u.id
             AND u.deleted_at IS NULL
+        LEFT JOIN review_replies rr
+            ON rr.review_id = r.id
         WHERE res.place_id = #{placeId}
             AND r.deleted_at IS NULL
         <choose>
@@ -95,12 +101,15 @@
             DATE(res.check_in_at)  AS checkInAt,
             p.name           AS placeName,
             r.content        AS content,
-            r.rating         AS rating
+            r.rating         AS rating,
+            rr.content       AS replyContent
         FROM reviews r
         JOIN reservations res
             ON r.reservation_id = res.id
         JOIN places p
             ON res.place_id = p.id
+        LEFT JOIN review_replies rr
+            ON rr.review_id = r.id
         WHERE p.host_user_id = #{hostUserId}
             AND r.deleted_at IS NULL
             AND p.deleted_at IS NULL
@@ -122,12 +131,15 @@
             p.name AS placeName,
             res.check_in_at AS checkInAt,
             r.content,
-            r.rating
+            r.rating,
+            rr.content AS replyContent
         FROM reviews r
         JOIN reservations res
             ON r.reservation_id = res.id
         JOIN places p
             ON res.place_id = p.id
+        LEFT JOIN review_replies rr
+            ON rr.review_id = r.id
         WHERE r.id = #{reviewId}
     </select>
 

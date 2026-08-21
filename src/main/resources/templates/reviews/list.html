@@ -11,7 +11,7 @@
   삭제 버튼은 공용 modal.js 로 확인창을 연 뒤 모달 안의 폼을 제출한다.
 
   [reviews 원소가 쓰는 필드] ReviewResponse
-    id · placeId · placeName · reviewerName · checkInAt · rating · content
+    id · placeId · placeName · reviewerName · checkInAt · rating · content · replyContent
 
 */-->
 <html lang="ko" xmlns:th="http://www.thymeleaf.org"
@@ -92,6 +92,13 @@
                 <p class="my-review-body" th:text="${review.content}">
                     마당이 넓어서 우리 강아지가 정말 좋아했어요.
                 </p>
+
+                <div class="review-reply" th:if="${review.replyContent != null}">
+                    <p class="review-reply-label">
+                        <span class="ico" aria-hidden="true">store</span> 호스트 답글
+                    </p>
+                    <p class="review-reply-body" th:text="${review.replyContent}">답글 내용</p>
+                </div>
 
                 <!--/* 내 리뷰 목록에서만 수정·삭제를 보여준다. */-->
                 <div class="card-actions" th:if="${placeId == null}">
