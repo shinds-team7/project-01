@@ -85,7 +85,12 @@ public class PetServiceImpl implements PetService {
         request.setUserId(userId);
 
         // 반려동물 기본 정보 수정
-        petMapper.updatePet(request);
+        int updatedRows = petMapper.updatePet(request);
+
+        // 해당 사용자의 반려동물이 아니거나 이미 삭제된 경우
+        if (updatedRows == 0) {
+            throw new IllegalArgumentException("수정할 반려동물을 찾을 수 없습니다.");
+        }
 
         // 새 사진을 선택하지 않았다면 기존 사진 유지
         MultipartFile image = request.getImage();
@@ -94,15 +99,15 @@ public class PetServiceImpl implements PetService {
             return;
         }
 
-        // 기존 사진 조회
-        PetPhoto existingPhoto =
-            petPhotoMapper.findByPetId(request.getPetId());
-
         // 새 사진 S3 업로드
         String imageUrl = fileStorage.uploadImage(
             image,
             ImageCategory.PET
         );
+
+        // 기존 사진 조회
+        PetPhoto existingPhoto =
+            petPhotoMapper.findByPetId(request.getPetId());
 
         if (existingPhoto != null) {
 
