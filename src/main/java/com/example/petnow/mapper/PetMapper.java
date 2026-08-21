@@ -16,9 +16,9 @@ public interface PetMapper {
 
     List<PetListResponse> getPetList(Long userId);
 
-    void updatePet(PetUpdateRequest pet);
+    int updatePet(PetUpdateRequest pet);
 
     PetDetailResponse getDetail(@Param("userId") Long userId,@Param("petId") Long petId);
 
-    void deletePet(@Param("userId") Long userId, @Param("petId") Long petId);
+    int deletePet(@Param("userId") Long userId, @Param("petId") Long petId);
 }

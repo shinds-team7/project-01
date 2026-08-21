@@ -53,9 +53,9 @@
                   이 목록은 밖에 둔다. 안에 두면 초기 render() 가 지워 버린다.
                   새 클래스를 만들지 않고 image-upload.css 의 썸네일 스타일을 그대로 쓴다.
                 */-->
-                <ul class="image-upload-list" th:if="${petPhotoUrl != null}">
+                <ul class="image-upload-list" th:if="${pet.imageUrl != null}">
                     <li class="image-upload-item">
-                        <img th:src="${petPhotoUrl}" alt="현재 등록된 사진">
+                        <img th:src="${pet.imageUrl}" alt="현재 등록된 사진">
                     </li>
                 </ul>
 
@@ -64,7 +64,7 @@
                            accept="image/jpeg,image/png,image/webp" data-image-upload-input>
                     <label class="image-upload-trigger" for="update-image">
                         <span class="ico" aria-hidden="true">photo_camera</span>
-                        <b data-image-upload-label>사진 추가</b>
+                        <b data-image-upload-label> 사진 선택 </b>
                         <small data-image-upload-guide></small>
                     </label>
                     <ul class="image-upload-list" data-image-upload-list></ul>
