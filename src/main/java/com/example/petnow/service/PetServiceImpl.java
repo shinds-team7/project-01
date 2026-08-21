@@ -44,19 +44,13 @@ public class PetServiceImpl implements PetService {
         // pets 테이블 저장
         petMapper.insertPet(pet);
 
-        System.out.println("image = " + request.getImage());
-        System.out.println("image empty = " +
-            (request.getImage() == null || request.getImage().isEmpty()));
-
         MultipartFile image = request.getImage();
 
         if (image != null && !image.isEmpty()) {
-            System.out.println("=== S3 업로드 시작 ===");
             String imageUrl = fileStorage.uploadImage(
                 image,
                 ImageCategory.PET
             );
-            System.out.println("=== S3 업로드 결과 === " + imageUrl);
             PetPhoto petPhoto = PetPhoto.builder()
                 .petId(pet.getId())
                 .imageUrl(imageUrl)
@@ -139,6 +133,11 @@ public class PetServiceImpl implements PetService {
 
     @Override
     public void deletePet(Long userId, Long petId){
+
         petMapper.deletePet(userId, petId);
+        // 사진 조회 후 삭제
+        PetPhoto existingPhoto = petPhotoMapper.findByPetId(petId);
+        if (existingPhoto != null) fileStorage.deleteImage(existingPhoto.getImageUrl());
+        petPhotoMapper.deleteByPetId(petId);
     }
 }
