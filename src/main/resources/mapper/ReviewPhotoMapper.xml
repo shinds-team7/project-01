@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.petnow.mapper.ReviewPhotoMapper">
+
+    <insert id="insertPhoto">
+
+        INSERT INTO review_photos
+        (
+        review_id,
+        image_url,
+        sort_order
+        )
+        VALUES
+        (
+        #{reviewId},
+        #{imageUrl},
+        #{sortOrder}
+        )
+
+    </insert>
+
+    <select id="findByReviewId"
+            parameterType="long"
+            resultType="com.example.petnow.entity.ReviewPhoto">
+
+        SELECT
+        id,
+        review_id,
+        image_url,
+        sort_order,
+        created_at
+        FROM review_photos
+        WHERE review_id = #{reviewId}
+        ORDER BY sort_order, id
+
+    </select>
+
+    <select id="countByReviewId"
+            parameterType="long"
+            resultType="int">
+
+        SELECT COUNT(*)
+        FROM review_photos
+        WHERE review_id = #{reviewId}
+
+    </select>
+
+    <delete id="deleteById">
+
+        DELETE
+        FROM review_photos
+        WHERE id = #{id}
+
+    </delete>
+
+    <delete id="deleteByReviewId">
+
+        DELETE
+        FROM review_photos
+        WHERE review_id = #{reviewId}
+
+    </delete>
+
+</mapper>
