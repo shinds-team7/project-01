@@ -20,5 +20,5 @@ public interface PetMapper {
 
     PetDetailResponse getDetail(@Param("userId") Long userId,@Param("petId") Long petId);
 
-    void deletePet(@Param("userId") Long userId, @Param("petId") Long petId);
+    int deletePet(@Param("userId") Long userId, @Param("petId") Long petId);
 }

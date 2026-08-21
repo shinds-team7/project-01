@@ -134,7 +134,10 @@ public class PetServiceImpl implements PetService {
     @Override
     public void deletePet(Long userId, Long petId){
 
-        petMapper.deletePet(userId, petId);
+        int deleteRows = petMapper.deletePet(userId, petId);
+        if (deleteRows == 0) {
+            throw new IllegalArgumentException("삭제할 반려동물을 찾을 수 없습니다.");
+        }
         // 사진 조회 후 삭제
         PetPhoto existingPhoto = petPhotoMapper.findByPetId(petId);
         if (existingPhoto != null) fileStorage.deleteImage(existingPhoto.getImageUrl());
