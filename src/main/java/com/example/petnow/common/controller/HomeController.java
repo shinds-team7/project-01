@@ -77,7 +77,8 @@ public class HomeController {
 
     /** 앱 홈. 프로토타입의 HOME 화면. */
     @GetMapping("/home")
-    public String home(HttpServletRequest request, Model model) {
+    public String home(@RequestParam(required = false) String placeType,
+                       HttpServletRequest request, Model model) {
         // 조회 이력 API 가 없어 공개된 장소를 대신 보여준다. 이력 API 가 붙으면 교체한다.
         model.addAttribute("recentPlaces", placeService.getPublishedPlaces().stream()
                 .limit(RECENT_PLACES_LIMIT)
@@ -90,7 +91,27 @@ public class HomeController {
         model.addAttribute("placeTypes", PlaceType.values());
         Long loginUserId = LoginSession.currentUserId(request);
         model.addAttribute("myPets", loginUserId == null ? List.of() : petService.getPetList(loginUserId));
+
+        // "지금 만날 수 있는 이웃 호스트" 유형 필터. 키워드 검색은 하단 탭과 같은 /search 로 넘긴다.
+        PlaceType normalizedPlaceType = parsePlaceType(placeType);
+        PlaceFilterRequest nearbyFilter = new PlaceFilterRequest();
+        nearbyFilter.setPlaceType(normalizedPlaceType);
+        model.addAttribute("nearbyPlaces",
+                placeService.searchPlaces(loginUserId, nearbyFilter).getPlaces());
+        model.addAttribute("nearbyPlaceType", normalizedPlaceType);
         return "home";
+    }
+
+    /** 잘못된 값은 조건 없음으로 조용히 떨어진다. 유형 칩 하나 때문에 홈이 400 을 내면 안 된다. */
+    private static PlaceType parsePlaceType(String raw) {
+        if (raw == null || raw.isBlank()) {
+            return null;
+        }
+        try {
+            return PlaceType.valueOf(raw);
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
     }
 
     /**

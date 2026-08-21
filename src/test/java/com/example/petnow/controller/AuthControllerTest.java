@@ -6,6 +6,7 @@ import com.example.petnow.dto.request.UserLoginRequest;
 import com.example.petnow.dto.request.UserSignupRequest;
 import com.example.petnow.dto.response.LoginUser;
 import com.example.petnow.dto.response.PetListResponse;
+import com.example.petnow.dto.response.PlaceSearchResponse;
 import com.example.petnow.exception.AuthErrorCode;
 import com.example.petnow.exception.BusinessException;
 import com.example.petnow.service.AuthService;
@@ -13,6 +14,7 @@ import com.example.petnow.service.PetService;
 import com.example.petnow.service.PlaceService;
 import com.example.petnow.config.KakaoProperties;
 import com.example.petnow.service.KakaoService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -77,6 +79,14 @@ class AuthControllerTest {
 
     @MockitoBean
     private KakaoProperties kakaoProperties;
+
+    /** 홈의 "지금 만날 수 있는 이웃 호스트" 검색+유형 필터가 부르는 자리. 이 클래스의 테스트에는 무관하다. */
+    @BeforeEach
+    void stubNearbySearch() {
+        given(placeService.searchPlaces(any(), any())).willReturn(PlaceSearchResponse.builder()
+                .places(List.of())
+                .build());
+    }
 
     // ───────────────────── 1. GET 매핑 (구 #112) ─────────────────────
 

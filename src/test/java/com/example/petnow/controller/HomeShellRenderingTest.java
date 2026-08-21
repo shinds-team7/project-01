@@ -7,6 +7,7 @@ import com.example.petnow.entity.PlaceType;
 import com.example.petnow.dto.response.PlaceSearchResponse;
 import com.example.petnow.service.PetService;
 import com.example.petnow.service.PlaceService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +21,7 @@ import java.util.stream.IntStream;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -44,6 +46,14 @@ class HomeShellRenderingTest {
     @MockitoBean
     private PetService petService;
 
+    /** 홈의 "지금 만날 수 있는 이웃 호스트" 검색+유형 필터가 부르는 자리. 대부분의 테스트에는 무관하다. */
+    @BeforeEach
+    void stubNearbySearch() {
+        given(placeService.searchPlaces(any(), any())).willReturn(PlaceSearchResponse.builder()
+                .places(List.of())
+                .build());
+    }
+
     @Test
     @DisplayName("홈이 구형 데스크톱 레이아웃과 로그인·회원가입 입구를 갖고 그려진다")
     void homeRendersWithClassicHomeLayout() throws Exception {
@@ -52,11 +62,13 @@ class HomeShellRenderingTest {
                 .andExpect(view().name("home"))
                 .andExpect(content().string(containsString("/css/home.css")))
                 .andExpect(content().string(containsString("class=\"site-header\"")))
-                .andExpect(content().string(containsString("/css/home-classic.css")))
                 .andExpect(content().string(containsString("/auth/login")))
-                .andExpect(content().string(containsString("<form class=\"home-search\"")))
+                .andExpect(content().string(containsString("<form class=\"search-planner reveal\"")))
                 .andExpect(content().string(not(containsString("data-classic-search"))))
-                .andExpect(content().string(containsString("편안한 하루</em>를 맡겨요")));
+                .andExpect(content().string(containsString("편안한 하루</em>를 맡겨요")))
+                // 하단 탭도 다른 화면처럼 떠야 하고, "홈" 탭이 활성 상태여야 한다.
+                .andExpect(content().string(containsString("class=\"app-nav\"")))
+                .andExpect(content().string(containsString("aria-current=\"page\"")));
     }
 
     @Test
@@ -130,7 +142,9 @@ class HomeShellRenderingTest {
     void navDestinationsResolve() throws Exception {
         mockMvc.perform(get("/home"))
                 .andExpect(status().isOk())
-                .andExpect(content().string(containsString("/js/home.js")));
+                .andExpect(content().string(containsString("/js/home.js")))
+                .andExpect(content().string(containsString("/js/modal.js")))
+                .andExpect(content().string(containsString("/js/place-filter.js")));
     }
 
     @Test
@@ -148,7 +162,9 @@ class HomeShellRenderingTest {
                 .andExpect(content().string(containsString("class=\"is-type\">아파트")))
                 .andExpect(content().string(containsString("/places/3")))
                 // 지도가 붙었으므로(#277) 준비 중 안내는 화면에서 사라졌다
-                .andExpect(content().string(not(containsString("거리순 정렬과 지도 표시는 준비 중"))));
+                .andExpect(content().string(not(containsString("거리순 정렬과 지도 표시는 준비 중"))))
+                // 거리순/최신순 정렬 토글은 없앴다. 서버가 그려 준 순서 그대로 보여준다.
+                .andExpect(content().string(not(containsString("class=\"chip-row nearby-sort\""))));
     }
 
     @Test
