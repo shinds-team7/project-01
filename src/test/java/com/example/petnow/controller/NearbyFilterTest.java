@@ -256,7 +256,7 @@ class NearbyFilterTest {
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
 
-        assertThat(html).contains("<form class=\"home-search\" method=\"get\" action=\"/nearby\">");
+        assertThat(html).contains("<form class=\"search-planner reveal\" method=\"get\" action=\"/nearby\" data-place-filter>");
         // 지역 선택지는 하드코딩이 아니라 서버가 내려준 값이다
         assertThat(html).contains("name=\"regions\" value=\"성동구\"");
         assertThat(html).contains("name=\"regions\" value=\"광진구\"");
@@ -296,6 +296,38 @@ class NearbyFilterTest {
                 .andExpect(content().string(containsString("로그인하면 우리 아이에 맞는 공간만")));
 
         then(petService).should(never()).getPetList(any());
+    }
+
+    @Test
+    @DisplayName("'지금 만날 수 있는 이웃 호스트'의 검색창은 하단 탭 검색과 같은 /search 로 보낸다")
+    void nearbyHostsSearchGoesToSearchScreen() throws Exception {
+        String html = mockMvc.perform(get("/home"))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+
+        assertThat(html).contains("<form class=\"result-search\" method=\"get\" action=\"/search\">");
+    }
+
+    @Test
+    @DisplayName("유형 칩을 고르면 placeType 조건으로 전달된다")
+    void nearbyHostsFilterByPlaceType() throws Exception {
+        mockMvc.perform(get("/home").param("placeType", "HOUSE"))
+                .andExpect(status().isOk());
+
+        ArgumentCaptor<PlaceFilterRequest> captor = ArgumentCaptor.forClass(PlaceFilterRequest.class);
+        then(placeService).should().searchPlaces(any(), captor.capture());
+        assertThat(captor.getValue().getPlaceType()).isEqualTo(PlaceType.HOUSE);
+    }
+
+    @Test
+    @DisplayName("잘못된 유형 값이 와도 500 대신 조건 없음으로 조용히 넘어간다")
+    void nearbyHostsIgnoresInvalidPlaceType() throws Exception {
+        mockMvc.perform(get("/home").param("placeType", "does-not-exist"))
+                .andExpect(status().isOk());
+
+        ArgumentCaptor<PlaceFilterRequest> captor = ArgumentCaptor.forClass(PlaceFilterRequest.class);
+        then(placeService).should().searchPlaces(any(), captor.capture());
+        assertThat(captor.getValue().getPlaceType()).isNull();
     }
 
     private MockHttpSession loggedIn() {

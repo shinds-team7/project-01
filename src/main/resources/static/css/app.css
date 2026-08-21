@@ -190,6 +190,8 @@ img {
     position: fixed;
     left: 0;
     right: 0;
+    max-width: 480px;
+    margin-inline: auto;
     bottom: 0;
     z-index: 40;
     display: flex;
@@ -1383,75 +1385,6 @@ textarea.control {
     margin: 12px 0 0;
     font-size: 13.5px;
     color: #8a8578;
-}
-
-/* 히어로 위로 겹쳐 올라오는 검색 카드 */
-.home-search {
-    position: relative;
-    z-index: 3;
-    margin-top: -64px;
-    background: #fff;
-    border-radius: var(--r-lg);
-    box-shadow: var(--shadow-card);
-    padding: 8px 6px;
-}
-
-.home-search-row {
-    display: flex;
-}
-
-.home-search-field {
-    flex: 1;
-    min-width: 0;
-    display: flex;
-    align-items: center;
-    gap: 9px;
-    padding: 16px 14px;
-    color: var(--ink);
-    border-radius: var(--r-sm);
-}
-
-.home-search-field:hover {
-    color: var(--ink);
-    background: #fafafa;
-}
-
-.home-search-field > .ico {
-    font-size: 20px;
-    color: var(--green);
-    flex: none;
-}
-
-.home-search-value {
-    flex: 1;
-    min-width: 0;
-    font-weight: 700;
-    font-size: 14.5px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.home-search-caret {
-    font-size: 18px;
-    color: var(--muted-2);
-    flex: none;
-}
-
-.home-search-divider {
-    width: 1px;
-    background: var(--line-faint);
-    margin: 12px 0;
-}
-
-.home-search-line {
-    height: 1px;
-    background: var(--line-faint);
-    margin: 0 10px;
-}
-
-.home-search-submit {
-    margin-top: 6px;
 }
 
 /* 최근 조회한 호스트 — 가로 스크롤 대신 2열 그리드로 편다 (좌우 슬라이드 금지, #2) */
@@ -4600,22 +4533,6 @@ textarea.control {
     color: var(--ink);
 }
 
-.nearby-sort {
-    flex: none;
-    gap: 8px;
-    padding: 12px 20px 4px;
-}
-
-.nearby-sort .chip {
-    padding: 7px 15px;
-}
-
-/* 거리순은 내 위치를 알아야 켤 수 있다. 못 쓰는 상태가 보여야 이유를 짐작할 수 있다. */
-.nearby-sort .chip:disabled {
-    opacity: 0.45;
-    cursor: not-allowed;
-}
-
 /*
  * 시트에서 유일하게 스크롤되는 자리. contain 을 줘야 목록 끝에서 더 굴렸을 때
  * 스크롤이 뒤의 페이지로 넘어가지 않는다.
@@ -4777,20 +4694,6 @@ textarea.control {
 }
 
 /* ───────────────────── 조건 필터링 (#7) ───────────────────── */
-
-/* 검색 조건 필드는 다이얼로그를 여는 button 이라 브라우저 기본 꼴을 지운다 */
-button.home-search-field {
-    border: 0;
-    background: transparent;
-    font: inherit;
-    text-align: left;
-    cursor: pointer;
-}
-
-button.home-search-field:disabled {
-    cursor: not-allowed;
-    opacity: 0.5;
-}
 
 /* 조건 다이얼로그는 고르는 화면이라 가운데 정렬을 풀고 조금 넓게 쓴다 */
 .filter-modal {
