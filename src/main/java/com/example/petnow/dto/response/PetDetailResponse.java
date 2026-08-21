@@ -19,4 +19,5 @@ public class PetDetailResponse {
     private String sex;
     private Boolean isNeutered;
     private String memo;
+    private String imageUrl;
 }

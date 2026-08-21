@@ -1,15 +1,19 @@
 package com.example.petnow.service;
 
+import com.example.petnow.common.storage.FileStorage;
+import com.example.petnow.common.storage.ImageCategory;
 import com.example.petnow.dto.request.PetCreateRequest;
 import com.example.petnow.dto.request.PetUpdateRequest;
 import com.example.petnow.dto.response.PetDetailResponse;
 import com.example.petnow.dto.response.PetListResponse;
 import com.example.petnow.entity.Pet;
+import com.example.petnow.entity.PetPhoto;
 import com.example.petnow.mapper.PetMapper;
 import com.example.petnow.mapper.PetPhotoMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -20,6 +24,7 @@ public class PetServiceImpl implements PetService {
 
     private final PetMapper petMapper;
     private final PetPhotoMapper petPhotoMapper;
+    private final FileStorage fileStorage;
 
     @Override
     public void createPet(Long userId, PetCreateRequest request) {
@@ -38,6 +43,28 @@ public class PetServiceImpl implements PetService {
 
         // pets 테이블 저장
         petMapper.insertPet(pet);
+
+        System.out.println("image = " + request.getImage());
+        System.out.println("image empty = " +
+            (request.getImage() == null || request.getImage().isEmpty()));
+
+        MultipartFile image = request.getImage();
+
+        if (image != null && !image.isEmpty()) {
+            System.out.println("=== S3 업로드 시작 ===");
+            String imageUrl = fileStorage.uploadImage(
+                image,
+                ImageCategory.PET
+            );
+            System.out.println("=== S3 업로드 결과 === " + imageUrl);
+            PetPhoto petPhoto = PetPhoto.builder()
+                .petId(pet.getId())
+                .imageUrl(imageUrl)
+                .sortOrder(0)
+                .build();
+
+            petPhotoMapper.insertPhoto(petPhoto);
+        }
     }
 
     @Override
@@ -47,10 +74,56 @@ public class PetServiceImpl implements PetService {
         return petMapper.getPetList(userId);
     }
 
+//    @Override
+//    public void updatePet(Long userId, PetUpdateRequest request){
+//        request.setUserId(userId);
+//        petMapper.updatePet(request);
+//    }
     @Override
-    public void updatePet(Long userId, PetUpdateRequest request){
+    public void updatePet(Long userId, PetUpdateRequest request) {
+
         request.setUserId(userId);
+
+        // 반려동물 기본 정보 수정
         petMapper.updatePet(request);
+
+        // 새 사진을 선택하지 않았다면 기존 사진 유지
+        MultipartFile image = request.getImage();
+
+        if (image == null || image.isEmpty()) {
+            return;
+        }
+
+        // 기존 사진 조회
+        PetPhoto existingPhoto =
+            petPhotoMapper.findByPetId(request.getPetId());
+
+        // 새 사진 S3 업로드
+        String imageUrl = fileStorage.uploadImage(
+            image,
+            ImageCategory.PET
+        );
+
+        if (existingPhoto != null) {
+
+            // 기존 S3 이미지 삭제
+            fileStorage.deleteImage(existingPhoto.getImageUrl());
+
+            // DB의 이미지 URL 변경
+            existingPhoto.setImageUrl(imageUrl);
+            petPhotoMapper.updatePhoto(existingPhoto);
+
+        } else {
+
+            // 기존 사진이 없다면 새로 등록
+            PetPhoto petPhoto = PetPhoto.builder()
+                .petId(request.getPetId())
+                .imageUrl(imageUrl)
+                .sortOrder(0)
+                .build();
+
+            petPhotoMapper.insertPhoto(petPhoto);
+        }
     }
 
     @Override

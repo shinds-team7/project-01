@@ -23,8 +23,18 @@
 
             <div class="my-pet-grid" th:unless="${#lists.isEmpty(petList)}">
                 <article class="my-pet-card" th:each="pet : ${petList}">
-                    <span class="my-pet-avatar" aria-hidden="true">
-                        <span class="ico is-filled">pets</span>
+<!--                    <span class="my-pet-avatar" aria-hidden="true">-->
+<!--                        <span class="ico is-filled">pets</span>-->
+<!--                    </span>-->
+                    <span class="my-pet-avatar">
+                        <img th:if="${pet.imageUrl != null}"
+                             class="my-pet-avatar-image"
+                             th:src="${pet.imageUrl}"
+                             th:alt="${pet.name + ' 사진'}">
+
+                        <span th:unless="${pet.imageUrl != null}"
+                              class="ico is-filled"
+                              aria-hidden="true">pets</span>
                     </span>
                     <h3 th:text="${pet.name}">초코</h3>
                     <p>
