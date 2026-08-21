@@ -9,6 +9,9 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 @Getter
 @Setter
@@ -27,5 +30,7 @@ public class ReviewCreateRequest {
 
     @Size(max = 50, message = "리뷰 내용은 50자 이하여야 합니다.")
     private String content;
+
+    private List<MultipartFile> images;
 
 }
