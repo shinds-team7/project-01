@@ -143,7 +143,8 @@
             root.classList.toggle("is-empty", selected.length === 0);
             root.classList.toggle("is-full", selected.length >= maxFiles);
             if (triggerLabel) {
-                triggerLabel.textContent = maxFiles === 1 && selected.length ? "사진 변경" : "사진 추가";
+                // triggerLabel.textContent = maxFiles === 1 && selected.length ? "사진 변경" : "사진 추가";
+                triggerLabel.textContent = "사진 선택";
             }
         }
 
