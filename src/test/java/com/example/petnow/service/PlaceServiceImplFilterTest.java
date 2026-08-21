@@ -11,6 +11,7 @@ import com.example.petnow.mapper.BookmarkMapper;
 import com.example.petnow.mapper.PetMapper;
 import com.example.petnow.mapper.PlaceMapper;
 import com.example.petnow.mapper.PlacePhotoMapper;
+import com.example.petnow.mapper.ReservationMapper;
 import com.example.petnow.common.storage.FileStorage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -54,7 +55,8 @@ class PlaceServiceImplFilterTest {
                 mock(PlaceGeocodingService.class),
                 mock(BookmarkMapper.class),
                 mock(FileStorage.class),
-                mock(PlacePhotoMapper.class));
+                mock(PlacePhotoMapper.class),
+                mock(ReservationMapper.class));
         given(placeMapper.findByFilter(any())).willReturn(List.of());
     }
 

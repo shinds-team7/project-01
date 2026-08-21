@@ -4,6 +4,8 @@ import com.example.petnow.common.constant.SessionConst;
 import com.example.petnow.dto.request.PlaceUpdateRequest;
 import com.example.petnow.dto.response.PlacePhotoResponse;
 import com.example.petnow.entity.PlaceType;
+import com.example.petnow.exception.BusinessException;
+import com.example.petnow.exception.PlaceErrorCode;
 import com.example.petnow.service.PlaceService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -125,6 +127,29 @@ class PlaceCreateFormTest {
                 .andExpect(redirectedUrl("/places/edit/3"));
 
         then(placeService).should().deletePlacePhoto(1L, 3L, 9L);
+    }
+
+    @Test
+    @DisplayName("장소를 삭제하면 호스트 대시보드 내 호스팅 탭으로 돌아간다")
+    void deletesPlaceAndRedirectsToDashboard() throws Exception {
+        mockMvc.perform(post("/places/3/delete").session(loggedIn()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/host?tab=places"));
+
+        then(placeService).should().deletePlace(1L, 3L);
+    }
+
+    @Test
+    @DisplayName("대기·확정 예약이 있으면 삭제하지 않고 오류 메시지와 함께 되돌아간다")
+    void rejectsDeleteWhenPlaceHasActiveReservations() throws Exception {
+        org.mockito.BDDMockito.willThrow(new BusinessException(PlaceErrorCode.PLACE_HAS_ACTIVE_RESERVATIONS))
+                .given(placeService).deletePlace(1L, 3L);
+
+        mockMvc.perform(post("/places/3/delete").session(loggedIn()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/host?tab=places"))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.flash()
+                        .attributeExists("placeDeleteError"));
     }
 
     private MockHttpServletRequestBuilder validPlaceRequest() {

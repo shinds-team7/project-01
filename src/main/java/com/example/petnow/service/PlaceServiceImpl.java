@@ -27,6 +27,7 @@ import com.example.petnow.mapper.BookmarkMapper;
 import com.example.petnow.mapper.PetMapper;
 import com.example.petnow.mapper.PlaceMapper;
 import com.example.petnow.mapper.PlacePhotoMapper;
+import com.example.petnow.mapper.ReservationMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -57,6 +58,7 @@ public class PlaceServiceImpl implements PlaceService {
     private final BookmarkMapper bookmarkMapper;
     private final FileStorage fileStorage;
     private final PlacePhotoMapper placePhotoMapper;
+    private final ReservationMapper reservationMapper;
 
     @Override
     @Transactional
@@ -145,6 +147,18 @@ public class PlaceServiceImpl implements PlaceService {
             throw new BusinessException(PlaceErrorCode.PLACE_UPDATE_FAILED);
         }
         fileStorage.deleteImage(photo.getImageUrl());
+    }
+
+    @Override
+    @Transactional
+    public void deletePlace(Long userId, Long placeId) {
+        validateOwner(userId, placeId);
+        if (reservationMapper.countActiveByPlaceId(placeId) > 0) {
+            throw new BusinessException(PlaceErrorCode.PLACE_HAS_ACTIVE_RESERVATIONS);
+        }
+        if (placeMapper.softDelete(placeId, userId) != 1) {
+            throw new BusinessException(PlaceErrorCode.PLACE_NOT_FOUND);
+        }
     }
 
     @Override
