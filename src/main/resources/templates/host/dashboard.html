@@ -137,7 +137,9 @@
                     <a class="place-summary" th:href="@{/places/{id}(id=${place.id})}"
                        th:aria-label="|${place.name} 게시글 보기|">
                         <span class="media">
-                            <span class="ico" aria-hidden="true">weekend</span>
+                            <img th:if="${place.thumbnailUrl != null}" th:src="${place.thumbnailUrl}"
+                                 th:alt="${place.name}">
+                            <span th:unless="${place.thumbnailUrl != null}" class="ico" aria-hidden="true">weekend</span>
                         </span>
                         <span class="place-summary-copy">
                             <span class="place-summary-head">

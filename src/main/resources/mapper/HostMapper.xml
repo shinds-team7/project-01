@@ -9,7 +9,11 @@
         id,
         name,
         status,
-        average_rating AS averageRating
+        average_rating AS averageRating,
+        (SELECT pp.image_url FROM place_photos pp
+         WHERE pp.place_id = places.id
+         ORDER BY pp.sort_order, pp.id
+         LIMIT 1) AS thumbnailUrl
         FROM places
         WHERE host_user_id = #{userId}
         AND deleted_at IS NULL
