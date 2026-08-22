@@ -23,7 +23,7 @@
         splash.addEventListener("transitionend", () => splash.remove(), {once: true});
     }
 
-    const minDisplayTime = new Promise((resolve) => setTimeout(resolve, 600));
+    const minDisplayTime = new Promise((resolve) => setTimeout(resolve, 1000));
     const pageReady = new Promise((resolve) => {
         if (document.readyState === "complete") {
             resolve();
