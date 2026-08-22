@@ -156,6 +156,38 @@ img {
     color: #fff;
 }
 
+/*
+ * 접속 스플래시. 세션당 한 번만 보여준다 — splash.js 가 첫 노출 뒤
+ * sessionStorage 에 기록하고, 그 다음 페이지부터는 이 규칙이 렌더 전에
+ * 곧바로 숨겨 깜빡임 없이 지나간다(html 에 클래스를 다는 인라인 스크립트는
+ * base.html <head> 맨 앞에 있다).
+ */
+.app-splash {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--green);
+    transition: opacity 0.25s ease;
+}
+
+.app-splash-image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.app-splash.is-hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+html.petnow-splash-seen .app-splash {
+    display: none;
+}
+
 /* ─────────────────────── 앱 셸 (항상 모바일 폭 고정) ─────────────────────── */
 .app {
     display: flex;
