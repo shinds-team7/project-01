@@ -4850,8 +4850,22 @@ body {
 
 .petnow-classic {
     max-width: 480px;
-    margin: 0 auto;
+    /*
+     * margin-inline: auto 를 기본값으로 두면 안 된다. .app-main 이 .app(flex-direction: column)의
+     * 자식이라 가로축에 auto 여백이 붙으면 stretch 대신 콘텐츠 기준 shrink-to-fit 으로 폭이
+     * 정해진다. 그 결과 실제 뷰포트(예: 375px)보다 좁혀지지 않고 max-width 인 480px 그대로
+     * 굳어 버려, 모바일 기기에서 화면이 확대된 것처럼 오른쪽이 잘려 보인다.
+     * 가운데 정렬이 실제로 필요한 건 화면이 이미 480px 를 넘는 구간뿐이라 그 구간에서만
+     * 아래에서 margin-inline: auto 를 되돌린다.
+     */
+    margin: 0;
     position: relative;
+}
+
+@media (min-width: 1024px) {
+    .petnow-classic {
+        margin-inline: auto;
+    }
 }
 
 body.is-dialog-open {
