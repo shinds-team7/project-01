@@ -9,6 +9,7 @@ import com.example.petnow.exception.ImageErrorCode;
 import com.example.petnow.mapper.PlaceMapper;
 import com.example.petnow.mapper.ReviewMapper;
 import com.example.petnow.mapper.ReviewPhotoMapper;
+import com.example.petnow.mapper.ReviewReplyMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -35,6 +36,7 @@ class ReviewServiceImplPhotoTest {
     private ReviewMapper reviewMapper;
     private PlaceMapper placeMapper;
     private ReviewPhotoMapper reviewPhotoMapper;
+    private ReviewReplyMapper reviewReplyMapper;
     private FileStorage fileStorage;
     private ReviewServiceImpl reviewService;
 
@@ -43,8 +45,10 @@ class ReviewServiceImplPhotoTest {
         reviewMapper = mock(ReviewMapper.class);
         placeMapper = mock(PlaceMapper.class);
         reviewPhotoMapper = mock(ReviewPhotoMapper.class);
+        reviewReplyMapper = mock(ReviewReplyMapper.class);
         fileStorage = mock(FileStorage.class);
-        reviewService = new ReviewServiceImpl(reviewMapper, placeMapper, reviewPhotoMapper, fileStorage);
+        reviewService = new ReviewServiceImpl(
+                reviewMapper, placeMapper, reviewPhotoMapper, reviewReplyMapper, fileStorage);
 
         given(reviewMapper.countReservationOwnedByMember(anyLong(), anyLong())).willReturn(1);
         given(reviewMapper.findPlaceIdByReservationId(anyLong())).willReturn(9L);

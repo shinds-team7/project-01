@@ -1,6 +1,7 @@
 package com.example.petnow.service;
 
 import com.example.petnow.dto.request.ReviewCreateRequest;
+import com.example.petnow.dto.request.ReviewReplyRequest;
 import com.example.petnow.dto.request.ReviewUpdateRequest;
 import com.example.petnow.dto.response.ReviewResponse;
 import com.example.petnow.entity.ReviewSortType;
@@ -28,4 +29,10 @@ public interface ReviewService {
 
     // 리뷰 삭제
     void deleteReview(Long memberId, Long reviewId);
+
+    // 호스트 답글 작성·수정 (리뷰 하나에 답글은 최대 1개라 이미 있으면 덮어쓴다)
+    void saveReply(Long hostUserId, Long placeId, Long reviewId, ReviewReplyRequest request);
+
+    // 호스트 답글 삭제
+    void deleteReply(Long hostUserId, Long placeId, Long reviewId);
 }

@@ -3,17 +3,22 @@ package com.example.petnow.service;
 import com.example.petnow.common.storage.FileStorage;
 import com.example.petnow.common.storage.ImageCategory;
 import com.example.petnow.dto.request.ReviewCreateRequest;
+import com.example.petnow.dto.request.ReviewReplyRequest;
 import com.example.petnow.dto.request.ReviewUpdateRequest;
 import com.example.petnow.dto.response.ReviewResponse;
+import com.example.petnow.entity.Place;
 import com.example.petnow.entity.Review;
 import com.example.petnow.entity.ReviewPhoto;
+import com.example.petnow.entity.ReviewReply;
 import com.example.petnow.entity.ReviewSortType;
 import com.example.petnow.exception.BusinessException;
 import com.example.petnow.exception.ImageErrorCode;
+import com.example.petnow.exception.PlaceErrorCode;
 import com.example.petnow.exception.ReviewErrorCode;
 import com.example.petnow.mapper.PlaceMapper;
 import com.example.petnow.mapper.ReviewMapper;
 import com.example.petnow.mapper.ReviewPhotoMapper;
+import com.example.petnow.mapper.ReviewReplyMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
@@ -31,6 +36,7 @@ public class ReviewServiceImpl implements ReviewService {
     private final ReviewMapper reviewMapper;
     private final PlaceMapper placeMapper;
     private final ReviewPhotoMapper reviewPhotoMapper;
+    private final ReviewReplyMapper reviewReplyMapper;
     private final FileStorage fileStorage;
 
     // 리뷰 작성
@@ -134,6 +140,65 @@ public class ReviewServiceImpl implements ReviewService {
         if (!photos.isEmpty()) {
             reviewPhotoMapper.deleteByReviewId(reviewId);
             photos.forEach(photo -> fileStorage.deleteImage(photo.getImageUrl()));
+        }
+
+        // 같은 이유로 답글도 남는다. 삭제된 리뷰에 답글만 덩그러니 남을 이유가 없다.
+        ReviewReply reply = reviewReplyMapper.findByReviewId(reviewId);
+        if (reply != null) {
+            reviewReplyMapper.deleteById(reply.getId());
+        }
+    }
+
+    // 호스트 답글 작성·수정
+    @Transactional
+    public void saveReply(Long hostUserId, Long placeId, Long reviewId, ReviewReplyRequest request) {
+        validateReplyOwnership(hostUserId, placeId, reviewId);
+
+        ReviewReply existing = reviewReplyMapper.findByReviewId(reviewId);
+        if (existing != null) {
+            reviewReplyMapper.updateReply(existing.getId(), request.getContent());
+            return;
+        }
+
+        reviewReplyMapper.insertReply(ReviewReply.builder()
+                .reviewId(reviewId)
+                .hostUserId(hostUserId)
+                .content(request.getContent())
+                .build());
+    }
+
+    // 호스트 답글 삭제
+    @Transactional
+    public void deleteReply(Long hostUserId, Long placeId, Long reviewId) {
+        validateReplyOwnership(hostUserId, placeId, reviewId);
+
+        ReviewReply existing = reviewReplyMapper.findByReviewId(reviewId);
+        if (existing == null) {
+            throw new BusinessException(ReviewErrorCode.REVIEW_REPLY_NOT_FOUND);
+        }
+        reviewReplyMapper.deleteById(existing.getId());
+    }
+
+    /**
+     * 답글은 그 리뷰가 달린 장소의 호스트만 남길 수 있다.
+     *
+     * <p>{@code placeId} 를 경로에서 받는 이유는 호스트 화면이 이미 장소 단위(
+     * {@code /host/places/{placeId}/reviews})로 열리기 때문이다. 그 값을 그대로 믿지 않고
+     * 실제 리뷰가 그 장소 것이 맞는지까지 다시 확인해야, URL 의 placeId 만 바꿔 남의 리뷰에
+     * 답글을 다는 것을 막을 수 있다.
+     */
+    private void validateReplyOwnership(Long hostUserId, Long placeId, Long reviewId) {
+        Place place = placeMapper.findById(placeId);
+        if (place == null) {
+            throw new BusinessException(PlaceErrorCode.PLACE_NOT_FOUND);
+        }
+        if (!hostUserId.equals(place.getHostUserId())) {
+            throw new BusinessException(PlaceErrorCode.PLACE_ACCESS_DENIED);
+        }
+
+        Long reviewPlaceId = reviewMapper.findPlaceIdByReviewId(reviewId);
+        if (reviewPlaceId == null || !reviewPlaceId.equals(placeId)) {
+            throw new BusinessException(ReviewErrorCode.REVIEW_NOT_FOUND);
         }
     }
 

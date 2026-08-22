@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.petnow.mapper.ReviewReplyMapper">
+
+    <insert id="insertReply" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO review_replies
+        (
+        review_id,
+        host_user_id,
+        content
+        )
+        VALUES
+        (
+        #{reviewId},
+        #{hostUserId},
+        #{content}
+        )
+    </insert>
+
+    <!--
+      review_id 에 UNIQUE 가 걸려 있다. 삭제를 deleted_at 으로 처리하면 그 UNIQUE 가 여전히
+      살아 있어 같은 리뷰에 새 답글을 다시 달 수 없게 된다. 그래서 답글 삭제는 소프트 삭제가
+      아니라 실제 DELETE 로 처리하고, 이 매퍼는 deleted_at 을 쓰지 않는다.
+    -->
+    <select id="findByReviewId"
+            parameterType="long"
+            resultType="com.example.petnow.entity.ReviewReply">
+        SELECT
+        id,
+        review_id,
+        host_user_id,
+        content,
+        created_at,
+        updated_at
+        FROM review_replies
+        WHERE review_id = #{reviewId}
+    </select>
+
+    <update id="updateReply">
+        UPDATE review_replies
+        SET content = #{content}
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        DELETE
+        FROM review_replies
+        WHERE id = #{id}
+    </delete>
+
+</mapper>

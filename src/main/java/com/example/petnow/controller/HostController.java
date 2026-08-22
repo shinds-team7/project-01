@@ -3,6 +3,7 @@ package com.example.petnow.controller;
 import java.util.List;
 
 import com.example.petnow.common.argument.LoginUser;
+import com.example.petnow.dto.request.ReviewReplyRequest;
 import com.example.petnow.dto.response.ReservationListResponse;
 import com.example.petnow.entity.Place;
 import com.example.petnow.entity.ReservationStatus;
@@ -13,13 +14,18 @@ import com.example.petnow.mapper.PlaceMapper;
 import com.example.petnow.service.HostService;
 import com.example.petnow.service.ReservationService;
 import com.example.petnow.service.ReviewService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 @RequestMapping("/host")
@@ -77,6 +83,37 @@ public class HostController {
         model.addAttribute("place", findOwnedPlace(hostUserId, placeId));
         model.addAttribute("reviews", reviewService.getReviewsByPlace(placeId, ReviewSortType.LATEST));
         return "host/reviews";
+    }
+
+    /**
+     * 답글 작성·수정. 리뷰 하나에 답글은 최대 1개라 이미 있으면 그대로 덮어쓴다.
+     *
+     * <p>바인딩 실패는 {@code error.html} 대신 답글 폼이 있던 화면으로 되돌아가야 해서
+     * {@code MvcExceptionHandler} 에 맡기지 않고 여기서 직접 플래시 메시지로 처리한다.
+     */
+    @PostMapping("/places/{placeId}/reviews/{reviewId}/reply")
+    public String saveReply(@LoginUser Long hostUserId,
+                            @PathVariable Long placeId,
+                            @PathVariable Long reviewId,
+                            @Valid @ModelAttribute("replyRequest") ReviewReplyRequest request,
+                            BindingResult bindingResult,
+                            RedirectAttributes redirectAttributes) {
+        if (bindingResult.hasErrors()) {
+            redirectAttributes.addFlashAttribute("replyError",
+                    bindingResult.getFieldError().getDefaultMessage());
+            return "redirect:/host/places/" + placeId + "/reviews";
+        }
+
+        reviewService.saveReply(hostUserId, placeId, reviewId, request);
+        return "redirect:/host/places/" + placeId + "/reviews";
+    }
+
+    @PostMapping("/places/{placeId}/reviews/{reviewId}/reply/delete")
+    public String deleteReply(@LoginUser Long hostUserId,
+                              @PathVariable Long placeId,
+                              @PathVariable Long reviewId) {
+        reviewService.deleteReply(hostUserId, placeId, reviewId);
+        return "redirect:/host/places/" + placeId + "/reviews";
     }
 
     /** 남의 장소 리뷰를 URL 만 바꿔 들여다보지 못하게 막는다. HostAvailabilityController 와 같은 규칙이다. */
