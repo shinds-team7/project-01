@@ -99,7 +99,17 @@ public class HomeController {
         model.addAttribute("nearbyPlaces",
                 placeService.searchPlaces(loginUserId, nearbyFilter).getPlaces());
         model.addAttribute("nearbyPlaceType", normalizedPlaceType);
+
+        // 유형 필터 칩은 비동기로도 눌린다. 이때는 전체 페이지 대신 칩·목록 두 조각만 돌려줘
+        // 새로고침처럼 보이지 않게 한다.
+        if (isAjax(request)) {
+            return "home :: #places";
+        }
         return "home";
+    }
+
+    private static boolean isAjax(HttpServletRequest request) {
+        return "XMLHttpRequest".equals(request.getHeader("X-Requested-With"));
     }
 
     /** 잘못된 값은 조건 없음으로 조용히 떨어진다. 유형 칩 하나 때문에 홈이 400 을 내면 안 된다. */
