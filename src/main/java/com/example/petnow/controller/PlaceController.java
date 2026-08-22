@@ -2,10 +2,13 @@ package com.example.petnow.controller;
 
 import com.example.petnow.common.argument.LoginUser;
 import com.example.petnow.common.session.LoginSession;
+import com.example.petnow.common.storage.ImageCategory;
 import com.example.petnow.dto.request.PlaceCreateRequest;
 import com.example.petnow.dto.request.PlaceFilterRequest;
 import com.example.petnow.dto.request.PlaceUpdateRequest;
 import com.example.petnow.entity.PlaceType;
+import com.example.petnow.exception.BusinessException;
+import com.example.petnow.exception.PlaceErrorCode;
 import com.example.petnow.service.PlaceService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -19,6 +22,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 @RequestMapping("/places")
@@ -30,6 +34,7 @@ public class PlaceController {
     @GetMapping("/new")
     public String createForm(Model model) {
         model.addAttribute("placeForm", new PlaceCreateRequest());
+        model.addAttribute("remainingPhotoCount", ImageCategory.PLACE.getMaxCount());
         addFormAttributes(model);
 
         return "places/create";
@@ -50,12 +55,12 @@ public class PlaceController {
                          BindingResult bindingResult,
                          Model model) {
         if (bindingResult.hasErrors()) {
+            model.addAttribute("remainingPhotoCount", ImageCategory.PLACE.getMaxCount());
             addFormAttributes(model);
             return "places/create";
         }
 
         placeService.createPlace(loginUserId, request);
-
         return "redirect:/places/success";
     }
 
@@ -64,7 +69,7 @@ public class PlaceController {
                            @PathVariable Long placeId,
                            Model model) {
         model.addAttribute("placeForm", placeService.getUpdateForm(loginUserId, placeId));
-        model.addAttribute("editPlaceId", placeId);
+        addEditPhotoAttributes(loginUserId, placeId, model);
         addFormAttributes(model);
         return "places/create";
     }
@@ -76,7 +81,7 @@ public class PlaceController {
                          BindingResult bindingResult,
                          Model model) {
         if (bindingResult.hasErrors()) {
-            model.addAttribute("editPlaceId", placeId);
+            addEditPhotoAttributes(loginUserId, placeId, model);
             addFormAttributes(model);
             return "places/create";
         }
@@ -85,9 +90,44 @@ public class PlaceController {
         return "redirect:/places/" + placeId;
     }
 
+    @PostMapping("/edit/{placeId}/photos/{photoId}/delete")
+    public String deletePhoto(@LoginUser Long loginUserId,
+                              @PathVariable Long placeId,
+                              @PathVariable Long photoId) {
+        placeService.deletePlacePhoto(loginUserId, placeId, photoId);
+        return "redirect:/places/edit/" + placeId;
+    }
+
     @GetMapping("/success")
     public String createSuccess() {
         return "places/success";
+    }
+
+    /**
+     * 호스트 대시보드의 삭제 확인 모달이 여기로 보낸다. 소프트 삭제라 목록·상세에서는
+     * 바로 사라지지만, 대기·확정 예약이 있으면 보호자를 상대로 되돌릴 수 없어 막는다.
+     */
+    @PostMapping("/{placeId:\\d+}/delete")
+    public String delete(@LoginUser Long loginUserId,
+                         @PathVariable Long placeId,
+                         RedirectAttributes redirectAttributes) {
+        try {
+            placeService.deletePlace(loginUserId, placeId);
+        } catch (BusinessException e) {
+            if (e.getErrorCode() != PlaceErrorCode.PLACE_HAS_ACTIVE_RESERVATIONS) {
+                throw e;
+            }
+            redirectAttributes.addFlashAttribute("placeDeleteError", e.getMessage());
+        }
+        return "redirect:/host?tab=places";
+    }
+
+    private void addEditPhotoAttributes(Long loginUserId, Long placeId, Model model) {
+        var photos = placeService.getPlacePhotosForEdit(loginUserId, placeId);
+        model.addAttribute("editPlaceId", placeId);
+        model.addAttribute("existingPlacePhotos", photos);
+        model.addAttribute("remainingPhotoCount",
+                Math.max(0, ImageCategory.PLACE.getMaxCount() - photos.size()));
     }
 
     /**

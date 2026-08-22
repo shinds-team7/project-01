@@ -30,6 +30,17 @@
           AND place_id = #{placeId}
     </delete>
 
+    <!--
+      찜한 장소 id 만. 목록 화면이 카드마다 하트를 채울 때 쓴다.
+      공개 여부로 거르지 않는다 — 여기서 나온 id 는 이미 화면에 있는 장소와 맞춰 보기만 하므로,
+      비공개가 된 장소의 id 가 섞여 있어도 어차피 짝이 없어 그냥 버려진다.
+    -->
+    <select id="findPlaceIdsByUserId" resultType="long">
+        SELECT place_id
+        FROM bookmarks
+        WHERE user_id = #{userId}
+    </select>
+
     <select id="findPlacesByUserId"
             resultType="com.example.petnow.dto.response.PlaceListResponse">
         SELECT

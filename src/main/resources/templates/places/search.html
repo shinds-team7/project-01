@@ -50,42 +50,58 @@
             </div>
 
             <div class="place-list" th:unless="${#lists.isEmpty(places)}">
-                <a class="place-card" th:each="place : ${places}"
-                   th:href="@{/places/{id}(id=${place.id})}"
-                   th:aria-label="|${place.name} 상세보기|">
-                    <div class="media">
-                        <span class="ico" aria-hidden="true">weekend</span>
-                    </div>
-                    <div class="place-card-body">
-                        <p class="place-card-title" th:text="${place.name}">공간 이름</p>
-                        <div class="place-tags">
-                            <span class="is-type" th:if="${place.placeType != null}"
-                                  th:text="${place.placeType.label}">장소 유형</span>
-                            <span class="is-size" th:if="${place.allowsSmallDog}">소형견</span>
-                            <span class="is-size" th:if="${place.allowsMediumDog}">중형견</span>
-                            <span class="is-size" th:if="${place.allowsLargeDog}">대형견</span>
-                            <span class="is-extra" th:if="${place.providesYard}">마당</span>
-                            <span class="is-extra" th:if="${place.providesWalk}">산책</span>
-                            <span class="is-extra" th:if="${place.providesHomeCamera}">홈캠</span>
-                            <span class="is-extra" th:if="${place.providesRealtimePhoto}">실시간 사진</span>
+                <!--/*
+                  카드는 링크 하나가 통째로 덮고 찜 버튼만 그 위에 얹힌다 (nearby.html·bookmarks.html 과 같은 구조).
+                  버튼을 링크 안에 넣으면 찜하려다 상세로 넘어가므로 .bookmark-card 로 감싸고 둘을 형제로 둔다.
+                */-->
+                <article class="place-card bookmark-card" th:each="place : ${places}">
+                    <a class="bookmark-card-link" th:href="@{/places/{id}(id=${place.id})}"
+                       th:aria-label="|${place.name} 상세보기|">
+                        <div class="media">
+                            <img th:if="${place.thumbnailUrl != null}" th:src="${place.thumbnailUrl}"
+                                 th:alt="${place.name}">
+                            <span th:unless="${place.thumbnailUrl != null}" class="ico" aria-hidden="true">weekend</span>
                         </div>
-                        <p class="place-loc">
-                            <span class="ico" aria-hidden="true">person</span>
-                            <span th:text="${place.nickname}">호스트 닉네임</span>
-                        </p>
-                        <!--/* 리뷰가 없으면(0.00) 줄 자체를 그리지 않는다. places/list.html 과 같은 규칙. */-->
-                        <p class="rating" th:if="${place.hasRating()}">
-                            <span class="ico" aria-hidden="true">star</span>
-                            <span th:text="${#numbers.formatDecimal(place.averageRating, 1, 1)}">4.8</span>
-                            <span class="sr-only">점</span>
-                        </p>
-                        <p class="place-price" th:if="${place.hourlyPrice != null}">
-                            <span th:text="${#numbers.formatInteger(place.hourlyPrice, 0, 'COMMA')} + '원'">12,000원</span>
-                            <small>/ 시간당</small>
-                        </p>
-                        <p class="place-price" th:if="${place.hourlyPrice == null}">가격 문의</p>
-                    </div>
-                </a>
+                        <div class="place-card-body">
+                            <p class="place-card-title" th:text="${place.name}">공간 이름</p>
+                            <div class="place-tags">
+                                <span class="is-type" th:if="${place.placeType != null}"
+                                      th:text="${place.placeType.label}">장소 유형</span>
+                                <span class="is-size" th:if="${place.allowsSmallDog}">소형견</span>
+                                <span class="is-size" th:if="${place.allowsMediumDog}">중형견</span>
+                                <span class="is-size" th:if="${place.allowsLargeDog}">대형견</span>
+                                <span class="is-extra" th:if="${place.providesYard}">마당</span>
+                                <span class="is-extra" th:if="${place.providesWalk}">산책</span>
+                                <span class="is-extra" th:if="${place.providesHomeCamera}">홈캠</span>
+                                <span class="is-extra" th:if="${place.providesRealtimePhoto}">실시간 사진</span>
+                            </div>
+                            <p class="place-loc">
+                                <span class="ico" aria-hidden="true">person</span>
+                                <span th:text="${place.nickname}">호스트 닉네임</span>
+                            </p>
+                            <!--/* 리뷰가 없으면(0.00) 줄 자체를 그리지 않는다. places/list.html 과 같은 규칙. */-->
+                            <p class="rating" th:if="${place.hasRating()}">
+                                <span class="ico" aria-hidden="true">star</span>
+                                <span th:text="${#numbers.formatDecimal(place.averageRating, 1, 1)}">4.8</span>
+                                <span class="sr-only">점</span>
+                            </p>
+                            <p class="place-price" th:if="${place.hourlyPrice != null}">
+                                <span th:text="${#numbers.formatInteger(place.hourlyPrice, 0, 'COMMA')} + '원'">12,000원</span>
+                                <small>/ 시간당</small>
+                            </p>
+                            <p class="place-price" th:if="${place.hourlyPrice == null}">가격 문의</p>
+                        </div>
+                    </a>
+                    <!--/* 찜. 비로그인으로 누르면 bookmark.js 가 401 을 받아 로그인 화면으로 보낸다. */-->
+                    <button class="like-btn" type="button"
+                            th:classappend="${place.bookmarked} ? ' is-on'"
+                            th:data-place-id="${place.id}"
+                            th:aria-pressed="${place.bookmarked}"
+                            th:aria-label="${place.bookmarked} ? '찜 취소' : '찜하기'"
+                            data-bookmark-toggle>
+                        <span class="ico" aria-hidden="true">favorite</span>
+                    </button>
+                </article>
             </div>
 
             <div class="empty" th:if="${#lists.isEmpty(places)}">
@@ -95,6 +111,7 @@
             </div>
         </th:block>
     </div>
+    <script th:src="@{/js/bookmark.js}"></script>
 </main>
 </body>
 </html>

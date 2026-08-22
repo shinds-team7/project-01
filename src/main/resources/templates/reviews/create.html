@@ -67,13 +67,8 @@
             </div>
 
             <!--/*
-              사진 최대 5장 (ImageCategory.REVIEW 의 maxCount).
-
-              이 form 은 th:object 로 form 에 바인딩돼 있지만 여기만 th:field 를 쓰지
-              않는다. ReviewCreateRequest 에 파일 필드가 아직 없어서 th:field="*{images}"
-              를 걸면 이 화면이 렌더 단계에서 죽는다. name 기반 바인딩은 DTO 에
-              List<MultipartFile> images 가 추가되는 순간 그대로 동작하므로,
-              서버 작업이 들어와도 이 마크업은 고칠 필요가 없다.
+              사진 최대 5장 (ImageCategory.REVIEW 의 maxCount). 여러 파일을 한 input 으로
+              받으므로 th:field 대신 name 바인딩을 그대로 쓴다.
 
               data-* 기준값은 서버를 따라간다 (static/js/image-upload.js 주석 참고).
                 data-max-files   ImageCategory.REVIEW.maxCount = 5

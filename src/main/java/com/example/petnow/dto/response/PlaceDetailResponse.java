@@ -46,6 +46,7 @@ public class PlaceDetailResponse {
     private PlaceStatus status;
     private boolean visible;
     private boolean bookmarked;
+    private String thumbnailUrl;
 
     /** 별점 데이터가 있는지. */
     public boolean hasRating() {

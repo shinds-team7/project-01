@@ -5,11 +5,14 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 
 import com.example.petnow.dto.response.PlaceDetailResponse;
+import com.example.petnow.common.storage.FileStorage;
 import com.example.petnow.entity.PlaceStatus;
 import com.example.petnow.mapper.AuthMapper;
 import com.example.petnow.mapper.BookmarkMapper;
 import com.example.petnow.mapper.PetMapper;
 import com.example.petnow.mapper.PlaceMapper;
+import com.example.petnow.mapper.PlacePhotoMapper;
+import com.example.petnow.mapper.ReservationMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -27,7 +30,10 @@ class PlaceServiceImplDetailTest {
                 mock(AuthMapper.class),
                 mock(PetMapper.class),
                 mock(PlaceGeocodingService.class),
-                mock(BookmarkMapper.class));
+                mock(BookmarkMapper.class),
+                mock(FileStorage.class),
+                mock(PlacePhotoMapper.class),
+                mock(ReservationMapper.class));
     }
 
     @Test

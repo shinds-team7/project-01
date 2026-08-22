@@ -39,14 +39,17 @@
             resultType="com.example.petnow.dto.response.PetListResponse">
 
         SELECT
-            id,
+            p.id,
             name,
             size,
-            weight
-        FROM pets
-        WHERE user_id = #{userId}
-        AND deleted_at IS NULL
-        ORDER BY created_at DESC
+            weight,
+            pp.image_url AS imageUrl
+            FROM pets p
+            LEFT JOIN pet_photos pp
+            ON p.id = pp.pet_id
+            WHERE p.user_id = #{userId}
+            AND p.deleted_at IS NULL
+            ORDER BY p.created_at DESC
 
     </select>
 
@@ -75,12 +78,15 @@
         birth_year,
         sex,
         is_neutered,
-        memo
-        FROM pets
-        WHERE id = #{petId}
-        AND
-        user_id = #{userId}
-        AND deleted_at IS NULL
+        memo,
+        pp.image_url AS imageUrl
+        FROM pets p
+        LEFT JOIN pet_photos pp
+        ON p.id = pp.pet_id
+        WHERE p.id = #{petId}
+        AND p.user_id = #{userId}
+        AND p.deleted_at IS NULL
+        LIMIT 1
     </select>
 
     <update id="deletePet">

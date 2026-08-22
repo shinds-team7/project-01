@@ -15,4 +15,5 @@ public class PetListResponse {
     private String name;
     private Pet.Size size;
     private Double weight;
+    private String imageUrl;
 }

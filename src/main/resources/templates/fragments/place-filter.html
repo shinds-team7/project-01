@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<!--/*
+  조건 검색 다이얼로그 조각. (#7)
+
+  지금은 내 주변의 지도 위 필터 바가 쓴다. 홈의 검색 조건 카드는 아직 자기 안에 다이얼로그를
+  직접 들고 있는데, 같은 조건을 고르는 곳이므로 언젠가 이쪽으로 합치는 게 맞다.
+  (지금 합치지 않은 이유는 홈 카드가 별도 작업으로 바뀌는 중이라서다.)
+
+  묶는 방식은 화면마다 다르다. 홈은 지역·날짜·시간·반려동물·유형 다섯 칸이고, 내 주변은
+  레퍼런스대로 지역·날짜·"상세 필터" 세 칩이다. 그래서 다이얼로그 껍데기가 아니라
+  <b>안에 들어가는 필드</b>를 조각으로 쪼개 두고, 껍데기는 화면이 원하는 대로 조립한다.
+
+  공통 규칙 두 가지.
+    1. 이 조각들은 반드시 조건 검색 form 의 자손이어야 한다. dialog 가 form 밖에 있으면
+       안의 값이 제출되지 않는다.
+    2. form 안의 button 은 기본이 submit 이다. 여기 있는 모든 button 에 type="button" 이 붙어 있고,
+       빠지면 조건을 고르려다 검색이 제출된다.
+
+  filter 인자는 지금 걸려 있는 조건(PlaceFilterRequest)이다. 조건을 걸고 들어온 화면을 다시
+  그릴 때 고른 값이 그대로 남아 있어야 하므로 전부 이걸로 되채운다. 되채울 값이 없는 화면은
+  null 을 넘기면 되고, 그때는 아무것도 고르지 않은 상태로 그려진다.
+*/-->
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!--/* ───────────────── 지역 ───────────────── */-->
+<!--/*
+  옵션을 하드코딩하지 않고 실제로 공개된 장소가 있는 sigungu 만 내려온다.
+  장소 등록에 지역이 들어가기 전(#261)에는 0건이라 준비 중 안내가 보인다.
+*/-->
+<dialog class="modal filter-modal" th:fragment="regionDialog(id, regions, filter)"
+        th:id="${id}" th:aria-labelledby="${id} + '-title'">
+    <div class="modal-inner">
+        <h2 th:id="${id} + '-title'">지역 선택</h2>
+        <p>여러 곳을 함께 고를 수 있어요.</p>
+        <div class="option-grid filter-option-grid" th:if="${!#lists.isEmpty(regions)}">
+            <label th:each="region : ${regions}">
+                <input type="checkbox" name="regions" th:value="${region}"
+                       th:checked="${filter != null and filter.regions != null
+                                     and #lists.contains(filter.regions, region)}">
+                <span th:text="${region}">지역구</span>
+            </label>
+        </div>
+        <p class="filter-modal-empty" th:if="${#lists.isEmpty(regions)}">
+            지역 정보가 준비 중이에요. 지역을 빼고도 검색할 수 있어요.
+        </p>
+        <div class="modal-actions">
+            <button class="btn btn-ghost" type="button" data-modal-close>닫기</button>
+            <button class="btn btn-primary" type="button" data-modal-close data-filter-apply>적용</button>
+        </div>
+    </div>
+</dialog>
+
+<!--/* ───────────────── 일정 ───────────────── */-->
+<!--/* 복수 날짜는 항상 연속 구간이라 시작일·종료일 두 칸으로 받는다. */-->
+<dialog class="modal filter-modal" th:fragment="scheduleDialog(id, filter)"
+        th:id="${id}" th:aria-labelledby="${id} + '-title'">
+    <div class="modal-inner">
+        <h2 th:id="${id} + '-title'">일정 선택</h2>
+        <div class="field">
+            <label class="field-label" th:for="${id} + '-start'">시작일</label>
+            <input class="control" type="date" th:id="${id} + '-start'" name="startDate"
+                   th:value="${filter != null ? filter.startDate : null}" data-filter-start-date>
+        </div>
+        <div class="field">
+            <label class="field-label" th:for="${id} + '-end'">종료일</label>
+            <input class="control" type="date" th:id="${id} + '-end'" name="endDate"
+                   th:value="${filter != null ? filter.endDate : null}" data-filter-end-date>
+            <p class="field-hint">비워 두면 하루만 맡기는 것으로 봐요.</p>
+        </div>
+        <div class="modal-actions">
+            <button class="btn btn-ghost" type="button" data-modal-close>닫기</button>
+            <button class="btn btn-primary" type="button" data-modal-close data-filter-apply>적용</button>
+        </div>
+    </div>
+</dialog>
+
+<!--/* ───────────────── 시간 (필드만) ───────────────── */-->
+<!--/*
+  슬롯이 3시간 격자라 옵션도 3시간 단위만 준다.
+  종료 24:00 은 LocalTime 에 없는 값이라 00:00 을 보내고 서버가 "그날의 끝"으로 읽는다.
+  여러 날을 고르면 JS 가 이 칸을 잠그고, 서버도 같은 조건을 다시 검증한다.
+
+  되채우기는 LocalTime 의 toString 과 옵션 값을 그대로 비교한다. 09:00 은 "09:00",
+  자정은 "00:00" 이라 옵션 값과 형식이 같다.
+*/-->
+<th:block th:fragment="timeFields(filter)"
+          th:with="startOptions=${ {'00:00','03:00','06:00','09:00','12:00','15:00','18:00','21:00'} },
+                   endOptions=${ {'03:00','06:00','09:00','12:00','15:00','18:00','21:00','00:00'} },
+                   pickedStart=${filter != null and filter.startTime != null ? filter.startTime.toString() : ''},
+                   pickedEnd=${filter != null and filter.endTime != null ? filter.endTime.toString() : ''}">
+    <p>하루만 맡길 때 3시간 단위로 고를 수 있어요.</p>
+    <div class="field">
+        <label class="field-label" for="filter-start-time">시작 시간</label>
+        <select class="control" id="filter-start-time" name="startTime" data-filter-time>
+            <option value="">선택 안 함</option>
+            <option th:each="option : ${startOptions}" th:value="${option}" th:text="${option}"
+                    th:selected="${option == pickedStart}">00:00</option>
+        </select>
+    </div>
+    <div class="field">
+        <label class="field-label" for="filter-end-time">종료 시간</label>
+        <select class="control" id="filter-end-time" name="endTime" data-filter-time>
+            <option value="">선택 안 함</option>
+            <option th:each="option : ${endOptions}" th:value="${option}"
+                    th:text="${option == '00:00' ? '24:00' : option}"
+                    th:selected="${option == pickedEnd}">03:00</option>
+        </select>
+    </div>
+    <p class="filter-modal-empty" data-filter-time-notice hidden>
+        여러 날을 고르면 시간은 선택할 수 없어요.
+    </p>
+</th:block>
+
+<!--/* ───────────────── 장소 유형 (필드만) ───────────────── */-->
+<!--/*
+  라디오라 하나만 고를 수 있다. "상관없음"은 값이 빈 문자열이고, 빈 문자열은 서버에서
+  유형 조건 없음으로 읽힌다. 골랐던 유형을 되돌릴 방법이 있어야 하므로 반드시 남겨 둔다.
+*/-->
+<div class="field" th:fragment="typeFields(filter)"
+     th:with="pickedType=${filter != null and filter.placeType != null ? filter.placeType.name() : ''}">
+    <span class="field-label">장소 유형</span>
+    <div class="option-grid filter-option-grid">
+        <label>
+            <input type="radio" name="placeType" value="" th:checked="${pickedType == ''}">
+            <span>상관없음</span>
+        </label>
+        <label th:each="type : ${T(com.example.petnow.entity.PlaceType).values()}">
+            <input type="radio" name="placeType" th:value="${type.name()}"
+                   th:checked="${type.name() == pickedType}">
+            <span th:text="${type.label}">아파트</span>
+        </label>
+    </div>
+</div>
+
+<!--/* ───────────────── 반려동물 (필드만) ───────────────── */-->
+<!--/* 체크박스라 같은 아이를 두 번 고를 수 없고, 서버도 중복을 한 번 더 걷어낸다. */-->
+<th:block th:fragment="petFields(myPets, loggedIn, filter)">
+    <th:block th:if="${loggedIn}">
+        <p data-filter-pet-count>0마리를 골랐어요.</p>
+        <div class="option-grid filter-option-grid" th:if="${!#lists.isEmpty(myPets)}">
+            <label th:each="pet : ${myPets}">
+                <input type="checkbox" name="petIds" th:value="${pet.id}" data-filter-pet
+                       th:checked="${filter != null and filter.petIds != null
+                                     and #lists.contains(filter.petIds, pet.id)}">
+                <span th:text="${pet.size != null ? pet.name + ' · ' + pet.size.label : pet.name}">아이 이름</span>
+            </label>
+        </div>
+        <p class="filter-modal-empty" th:if="${#lists.isEmpty(myPets)}">
+            등록된 아이가 없어요. 마이페이지에서 먼저 등록해 주세요.
+        </p>
+    </th:block>
+    <p class="filter-modal-empty" th:unless="${loggedIn}">
+        로그인하면 우리 아이에 맞는 공간만 골라 볼 수 있어요.
+        <a th:href="@{/auth/login}">로그인하기</a>
+    </p>
+</th:block>
+
+<!--/* ───────────────── 껍데기: 상세 필터 (내 주변) ───────────────── */-->
+<!--/*
+  레퍼런스의 "상세 필터" 한 칩이 여는 곳. 지역·날짜를 뺀 나머지 조건이 전부 여기 모인다.
+  시간 필드가 여기 한 번만 있으므로 홈처럼 별도의 시간 다이얼로그를 같이 두면 안 된다.
+  같은 name 의 입력이 한 form 에 두 벌이면 파라미터가 두 번 실린다.
+*/-->
+<dialog class="modal filter-modal" th:fragment="detailDialog(id, myPets, loggedIn, filter)"
+        th:id="${id}" th:aria-labelledby="${id} + '-title'">
+    <div class="modal-inner">
+        <h2 th:id="${id} + '-title'">상세 필터</h2>
+
+        <h3 class="filter-section-title">시간</h3>
+        <th:block th:replace="~{fragments/place-filter :: timeFields(${filter})}"></th:block>
+
+        <h3 class="filter-section-title">공간</h3>
+        <th:block th:replace="~{fragments/place-filter :: typeFields(${filter})}"></th:block>
+
+        <h3 class="filter-section-title">맡길 아이</h3>
+        <th:block th:replace="~{fragments/place-filter :: petFields(${myPets}, ${loggedIn}, ${filter})}"></th:block>
+
+        <div class="modal-actions">
+            <button class="btn btn-ghost" type="button" data-modal-close>닫기</button>
+            <button class="btn btn-primary" type="button" data-modal-close data-filter-apply>적용</button>
+        </div>
+    </div>
+</dialog>
+
+</body>
+</html>

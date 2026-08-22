@@ -26,10 +26,7 @@
         <h1 th:text="${editPlaceId == null ? '게시글 작성' : '게시글 수정'}">게시글 작성</h1>
     </div>
 
-    <!--/*
-      파일을 보내려면 enctype 이 반드시 multipart/form-data 여야 한다.
-      빠뜨리면 파일이 아니라 파일명 문자열만 넘어간다 (docs/CONVENTIONS.md §9.2).
-    */-->
+    <!-- 장소 정보와 사진을 같은 multipart 요청으로 저장한다. -->
     <form th:action="${editPlaceId == null} ? @{/places/create} : @{/places/edit/{id}(id=${editPlaceId})}"
           th:object="${placeForm}" method="post"
           enctype="multipart/form-data">
@@ -100,28 +97,37 @@
                 <p class="field-error" th:errors="*{roadAddress}"></p>
             </div>
 
-            <h2 class="section-title" th:if="${editPlaceId == null}">사진 <span class="opt">선택</span></h2>
+            <h2 class="section-title">사진 <span class="opt">선택</span></h2>
             <!--/*
               사진 최대 10장 (ImageCategory.PLACE 의 maxCount).
 
-              이 form 은 th:object 로 placeForm 에 바인딩돼 있지만 여기만
-              th:field 를 쓰지 않는다. DTO 에 파일 필드가 아직 없어서 th:field="*{images}"
-              를 걸면 이 화면이 렌더 단계에서 죽는다. name 기반 바인딩은 DTO 에
-              List<MultipartFile> images 가 추가되는 순간 그대로 동작하므로,
-              서버 작업이 들어와도 이 마크업은 고칠 필요가 없다.
+              생성·수정 DTO 모두 List<MultipartFile> images 로 name 기반 바인딩한다.
+              수정에서는 기존 사진을 유지하고 새로 선택한 사진만 뒤에 추가한다.
 
               data-* 기준값은 서버를 따라간다 (static/js/image-upload.js 주석 참고).
                 data-max-files    ImageCategory.PLACE.maxCount = 10
                 data-max-size-mb  max-file-size = 5MB
-                data-max-total-mb max-request-size = 30MB
+                data-max-total-mb max-request-size = 55MB
 
-              10장 × 5MB = 50MB 라 장수보다 요청 전체 30MB 에 먼저 걸린다 (#240).
-              서버에서 413 을 받고 나서 알면 늦으니 고르는 시점에 미리 잘라낸다.
+              장소 10장 × 5MB 와 multipart 오버헤드를 받을 수 있도록 전체 한도는 55MB 다.
             */-->
-            <div class="field" th:if="${editPlaceId == null}">
+            <div class="field">
+                <div class="place-photo-edit-list"
+                     th:if="${editPlaceId != null and existingPlacePhotos != null and !#lists.isEmpty(existingPlacePhotos)}">
+                    <div class="place-photo-edit-item" th:each="photo, photoStat : ${existingPlacePhotos}">
+                        <img th:src="${photo.imageUrl}" th:alt="|등록된 장소 사진 ${photoStat.count}|">
+                        <button type="submit" class="place-photo-delete" formnovalidate
+                                th:formaction="@{/places/edit/{placeId}/photos/{photoId}/delete(placeId=${editPlaceId},photoId=${photo.id})}"
+                                aria-label="이 사진 삭제">
+                            <span class="ico" aria-hidden="true">delete</span>
+                        </button>
+                    </div>
+                </div>
                 <label class="sr-only" for="images">장소 사진</label>
                 <div class="image-upload" data-image-upload
-                     data-max-files="10" data-max-size-mb="5" data-max-total-mb="30">
+                     th:if="${remainingPhotoCount > 0}"
+                     th:attr="data-max-files=${remainingPhotoCount}"
+                     data-max-size-mb="5" data-max-total-mb="55">
                     <input class="image-upload-input" type="file" id="images" name="images" multiple
                            accept="image/jpeg,image/png,image/webp" data-image-upload-input>
                     <label class="image-upload-trigger" for="images">
@@ -132,6 +138,9 @@
                     <ul class="image-upload-list" data-image-upload-list></ul>
                     <p class="image-upload-error" role="alert" data-image-upload-error></p>
                 </div>
+                <p class="field-hint" th:if="${remainingPhotoCount == 0}">
+                    사진을 10장 모두 등록했습니다. 새 사진을 추가하려면 기존 사진을 먼저 삭제해주세요.
+                </p>
                 <p class="field-hint">공간이 잘 드러나는 사진일수록 예약으로 이어져요. 첫 장이 대표 사진이 됩니다.</p>
             </div>
 

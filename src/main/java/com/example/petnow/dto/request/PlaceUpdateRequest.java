@@ -10,8 +10,10 @@ import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -67,4 +69,8 @@ public class PlaceUpdateRequest {
     @DecimalMax(value = "10000000", message = "1박당 요금의 최대값은 1천만원 이하이어야 합니다.")
     @Digits(integer = 8, fraction = 0, message = "1박당 요금은 소수점 없이 입력해주세요.")
     private BigDecimal nightlyPrice;
+
+    /** 기존 사진은 유지하고, 여기에 들어온 사진만 뒤에 추가한다. */
+    private List<MultipartFile> images;
+
 }

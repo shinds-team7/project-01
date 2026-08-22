@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.petnow.mapper.PlacePhotoMapper">
+
+    <insert id="insertPhoto">
+        INSERT INTO place_photos (
+            place_id,
+            image_url,
+            sort_order
+        ) VALUES (
+            #{placeId},
+            #{imageUrl},
+            #{sortOrder}
+        )
+    </insert>
+
+    <select id="findByPlaceId"
+            resultType="com.example.petnow.entity.PlacePhoto">
+        SELECT
+            id,
+            place_id AS placeId,
+            image_url AS imageUrl,
+            sort_order AS sortOrder,
+            created_at AS createdAt,
+            updated_at AS updatedAt
+        FROM place_photos
+        WHERE place_id = #{placeId}
+        ORDER BY sort_order, id
+    </select>
+
+    <select id="findByIdAndPlaceId"
+            resultType="com.example.petnow.entity.PlacePhoto">
+        SELECT
+            id,
+            place_id AS placeId,
+            image_url AS imageUrl,
+            sort_order AS sortOrder,
+            created_at AS createdAt,
+            updated_at AS updatedAt
+        FROM place_photos
+        WHERE id = #{photoId}
+          AND place_id = #{placeId}
+    </select>
+
+    <select id="countByPlaceId" resultType="int">
+        SELECT COUNT(*)
+        FROM place_photos
+        WHERE place_id = #{placeId}
+    </select>
+
+    <select id="findNextSortOrder" resultType="int">
+        SELECT COALESCE(MAX(sort_order), -1) + 1
+        FROM place_photos
+        WHERE place_id = #{placeId}
+    </select>
+
+    <delete id="deleteById">
+        DELETE FROM place_photos
+        WHERE id = #{photoId}
+    </delete>
+
+    <delete id="deleteByPlaceId">
+        DELETE FROM place_photos
+        WHERE place_id = #{placeId}
+    </delete>
+
+</mapper>

@@ -1,5 +1,7 @@
 package com.example.petnow.service;
 
+import com.example.petnow.common.storage.FileStorage;
+import com.example.petnow.common.storage.ImageCategory;
 import com.example.petnow.dto.request.PlaceCreateRequest;
 import com.example.petnow.dto.request.PlaceFilterCriteria;
 import com.example.petnow.dto.request.PlaceFilterRequest;
@@ -7,9 +9,11 @@ import com.example.petnow.dto.request.PlaceUpdateRequest;
 import com.example.petnow.dto.response.PlaceDetailResponse;
 import com.example.petnow.dto.response.PetListResponse;
 import com.example.petnow.dto.response.PlaceListResponse;
+import com.example.petnow.dto.response.PlacePhotoResponse;
 import com.example.petnow.dto.response.PlaceSearchResponse;
 import com.example.petnow.entity.Pet;
 import com.example.petnow.entity.Place;
+import com.example.petnow.entity.PlacePhoto;
 import com.example.petnow.entity.PlaceStatus;
 import com.example.petnow.entity.PlaceType;
 import com.example.petnow.entity.User;
@@ -22,10 +26,13 @@ import com.example.petnow.mapper.AuthMapper;
 import com.example.petnow.mapper.BookmarkMapper;
 import com.example.petnow.mapper.PetMapper;
 import com.example.petnow.mapper.PlaceMapper;
+import com.example.petnow.mapper.PlacePhotoMapper;
+import com.example.petnow.mapper.ReservationMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -33,6 +40,7 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -48,6 +56,9 @@ public class PlaceServiceImpl implements PlaceService {
     private final PetMapper petMapper;
     private final PlaceGeocodingService placeGeocodingService;
     private final BookmarkMapper bookmarkMapper;
+    private final FileStorage fileStorage;
+    private final PlacePhotoMapper placePhotoMapper;
+    private final ReservationMapper reservationMapper;
 
     @Override
     @Transactional
@@ -89,6 +100,7 @@ public class PlaceServiceImpl implements PlaceService {
             throw new BusinessException(PlaceErrorCode.PLACE_CREATE_FAILED);
         }
 
+        savePlacePhotos(place.getId(), request.getImages());
         placeGeocodingService.geocodeAndUpdate(place.getId(), request.getRoadAddress());
     }
 
@@ -112,7 +124,41 @@ public class PlaceServiceImpl implements PlaceService {
             throw new BusinessException(PlaceErrorCode.PLACE_UPDATE_FAILED);
         }
         placeMapper.upsertAddress(placeId, SEOUL, request.getSigungu(), request.getRoadAddress());
+        savePlacePhotos(placeId, request.getImages());
         placeGeocodingService.geocodeAndUpdate(placeId, request.getRoadAddress());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<PlacePhotoResponse> getPlacePhotosForEdit(Long userId, Long placeId) {
+        validateOwner(userId, placeId);
+        return toPhotoResponses(placePhotoMapper.findByPlaceId(placeId));
+    }
+
+    @Override
+    @Transactional
+    public void deletePlacePhoto(Long userId, Long placeId, Long photoId) {
+        validateOwner(userId, placeId);
+        PlacePhoto photo = placePhotoMapper.findByIdAndPlaceId(photoId, placeId);
+        if (photo == null) {
+            throw new BusinessException(PlaceErrorCode.PLACE_PHOTO_NOT_FOUND);
+        }
+        if (placePhotoMapper.deleteById(photoId) != 1) {
+            throw new BusinessException(PlaceErrorCode.PLACE_UPDATE_FAILED);
+        }
+        fileStorage.deleteImage(photo.getImageUrl());
+    }
+
+    @Override
+    @Transactional
+    public void deletePlace(Long userId, Long placeId) {
+        validateOwner(userId, placeId);
+        if (reservationMapper.countActiveByPlaceId(placeId) > 0) {
+            throw new BusinessException(PlaceErrorCode.PLACE_HAS_ACTIVE_RESERVATIONS);
+        }
+        if (placeMapper.softDelete(placeId, userId) != 1) {
+            throw new BusinessException(PlaceErrorCode.PLACE_NOT_FOUND);
+        }
     }
 
     @Override
@@ -141,8 +187,44 @@ public class PlaceServiceImpl implements PlaceService {
         place.setAddress(resolvePublicAddress(place));
         place.setBookmarked(loginUserId != null
                 && bookmarkMapper.existsByUserAndPlace(loginUserId, placeId));
-
         return place;
+    }
+
+    private List<PlacePhotoResponse> toPhotoResponses(List<PlacePhoto> photos) {
+        return photos.stream()
+                .map(photo -> PlacePhotoResponse.builder()
+                        .id(photo.getId())
+                        .imageUrl(photo.getImageUrl())
+                        .sortOrder(photo.getSortOrder())
+                        .build())
+                .toList();
+    }
+
+    private void savePlacePhotos(Long placeId, List<MultipartFile> images) {
+        if (images == null || images.isEmpty()) {
+            return;
+        }
+
+        List<MultipartFile> uploadTargets = images.stream()
+                .filter(Objects::nonNull)
+                .filter(image -> !image.isEmpty())
+                .toList();
+        if (uploadTargets.isEmpty()) {
+            return;
+        }
+
+        int existingCount = placePhotoMapper.countByPlaceId(placeId);
+        ImageCategory.PLACE.validateCount(existingCount + uploadTargets.size());
+        int nextSortOrder = placePhotoMapper.findNextSortOrder(placeId);
+
+        for (int index = 0; index < uploadTargets.size(); index++) {
+            String imageUrl = fileStorage.uploadImage(uploadTargets.get(index), ImageCategory.PLACE);
+            placePhotoMapper.insertPhoto(PlacePhoto.builder()
+                    .placeId(placeId)
+                    .imageUrl(imageUrl)
+                    .sortOrder(nextSortOrder + index)
+                    .build());
+        }
     }
 
     private String resolvePublicAddress(PlaceDetailResponse place) {
@@ -173,15 +255,36 @@ public class PlaceServiceImpl implements PlaceService {
     @Transactional(readOnly = true)
     public PlaceSearchResponse searchPlaces(Long loginUserId, PlaceFilterRequest request) {
         List<PetListResponse> selectedPets = resolveSelectedPets(loginUserId, request.getPetIds());
+        List<PlaceListResponse> places = placeMapper.findByFilter(toCriteria(request, selectedPets));
+        markBookmarked(loginUserId, places);
 
         return PlaceSearchResponse.builder()
-                .places(placeMapper.findByFilter(toCriteria(request, selectedPets)))
+                .places(places)
                 .regionLabel(regionLabel(request.getRegions()))
                 .dateLabel(dateLabel(request))
                 .timeLabel(timeLabel(request))
                 .petLabel(petLabel(selectedPets))
                 .typeLabel(typeLabel(request.getPlaceType()))
                 .build();
+    }
+
+    /**
+     * 목록 카드의 하트를 채운다.
+     *
+     * <p>비로그인이면 찜 자체가 없으므로 쿼리를 아예 보내지 않는다. 로그인 상태면 찜한 장소 id 를
+     * 한 번에 받아 맞춰 본다. 장소마다 존재 여부를 묻지 않는 이유는 {@code BookmarkMapper} 쪽에 적어 뒀다.
+     */
+    private void markBookmarked(Long loginUserId, List<PlaceListResponse> places) {
+        if (loginUserId == null || places.isEmpty()) {
+            return;
+        }
+        Set<Long> bookmarked = new LinkedHashSet<>(bookmarkMapper.findPlaceIdsByUserId(loginUserId));
+        if (bookmarked.isEmpty()) {
+            return;
+        }
+        for (PlaceListResponse place : places) {
+            place.setBookmarked(bookmarked.contains(place.getId()));
+        }
     }
 
     /**

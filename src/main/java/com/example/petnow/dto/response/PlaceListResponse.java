@@ -62,4 +62,12 @@ public class PlaceListResponse {
     public boolean hasRating() {
         return averageRating != null && averageRating.compareTo(BigDecimal.ZERO) > 0;
     }
+
+    private boolean availableToday;
+
+    /**
+     * 카드 대표 사진. {@code place_photos} 에서 {@code sort_order} 가 가장 앞선 한 장이다.
+     * 아직 사진을 안 올린 장소는 {@code null} 이라 화면이 고정 아이콘으로 대체한다.
+     */
+    private String thumbnailUrl;
 }

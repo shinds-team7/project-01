@@ -2,7 +2,10 @@ package com.example.petnow.controller;
 
 import com.example.petnow.common.constant.SessionConst;
 import com.example.petnow.dto.request.PlaceUpdateRequest;
+import com.example.petnow.dto.response.PlacePhotoResponse;
 import com.example.petnow.entity.PlaceType;
+import com.example.petnow.exception.BusinessException;
+import com.example.petnow.exception.PlaceErrorCode;
 import com.example.petnow.service.PlaceService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -15,6 +18,7 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 
 import java.util.regex.Pattern;
 import java.math.BigDecimal;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -83,12 +87,16 @@ class PlaceCreateFormTest {
     void editFormProvidesExistingValues() throws Exception {
         PlaceUpdateRequest request = validUpdateRequest();
         given(placeService.getUpdateForm(1L, 3L)).willReturn(request);
+        given(placeService.getPlacePhotosForEdit(1L, 3L)).willReturn(List.of(
+                PlacePhotoResponse.builder().id(9L).imageUrl("/uploads/places/yard.jpg").sortOrder(0).build()));
 
         mockMvc.perform(get("/places/edit/3").session(loggedIn()))
                 .andExpect(status().isOk())
                 .andExpect(view().name("places/create"))
                 .andExpect(content().string(containsString("게시글 수정")))
                 .andExpect(content().string(containsString("action=\"/places/edit/3\"")))
+                .andExpect(content().string(containsString("/uploads/places/yard.jpg")))
+                .andExpect(content().string(containsString("/places/edit/3/photos/9/delete")))
                 .andExpect(content().string(containsString("value=\"햇살 가득한 마당\"")));
     }
 
@@ -109,6 +117,39 @@ class PlaceCreateFormTest {
                 .andExpect(redirectedUrl("/places/3"));
 
         then(placeService).should().updatePlace(eq(1L), eq(3L), any(PlaceUpdateRequest.class));
+    }
+
+    @Test
+    @DisplayName("장소 수정 화면에서 사진 한 장을 삭제하고 수정 화면으로 돌아간다")
+    void deletesPhotoAndRedirectsToEdit() throws Exception {
+        mockMvc.perform(post("/places/edit/3/photos/9/delete").session(loggedIn()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/places/edit/3"));
+
+        then(placeService).should().deletePlacePhoto(1L, 3L, 9L);
+    }
+
+    @Test
+    @DisplayName("장소를 삭제하면 호스트 대시보드 내 호스팅 탭으로 돌아간다")
+    void deletesPlaceAndRedirectsToDashboard() throws Exception {
+        mockMvc.perform(post("/places/3/delete").session(loggedIn()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/host?tab=places"));
+
+        then(placeService).should().deletePlace(1L, 3L);
+    }
+
+    @Test
+    @DisplayName("대기·확정 예약이 있으면 삭제하지 않고 오류 메시지와 함께 되돌아간다")
+    void rejectsDeleteWhenPlaceHasActiveReservations() throws Exception {
+        org.mockito.BDDMockito.willThrow(new BusinessException(PlaceErrorCode.PLACE_HAS_ACTIVE_RESERVATIONS))
+                .given(placeService).deletePlace(1L, 3L);
+
+        mockMvc.perform(post("/places/3/delete").session(loggedIn()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/host?tab=places"))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.flash()
+                        .attributeExists("placeDeleteError"));
     }
 
     private MockHttpServletRequestBuilder validPlaceRequest() {

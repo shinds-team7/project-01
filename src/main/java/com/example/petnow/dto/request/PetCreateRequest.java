@@ -4,6 +4,7 @@ import com.example.petnow.entity.Pet;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.web.multipart.MultipartFile;
 
 @Getter
 @Setter
@@ -24,6 +25,6 @@ public class PetCreateRequest {
 
     private Pet.Size size;
 
-    private String photoUrl;
+    private MultipartFile image;
 
 }

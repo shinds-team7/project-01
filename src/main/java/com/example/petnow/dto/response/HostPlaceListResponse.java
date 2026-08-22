@@ -16,7 +16,7 @@ public class HostPlaceListResponse {
 
     private Long id;
     private String name;
-//  private String thumbnailUrl; TODO:추후 게시글 사진 이미지 첨부 기능 구현 후 DTO 추가
+    private String thumbnailUrl;
 //  private int reservationCount;
     private PlaceStatus status;
 

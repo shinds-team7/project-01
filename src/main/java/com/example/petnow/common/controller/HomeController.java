@@ -77,7 +77,8 @@ public class HomeController {
 
     /** 앱 홈. 프로토타입의 HOME 화면. */
     @GetMapping("/home")
-    public String home(HttpServletRequest request, Model model) {
+    public String home(@RequestParam(required = false) String placeType,
+                       HttpServletRequest request, Model model) {
         // 조회 이력 API 가 없어 공개된 장소를 대신 보여준다. 이력 API 가 붙으면 교체한다.
         model.addAttribute("recentPlaces", placeService.getPublishedPlaces().stream()
                 .limit(RECENT_PLACES_LIMIT)
@@ -90,7 +91,27 @@ public class HomeController {
         model.addAttribute("placeTypes", PlaceType.values());
         Long loginUserId = LoginSession.currentUserId(request);
         model.addAttribute("myPets", loginUserId == null ? List.of() : petService.getPetList(loginUserId));
+
+        // "지금 만날 수 있는 이웃 호스트" 유형 필터. 키워드 검색은 하단 탭과 같은 /search 로 넘긴다.
+        PlaceType normalizedPlaceType = parsePlaceType(placeType);
+        PlaceFilterRequest nearbyFilter = new PlaceFilterRequest();
+        nearbyFilter.setPlaceType(normalizedPlaceType);
+        model.addAttribute("nearbyPlaces",
+                placeService.searchPlaces(loginUserId, nearbyFilter).getPlaces());
+        model.addAttribute("nearbyPlaceType", normalizedPlaceType);
         return "home";
+    }
+
+    /** 잘못된 값은 조건 없음으로 조용히 떨어진다. 유형 칩 하나 때문에 홈이 400 을 내면 안 된다. */
+    private static PlaceType parsePlaceType(String raw) {
+        if (raw == null || raw.isBlank()) {
+            return null;
+        }
+        try {
+            return PlaceType.valueOf(raw);
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
     }
 
     /**
@@ -154,6 +175,12 @@ public class HomeController {
         // 정렬 칩도 두 갈래가 같이 쓴다. 조건이 틀려 다시 그릴 때 켜져 있던 정렬이 풀리면 안 된다.
         model.addAttribute("currentSort", filter.normalizedSort());
 
+        // 지도 위 필터 바가 홈과 같은 조건 다이얼로그를 그린다. 선택지도 홈과 같은 출처에서 온다.
+        // 조건이 틀려 다시 그릴 때도 필터 바는 열려야 하므로 두 갈래보다 앞에서 담는다.
+        model.addAttribute("regions", placeService.getFilterRegions());
+        Long loginUserId = LoginSession.currentUserId(request);
+        model.addAttribute("myPets", loginUserId == null ? List.of() : petService.getPetList(loginUserId));
+
         if (bindingResult.hasErrors()) {
             model.addAttribute("filterErrors", filterErrors(bindingResult));
             model.addAttribute("places", List.of());
@@ -161,7 +188,7 @@ public class HomeController {
             return "nearby";
         }
 
-        PlaceSearchResponse result = placeService.searchPlaces(LoginSession.currentUserId(request), filter);
+        PlaceSearchResponse result = placeService.searchPlaces(loginUserId, filter);
         model.addAttribute("places", result.getPlaces());
         model.addAttribute("filtered", result.isFiltered());
         model.addAttribute("regionLabel", result.getRegionLabel());

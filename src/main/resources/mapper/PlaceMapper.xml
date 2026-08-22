@@ -151,9 +151,20 @@
         p.provides_yard AS providesYard,
         p.provides_walk AS providesWalk,
         p.hourly_price AS hourlyPrice,
+        EXISTS (
+            SELECT 1 FROM place_availability availability
+            WHERE availability.place_id = p.id
+              AND availability.status = 'OPEN'
+              AND availability.start_at &gt;= CURDATE()
+              AND availability.start_at &lt; DATE_ADD(CURDATE(), INTERVAL 1 DAY)
+        ) AS availableToday,
         p.average_rating AS averageRating,
         pa.latitude AS latitude,
-        pa.longitude AS longitude
+        pa.longitude AS longitude,
+        (SELECT pp.image_url FROM place_photos pp
+         WHERE pp.place_id = p.id
+         ORDER BY pp.sort_order, pp.id
+         LIMIT 1) AS thumbnailUrl
         FROM places p
         LEFT JOIN place_addresses pa ON pa.place_id = p.id
         WHERE p.status = 'PUBLISHED'
@@ -199,7 +210,11 @@
         p.package_check_in_time AS packageCheckInTime,
         p.package_check_out_time AS packageCheckOutTime,
         p.status,
-        p.is_visible AS visible
+        p.is_visible AS visible,
+        (SELECT pp.image_url FROM place_photos pp
+         WHERE pp.place_id = p.id
+         ORDER BY pp.sort_order, pp.id
+         LIMIT 1) AS thumbnailUrl
         FROM places p
         LEFT JOIN place_addresses pa ON pa.place_id = p.id
         WHERE p.id = #{placeId}
@@ -248,6 +263,14 @@
         AND p.deleted_at IS NULL
     </update>
 
+    <update id="softDelete">
+        UPDATE places
+        SET deleted_at = NOW()
+        WHERE id = #{placeId}
+        AND host_user_id = #{hostUserId}
+        AND deleted_at IS NULL
+    </update>
+
     <!--
       조건 필터링. (#7)
 
@@ -286,7 +309,11 @@
           그 장소는 마커에서만 빠진 채 목록에는 남는다.
         -->
         pa.latitude AS latitude,
-        pa.longitude AS longitude
+        pa.longitude AS longitude,
+        (SELECT pp.image_url FROM place_photos pp
+         WHERE pp.place_id = p.id
+         ORDER BY pp.sort_order, pp.id
+         LIMIT 1) AS thumbnailUrl
         FROM places p
         LEFT JOIN place_addresses pa ON pa.place_id = p.id
         WHERE p.status = 'PUBLISHED'

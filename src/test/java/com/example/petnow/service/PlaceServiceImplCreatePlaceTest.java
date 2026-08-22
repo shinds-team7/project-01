@@ -1,5 +1,6 @@
 package com.example.petnow.service;
 
+import com.example.petnow.common.storage.FileStorage;
 import com.example.petnow.dto.request.PlaceCreateRequest;
 import com.example.petnow.entity.Place;
 import com.example.petnow.entity.PlaceType;
@@ -8,6 +9,8 @@ import com.example.petnow.mapper.AuthMapper;
 import com.example.petnow.mapper.BookmarkMapper;
 import com.example.petnow.mapper.PetMapper;
 import com.example.petnow.mapper.PlaceMapper;
+import com.example.petnow.mapper.PlacePhotoMapper;
+import com.example.petnow.mapper.ReservationMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -24,6 +27,8 @@ class PlaceServiceImplCreatePlaceTest {
     private PlaceMapper placeMapper;
     private AuthMapper authMapper;
     private PlaceGeocodingService placeGeocodingService;
+    private FileStorage fileStorage;
+    private PlacePhotoMapper placePhotoMapper;
     private PlaceServiceImpl placeService;
 
     @BeforeEach
@@ -31,8 +36,11 @@ class PlaceServiceImplCreatePlaceTest {
         placeMapper = mock(PlaceMapper.class);
         authMapper = mock(AuthMapper.class);
         placeGeocodingService = mock(PlaceGeocodingService.class);
+        fileStorage = mock(FileStorage.class);
+        placePhotoMapper = mock(PlacePhotoMapper.class);
         placeService = new PlaceServiceImpl(
-                placeMapper, authMapper, mock(PetMapper.class), placeGeocodingService, mock(BookmarkMapper.class));
+                placeMapper, authMapper, mock(PetMapper.class), placeGeocodingService,
+                mock(BookmarkMapper.class), fileStorage, placePhotoMapper, mock(ReservationMapper.class));
     }
 
     @Test
@@ -56,7 +64,6 @@ class PlaceServiceImplCreatePlaceTest {
                 .willReturn(1);
 
         placeService.createPlace(7L, request());
-
         verify(placeMapper).insertAddress(
                 41L,
                 "서울특별시",

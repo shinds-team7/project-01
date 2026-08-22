@@ -26,6 +26,12 @@ public enum PlaceErrorCode implements ErrorCode {
             "장소 수정에 실패했습니다."
     ),
 
+    PLACE_PHOTO_NOT_FOUND(
+            HttpStatus.NOT_FOUND,
+            "PLACE_PHOTO_NOT_FOUND",
+            "해당 장소에 등록된 사진을 찾을 수 없습니다."
+    ),
+
     PLACE_ACCESS_DENIED(
             HttpStatus.FORBIDDEN,
             "PLACE_ACCESS_DENIED",
@@ -54,6 +60,12 @@ public enum PlaceErrorCode implements ErrorCode {
             HttpStatus.BAD_REQUEST,
             "PLACE_PACKAGE_TIME_INVALID",
             "패키지 입실과 퇴실 시각은 3시간 격자에 맞아야 합니다"
+    ),
+
+    PLACE_HAS_ACTIVE_RESERVATIONS(
+            HttpStatus.CONFLICT,
+            "PLACE_HAS_ACTIVE_RESERVATIONS",
+            "대기 중이거나 확정된 예약이 있어 삭제할 수 없습니다."
     );
 
     private final HttpStatus status;

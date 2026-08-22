@@ -212,10 +212,18 @@ public class ReservationController {
 		return "reservations/reservationList";
 	}
 
+	/**
+	 * 검증 실패 시 뷰 이름을 바로 돌려주지 않는다. reservations 모델이 안 채워진 채로
+	 * reservationList.html 을 그리면 "예약 취소 실패"가 아니라 "예약 내역이 없어요" 로
+	 * 보여서 사용자가 오해한다. 그래서 성공 때와 똑같이 목록으로 리다이렉트하고
+	 * 플래시 메시지로만 실패를 알린다.
+	 */
 	@PostMapping("/cancel")
-	public String cancel(@LoginUser Long userId, @Valid @ModelAttribute ReservationCancelRequest request, BindingResult bindingResult) {
+	public String cancel(@LoginUser Long userId, @Valid @ModelAttribute ReservationCancelRequest request,
+			BindingResult bindingResult, RedirectAttributes redirectAttributes) {
 		if (bindingResult.hasErrors()) {
-			return "reservations/reservationList";
+			redirectAttributes.addFlashAttribute("cancelError", "예약을 취소하지 못했어요. 다시 시도해주세요.");
+			return "redirect:/reservation/list";
 		}
 
 		reservationService.cancelReservation(request.getReservationId(), userId);

@@ -102,6 +102,9 @@ class NearbyMapRenderingTest {
     @Test
     @DisplayName("SDK 는 내 주변에서만 불러온다")
     void doesNotLoadKakaoSdkOnOtherScreens() throws Exception {
+        given(placeService.searchPlaces(isNull(), any(PlaceFilterRequest.class)))
+                .willReturn(searchResult(List.of()));
+
         // 전역 레이아웃에 넣으면 지도를 쓰지 않는 화면까지 SDK 를 내려받는다.
         mockMvc.perform(get("/home"))
                 .andExpect(status().isOk())
