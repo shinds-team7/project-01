@@ -114,8 +114,8 @@
             <div class="field">
                 <div class="place-photo-edit-list"
                      th:if="${editPlaceId != null and existingPlacePhotos != null and !#lists.isEmpty(existingPlacePhotos)}">
-                    <div class="place-photo-edit-item" th:each="photo : ${existingPlacePhotos}">
-                        <img th:src="${photo.imageUrl}" alt="등록된 장소 사진">
+                    <div class="place-photo-edit-item" th:each="photo, photoStat : ${existingPlacePhotos}">
+                        <img th:src="${photo.imageUrl}" th:alt="|등록된 장소 사진 ${photoStat.count}|">
                         <button type="submit" class="place-photo-delete" formnovalidate
                                 th:formaction="@{/places/edit/{placeId}/photos/{photoId}/delete(placeId=${editPlaceId},photoId=${photo.id})}"
                                 aria-label="이 사진 삭제">
