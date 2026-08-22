@@ -60,7 +60,7 @@ class HomeShellRenderingTest {
         mockMvc.perform(get("/home"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("home"))
-                .andExpect(content().string(containsString("/css/home.css")))
+                .andExpect(content().string(containsString("/css/app.css")))
                 .andExpect(content().string(containsString("class=\"site-header\"")))
                 .andExpect(content().string(containsString("/auth/login")))
                 .andExpect(content().string(containsString("<form class=\"search-planner reveal\"")))
