@@ -58,9 +58,7 @@
                     <a class="bookmark-card-link" th:href="@{/places/{id}(id=${place.id})}"
                        th:aria-label="|${place.name} 상세보기|">
                         <div class="media">
-                            <img th:if="${place.thumbnailUrl != null}" th:src="${place.thumbnailUrl}"
-                                 th:alt="${place.name}">
-                            <span th:unless="${place.thumbnailUrl != null}" class="ico" aria-hidden="true">weekend</span>
+                            <span class="ico" aria-hidden="true">weekend</span>
                         </div>
                         <div class="place-card-body">
                             <p class="place-card-title" th:text="${place.name}">공간 이름</p>

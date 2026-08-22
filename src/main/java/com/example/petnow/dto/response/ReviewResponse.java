@@ -21,4 +21,5 @@ public class ReviewResponse {
     private LocalDate checkInAt;    // reservations.check_in_at
     private String content;
     private int rating;
+    private String replyContent;        // review_replies.content (없으면 null)
 }

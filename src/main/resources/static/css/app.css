@@ -3441,6 +3441,51 @@ textarea.control {
     text-wrap: pretty;
 }
 
+/*
+  호스트 답글 (#328). host/reviews.html(작성·수정 폼 포함)과 reviews/list.html(읽기 전용)
+  둘 다 쓴다. 두 화면의 카드 배경이 달라(review-item #f8f8f8 · card-plain #fff) sand 로
+  통일해 어느 배경 위에서도 답글 영역이 도드라지게 한다.
+*/
+.review-reply {
+    margin-top: 12px;
+    padding: 12px;
+    border-radius: var(--r-sm);
+    background: var(--sand);
+}
+
+.review-reply-label {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin: 0 0 6px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--ink-soft);
+}
+
+.review-reply-label .ico {
+    font-size: 15px;
+}
+
+.review-reply-body {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--ink-dim);
+}
+
+.review-reply-form textarea {
+    width: 100%;
+    min-height: 64px;
+    resize: vertical;
+}
+
+.review-reply-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+}
+
 /* ─────────────────────── 예약 요청 · 결제 ─────────────────────── */
 /* 체크인 / 체크아웃 2단 카드 */
 .schedule-split {
