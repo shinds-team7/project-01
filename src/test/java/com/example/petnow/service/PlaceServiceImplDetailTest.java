@@ -12,6 +12,7 @@ import com.example.petnow.mapper.BookmarkMapper;
 import com.example.petnow.mapper.PetMapper;
 import com.example.petnow.mapper.PlaceMapper;
 import com.example.petnow.mapper.PlacePhotoMapper;
+import com.example.petnow.mapper.ReservationMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -31,7 +32,8 @@ class PlaceServiceImplDetailTest {
                 mock(PlaceGeocodingService.class),
                 mock(BookmarkMapper.class),
                 mock(FileStorage.class),
-                mock(PlacePhotoMapper.class));
+                mock(PlacePhotoMapper.class),
+                mock(ReservationMapper.class));
     }
 
     @Test

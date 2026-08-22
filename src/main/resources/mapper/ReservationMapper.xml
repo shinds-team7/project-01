@@ -82,6 +82,14 @@
         SELECT * FROM reservations WHERE id = #{reservationId}
     </select>
 
+    <!-- 장소 삭제 전 대기·확정 예약이 있는지 본다. 취소된 예약은 세지 않는다. -->
+    <select id="countActiveByPlaceId" resultType="int">
+        SELECT COUNT(*)
+        FROM reservations
+        WHERE place_id = #{placeId}
+        AND status IN ('PENDING', 'CONFIRMED')
+    </select>
+
     <select id="viewReservationList" resultType="com.example.petnow.dto.response.ReservationListResponse">
         SELECT
         r.id AS reservationId,

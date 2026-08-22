@@ -46,6 +46,8 @@ public interface PlaceMapper {
 
     void updateAvgRating(Long placeId);
 
+    int softDelete(@Param("placeId") Long placeId, @Param("hostUserId") Long hostUserId);
+
     /** 조건 필터링 결과. 지역·마릿수·일정 조건을 쿼리 한 번으로 건다. (#7) */
     List<PlaceListResponse> findByFilter(PlaceFilterCriteria criteria);
 

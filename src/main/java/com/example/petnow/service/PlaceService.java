@@ -22,6 +22,9 @@ public interface PlaceService {
 
     void deletePlacePhoto(Long userId, Long placeId, Long photoId);
 
+    /** 대기·확정 예약이 하나라도 있으면 삭제하지 않는다. */
+    void deletePlace(Long userId, Long placeId);
+
     List<PlaceListResponse> getPublishedPlaces();
 
     PlaceDetailResponse getPlaceDetail(Long placeId, Long loginUserId);

@@ -263,6 +263,14 @@
         AND p.deleted_at IS NULL
     </update>
 
+    <update id="softDelete">
+        UPDATE places
+        SET deleted_at = NOW()
+        WHERE id = #{placeId}
+        AND host_user_id = #{hostUserId}
+        AND deleted_at IS NULL
+    </update>
+
     <!--
       조건 필터링. (#7)
 

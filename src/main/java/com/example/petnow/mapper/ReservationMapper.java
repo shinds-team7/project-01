@@ -32,6 +32,8 @@ public interface ReservationMapper {
 
 	Reservation findById(Long reservationId);
 
+	int countActiveByPlaceId(Long placeId);
+
 	int cancelReservation(Long reservationId);
 
 	int approveReservation(Long reservationId);

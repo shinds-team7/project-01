@@ -60,6 +60,12 @@ public enum PlaceErrorCode implements ErrorCode {
             HttpStatus.BAD_REQUEST,
             "PLACE_PACKAGE_TIME_INVALID",
             "패키지 입실과 퇴실 시각은 3시간 격자에 맞아야 합니다"
+    ),
+
+    PLACE_HAS_ACTIVE_RESERVATIONS(
+            HttpStatus.CONFLICT,
+            "PLACE_HAS_ACTIVE_RESERVATIONS",
+            "대기 중이거나 확정된 예약이 있어 삭제할 수 없습니다."
     );
 
     private final HttpStatus status;

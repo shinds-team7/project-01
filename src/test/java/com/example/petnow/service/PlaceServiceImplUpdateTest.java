@@ -11,6 +11,7 @@ import com.example.petnow.mapper.BookmarkMapper;
 import com.example.petnow.mapper.PetMapper;
 import com.example.petnow.mapper.PlaceMapper;
 import com.example.petnow.mapper.PlacePhotoMapper;
+import com.example.petnow.mapper.ReservationMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockMultipartFile;
@@ -44,7 +45,8 @@ class PlaceServiceImplUpdateTest {
                 placeGeocodingService,
                 mock(BookmarkMapper.class),
                 fileStorage,
-                placePhotoMapper
+                placePhotoMapper,
+                mock(ReservationMapper.class)
         );
     }
 

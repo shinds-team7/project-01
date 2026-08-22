@@ -61,7 +61,7 @@ class HostDashboardTest {
     }
 
     @Test
-    @DisplayName("카드에 일정 관리, 리뷰 관리와 비활성 삭제 버튼이 표시된다")
+    @DisplayName("카드에 일정 관리, 리뷰 관리와 삭제 확인 모달이 표시된다")
     void placeCardShowsPrototypeActions() throws Exception {
         given(hostService.getPlacesByUserId(1L)).willReturn(List.of(place()));
 
@@ -73,7 +73,10 @@ class HostDashboardTest {
                 .andExpect(content().string(containsString("/host/places/3/availability")))
                 .andExpect(content().string(containsString("리뷰 관리")))
                 .andExpect(content().string(containsString("/host/places/3/reviews")))
-                .andExpect(content().string(containsString("btn btn-danger btn-icon\" type=\"button\" disabled")))
+                // 삭제 버튼은 더 이상 비활성이 아니고, 확인 모달이 실제 삭제 엔드포인트로 제출된다.
+                .andExpect(content().string(not(containsString("btn btn-danger btn-icon\" type=\"button\" disabled"))))
+                .andExpect(content().string(containsString("aria-controls=\"place-delete-3\"")))
+                .andExpect(content().string(containsString("action=\"/places/3/delete\"")))
                 .andExpect(content().string(not(containsString("공개 화면 보기"))));
     }
 
