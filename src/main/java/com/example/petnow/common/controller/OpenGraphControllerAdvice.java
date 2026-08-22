@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 @ControllerAdvice
 public class OpenGraphControllerAdvice {
 
-    private static final String OPEN_GRAPH_IMAGE_PATH = "/images/paw.png";
+    private static final String OPEN_GRAPH_IMAGE_PATH = "/images/og-image.png";
 
     private final String configuredPublicUrl;
 
