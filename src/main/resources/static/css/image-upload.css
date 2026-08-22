@@ -155,8 +155,3 @@
     grid-template-columns: 112px;
 }
 
-@media (min-width: 1024px) {
-    .image-upload-list {
-        grid-template-columns: repeat(auto-fill, minmax(108px, 1fr));
-    }
-}
