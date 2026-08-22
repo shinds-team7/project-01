@@ -22,6 +22,8 @@
     </div>
 
     <div class="screen">
+        <div class="notice notice-danger" role="alert" th:if="${cancelError}" th:text="${cancelError}"></div>
+
         <nav class="reservation-filter-tabs" aria-label="예약 이용상태 필터">
             <a th:href="@{/reservation/list}"
                th:classappend="${param.useStatus == null} ? ' is-active'">전체</a>

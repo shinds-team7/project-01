@@ -25,11 +25,15 @@ import java.util.List;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
+import static org.mockito.Mockito.never;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.flash;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -77,6 +81,17 @@ class ReservationWiringTest {
                 .andExpect(redirectedUrl("/reservation/list"));
 
         then(reservationService).should().cancelReservation(9L, 1L);
+    }
+
+    @Test
+    @DisplayName("reservationId 없이 취소 요청이 오면 서비스를 건드리지 않고 목록으로 돌아가며 오류 메시지를 남긴다")
+    void cancelWithoutReservationIdRedirectsWithFlashError() throws Exception {
+        mockMvc.perform(post("/reservation/cancel").session(loggedIn()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/reservation/list"))
+                .andExpect(flash().attributeExists("cancelError"));
+
+        then(reservationService).should(never()).cancelReservation(anyLong(), any());
     }
 
     @Test
