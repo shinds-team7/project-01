@@ -77,7 +77,7 @@ class HomeShellRenderingTest {
         mockMvc.perform(get("/home"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString(
-                        "property=\"og:image\" content=\"https://petnow.example/images/paw.png\"")))
+                        "property=\"og:image\" content=\"https://petnow.example/images/og-image.png\"")))
                 .andExpect(content().string(containsString(
                         "property=\"og:url\" content=\"https://petnow.example/home\"")))
                 .andExpect(content().string(containsString(
