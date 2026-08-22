@@ -23,10 +23,6 @@
  *
  * 접근성 — 드래그는 포인터가 있어야 하는 조작이라 손잡이를 button 으로 두고 키보드로도
  * 같은 자리를 돈다.
- *
- * 데스크톱(1024px~)에서는 시트가 왼쪽 목록 칸으로 고정된다. 끌 이유가 없으므로 아무것도 하지 않는다.
- * CSS 가 transform 을 none 으로 못박아 두긴 했지만, 그래도 상태를 바꾸면 data-sheet-state 가
- * 따라 바뀌어 목록 스크롤 규칙까지 건드리게 된다. 그래서 화면 폭을 그때그때 확인한다.
  */
 (() => {
     "use strict";
@@ -47,10 +43,6 @@
     const FLING_SPEED = 0.055;
     /* 이만큼 움직이기 전에는 드래그로 치지 않는다. 탭이 드래그로 오인되는 것을 막는다. */
     const DRAG_SLOP_PX = 4;
-
-    /* 데스크톱은 시트가 아니라 고정된 목록 칸이다. CSS 의 분기점과 같은 값이어야 한다. */
-    const wideScreen = window.matchMedia("(min-width: 1024px)");
-    const fixedLayout = () => wideScreen.matches;
 
     let state = "half";
     let dragging = false;
@@ -113,7 +105,7 @@
     }
 
     function onDown(event) {
-        if (dragging || !event.isPrimary || fixedLayout()) return;
+        if (dragging || !event.isPrimary) return;
         dragging = true;
         moved = false;
         pointerId = event.pointerId;
@@ -188,7 +180,6 @@
      */
     if (handle) {
         handle.addEventListener("click", () => {
-            if (fixedLayout()) return;
             settle(state === "full" ? "half" : "full");
         });
     }

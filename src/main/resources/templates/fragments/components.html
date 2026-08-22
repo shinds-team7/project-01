@@ -7,12 +7,8 @@
 </head>
 <body>
 
-<!-- 하단 탭 네비 (데스크톱에서는 좌측 사이드 네비로 전환된다) -->
+<!-- 하단 탭 네비 -->
 <nav class="app-nav" th:fragment="nav(active)" aria-label="주요 메뉴">
-    <!--/* @{/} 는 /home 으로 리다이렉트되므로 곧바로 /home 을 가리킨다 */-->
-    <a class="nav-brand" th:href="@{/home}" tabindex="-1" aria-hidden="true">
-        <span class="ico">pets</span><span>Pet NOW</span>
-    </a>
     <a th:href="@{/home}" th:classappend="${active == 'home'} ? 'is-active'"
        th:attr="aria-current=${active == 'home'} ? 'page' : null">
         <span class="ico" aria-hidden="true">home</span><small>홈</small>
