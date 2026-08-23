@@ -8,6 +8,7 @@ import com.example.petnow.entity.Pet;
 import com.example.petnow.entity.ReservationStatus;
 import com.example.petnow.entity.ReservationUseStatus;
 import com.example.petnow.mapper.PlaceMapper;
+import com.example.petnow.mapper.PlacePhotoMapper;
 import com.example.petnow.service.PetService;
 import com.example.petnow.service.ReservationService;
 import com.example.petnow.service.ReviewService;
@@ -48,6 +49,9 @@ class ReservationWiringTest {
 
     @MockitoBean
     private PlaceMapper placeMapper;
+
+    @MockitoBean
+    private PlacePhotoMapper placePhotoMapper;
 
     @MockitoBean
     private PetService petService;
@@ -116,6 +120,7 @@ class ReservationWiringTest {
                         9L,
                         3L,
                         "연남동 윤슬 호스트",
+                        null,
                         new BigDecimal("48000"),
                         ReservationStatus.CONFIRMED,
                         LocalDateTime.now().plusDays(2),
@@ -146,6 +151,7 @@ class ReservationWiringTest {
                         9L,
                         null,
                         "삭제된 장소",
+                        null,
                         new BigDecimal("48000"),
                         ReservationStatus.CONFIRMED,
                         LocalDateTime.now().plusDays(2),
