@@ -111,9 +111,25 @@
             <small class="cta-note" th:if="${place.nightlyPrice != null}"
                    th:text="'1박 ' + ${#numbers.formatInteger(place.nightlyPrice, 0, 'COMMA')} + '원'">숙박 가격</small>
         </div>
-        <a class="btn btn-dark" th:href="@{/reservation/booking-request(placeId=${place.id})}">예약 요청하기</a>
+        <a th:unless="${isOwnPlace}" class="btn btn-dark"
+           th:href="@{/reservation/booking-request(placeId=${place.id})}">예약 요청하기</a>
+        <button th:if="${isOwnPlace}" class="btn btn-dark" type="button"
+                data-modal-open aria-controls="own-place-notice">예약 요청하기</button>
     </div>
+
+    <dialog th:if="${isOwnPlace}" class="modal" id="own-place-notice"
+            aria-labelledby="own-place-notice-title">
+        <div class="modal-inner">
+            <h2 id="own-place-notice-title">예약할 수 없어요</h2>
+            <p>본인이 호스트한 장소에는 예약할 수 없습니다.</p>
+            <div class="modal-actions">
+                <button class="btn btn-dark" type="button" data-modal-close>확인</button>
+            </div>
+        </div>
+    </dialog>
+
     <script th:src="@{/js/bookmark.js}"></script>
+    <script th:if="${isOwnPlace}" th:src="@{/js/modal.js}"></script>
     <script th:if="${kakaoMapEnabled and place.latitude != null and place.longitude != null}" id="kakao-map-sdk"
             th:src="@{https://dapi.kakao.com/v2/maps/sdk.js(autoload=false,appkey=${kakaoMapJavascriptKey})}"></script>
     <script th:inline="none">
