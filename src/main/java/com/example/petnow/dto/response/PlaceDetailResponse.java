@@ -17,6 +17,7 @@ public class PlaceDetailResponse {
     private Long id;
     private Long hostUserId;
     private String nickname;
+    private String hostProfileImageUrl;
     private String name;
     private String description;
     private String sido;
@@ -24,6 +25,8 @@ public class PlaceDetailResponse {
     private String eupmyeondong;
     private String roadAddress;
     private String address;
+    private BigDecimal latitude;
+    private BigDecimal longitude;
     private PlaceType placeType;
     private BigDecimal areaSize;
     private Integer capacity;

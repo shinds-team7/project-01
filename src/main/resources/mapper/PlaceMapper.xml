@@ -178,12 +178,15 @@
         p.id,
         p.host_user_id AS hostUserId,
         p.host_user_nickname AS nickname,
+        u.profile_image_url AS hostProfileImageUrl,
         p.name,
         p.description,
         pa.sido AS sido,
         pa.sigungu AS sigungu,
         pa.eupmyeondong AS eupmyeondong,
         pa.road_address AS roadAddress,
+        pa.latitude AS latitude,
+        pa.longitude AS longitude,
         p.place_type AS placeType,
         p.area_size AS areaSize,
         p.capacity,
@@ -217,6 +220,7 @@
          LIMIT 1) AS thumbnailUrl
         FROM places p
         LEFT JOIN place_addresses pa ON pa.place_id = p.id
+        LEFT JOIN users u ON u.id = p.host_user_id
         WHERE p.id = #{placeId}
         AND p.deleted_at IS NULL
     </select>

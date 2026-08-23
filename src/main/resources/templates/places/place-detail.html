@@ -52,7 +52,11 @@
         </p>
 
         <div class="person-row detail-host">
-            <span class="avatar"><span class="ico" aria-hidden="true">person</span></span>
+            <span class="avatar">
+                <img th:if="${place.hostProfileImageUrl != null}" th:src="${place.hostProfileImageUrl}"
+                     th:alt="${place.nickname}">
+                <span th:unless="${place.hostProfileImageUrl != null}" class="ico" aria-hidden="true">person</span>
+            </span>
             <span class="person-copy">
                 <strong th:text="${place.nickname} + ' 호스트'">호스트</strong>
                 <small>Pet NOW 등록 호스트</small>
@@ -80,6 +84,16 @@
             <span th:text="${place.otherOptions}">기타 옵션에 대한 설명이 들어갑니다.</span>
         </div>
 
+        <div class="media map-preview place-detail-map" id="place-detail-map" aria-hidden="true"
+             th:if="${place.latitude != null and place.longitude != null}"
+             th:attr="data-lat=${place.latitude}, data-lng=${place.longitude}, data-name=${place.name}">
+            <div class="place-detail-map-canvas" id="place-detail-map-canvas"></div>
+            <span class="map-pin"><span class="ico" aria-hidden="true">pets</span></span>
+        </div>
+        <p class="field-hint" th:if="${place.latitude == null or place.longitude == null}">
+            아직 지도에 표시할 위치 정보가 준비되지 않았어요.
+        </p>
+
         <div class="section-head">
             <h2 class="section-title">리뷰</h2>
             <a class="section-more" th:href="@{/reviews/place/{id}(id=${place.id})}">
@@ -100,6 +114,43 @@
         <a class="btn btn-dark" th:href="@{/reservation/booking-request(placeId=${place.id})}">예약 요청하기</a>
     </div>
     <script th:src="@{/js/bookmark.js}"></script>
+    <script th:if="${kakaoMapEnabled and place.latitude != null and place.longitude != null}" id="kakao-map-sdk"
+            th:src="@{https://dapi.kakao.com/v2/maps/sdk.js(autoload=false,appkey=${kakaoMapJavascriptKey})}"></script>
+    <script th:inline="none">
+        (() => {
+            "use strict";
+            const mapBox = document.getElementById("place-detail-map");
+            const canvas = document.getElementById("place-detail-map-canvas");
+            if (!mapBox || !canvas) return;
+            const lat = Number(mapBox.dataset.lat);
+            const lng = Number(mapBox.dataset.lng);
+            if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
+            if (!window.kakao || !window.kakao.maps || typeof window.kakao.maps.load !== "function") return;
+
+            window.kakao.maps.load(() => {
+                try {
+                    mapBox.classList.add("is-live");
+                    const kakao = window.kakao;
+                    const center = new kakao.maps.LatLng(lat, lng);
+                    const map = new kakao.maps.Map(canvas, { center: center, level: 3 });
+                    new kakao.maps.Marker({ position: center, map: map, title: mapBox.dataset.name });
+
+                    let resizeFrame = 0;
+                    const scheduleRelayout = () => {
+                        window.cancelAnimationFrame(resizeFrame);
+                        resizeFrame = window.requestAnimationFrame(() => {
+                            map.relayout();
+                            map.setCenter(center);
+                        });
+                    };
+                    scheduleRelayout();
+                    window.addEventListener("resize", scheduleRelayout);
+                } catch (error) {
+                    mapBox.classList.remove("is-live");
+                }
+            });
+        })();
+    </script>
 </main>
 </body>
 </html>
