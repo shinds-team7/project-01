@@ -25,6 +25,8 @@ public class ReservationDetailResponse {
 	private LocalDateTime checkOut;
 	private String userName;
 	private String placeName;
+    private String placeAddress;
+    private String placeImageUrl;
 	private List<PetDetail> pets;
     private ReservationUseStatus useStatus;
 
@@ -35,5 +37,6 @@ public class ReservationDetailResponse {
 		private String petName;
 		private Double weight;
 		private String size;
+        private String petImageUrl;
 	}
 }

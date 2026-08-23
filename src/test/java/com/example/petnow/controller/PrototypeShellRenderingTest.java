@@ -13,6 +13,7 @@ import com.example.petnow.dto.response.ReservationStepResponse;
 import com.example.petnow.dto.response.ReviewResponse;
 import com.example.petnow.entity.*;
 import com.example.petnow.mapper.PlaceMapper;
+import com.example.petnow.mapper.PlacePhotoMapper;
 import com.example.petnow.service.AuthService;
 import com.example.petnow.service.HostService;
 import com.example.petnow.service.KakaoService;
@@ -73,6 +74,9 @@ class PrototypeShellRenderingTest {
     /** ReservationController 가 예약 폼용으로 직접 들고 있는 의존성이다. */
     @MockitoBean
     private PlaceMapper placeMapper;
+
+    @MockitoBean
+    private PlacePhotoMapper placePhotoMapper;
 
     /** 예약 요청 폼이 고를 반려동물 목록을 여기서 받는다 (#187). */
     @MockitoBean
