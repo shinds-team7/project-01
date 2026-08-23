@@ -12,6 +12,8 @@
         .badge-use-before { background:#eef8f2; color:var(--green-dark); }
         .badge-use-now { background:#fff3d8; color:#8a5a00; }
         .badge-use-after { background:#f0f1f3; color:var(--muted); }
+        .reservation-card { align-items:flex-start; }
+        .reservation-card-thumb { width:56px; height:56px; border-radius:12px; object-fit:cover; flex:none; }
     </style>
 
     <div class="topbar has-line">
@@ -48,6 +50,14 @@
         */-->
         <div class="card-stack" th:unless="${#lists.isEmpty(reservations)}">
             <div class="card reservation-card" th:each="reservation : ${reservations}">
+                <img class="reservation-card-thumb"
+                     th:if="${reservation.placeImageUrl != null}"
+                     th:src="${reservation.placeImageUrl}" alt="">
+                <span class="media media-sm media-warm" aria-hidden="true"
+                      th:unless="${reservation.placeImageUrl != null}">
+                    <span class="ico is-filled">home</span>
+                </span>
+
                 <span class="reservation-card-copy">
                     <a class="reservation-card-title" th:if="${reservation.placeId != null}"
                        th:href="@{/places/{id}(id=${reservation.placeId})}"

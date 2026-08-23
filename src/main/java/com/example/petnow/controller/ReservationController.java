@@ -25,11 +25,13 @@ import com.example.petnow.dto.response.ReservationListResponse;
 import com.example.petnow.dto.response.ReservationStepResponse;
 import com.example.petnow.dto.response.ReviewResponse;
 import com.example.petnow.entity.Place;
+import com.example.petnow.entity.PlacePhoto;
 import com.example.petnow.entity.Reservation;
 import com.example.petnow.exception.BusinessException;
 import com.example.petnow.exception.PlaceErrorCode;
 import com.example.petnow.exception.ReservationErrorCode;
 import com.example.petnow.mapper.PlaceMapper;
+import com.example.petnow.mapper.PlacePhotoMapper;
 import com.example.petnow.service.PetService;
 import com.example.petnow.service.ReservationService;
 import com.example.petnow.service.ReviewService;
@@ -48,13 +50,15 @@ public class ReservationController {
 	private final PlaceMapper placeMapper;
 	private final PetService petService;
 	private final ReviewService reviewService;
+    private final PlacePhotoMapper placePhotoMapper;
 
     public ReservationController(ReservationService reservationService, PlaceMapper placeMapper, PetService petService,
-		ReviewService reviewService) {
+		ReviewService reviewService, PlacePhotoMapper placePhotoMapper) {
 		this.reservationService = reservationService;
 		this.placeMapper = placeMapper;
 		this.petService = petService;
 		this.reviewService = reviewService;
+        this.placePhotoMapper = placePhotoMapper;
     }
 
 	@PostMapping("/create")
@@ -176,6 +180,8 @@ public class ReservationController {
 		model.addAttribute("place", place);
 		model.addAttribute("pets", petService.getPetList(userId));
 
+        List<PlacePhoto> photos = placePhotoMapper.findByPlaceId(placeId);
+        model.addAttribute("placeImageUrl", photos.isEmpty() ? null : photos.get(0).getImageUrl());
 	}
 
 	@GetMapping("/detail")
