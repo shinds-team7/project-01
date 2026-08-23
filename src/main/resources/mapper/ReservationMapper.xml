@@ -71,7 +71,7 @@
             pl.name AS place_name,
             pa.road_address AS place_address,
             (SELECT image_url FROM place_photos
-                WHERE place_id = pl.id ORDER BY sort_order, id LIMIT 1),
+                WHERE place_id = pl.id ORDER BY sort_order, id LIMIT 1) AS place_image_url,
             p.id AS pet_id,
             p.name AS pet_name,
             p.weight AS pet_weight,
@@ -205,8 +205,10 @@
         FROM reservations r
             INNER JOIN users u ON r.guest_user_id = u.id
             INNER JOIN places pl ON r.place_id = pl.id
+            LEFT JOIN place_addresses pa ON pa.place_id = pl.id
             LEFT JOIN reservation_pets rp ON r.id = rp.reservation_id
             LEFT JOIN pets p ON rp.pet_id = p.id
+            LEFT JOIN pet_photos pp ON pp.pet_id = p.id
         WHERE r.id = #{reservationId}
         AND pl.host_user_id = #{hostUserId}
     </select>
