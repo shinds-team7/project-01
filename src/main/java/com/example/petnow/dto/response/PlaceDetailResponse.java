@@ -17,6 +17,7 @@ public class PlaceDetailResponse {
     private Long id;
     private Long hostUserId;
     private String nickname;
+    private String hostProfileImageUrl;
     private String name;
     private String description;
     private String sido;
