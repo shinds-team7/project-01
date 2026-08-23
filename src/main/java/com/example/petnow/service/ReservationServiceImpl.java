@@ -238,6 +238,12 @@ public class ReservationServiceImpl implements ReservationService {
 			throw new BusinessException(AuthErrorCode.FORBIDDEN);
 		}
 
+		ReservationUseStatus useStatus = ReservationUseStatus.calculate(
+			reservation.getStatus(), reservation.getCheckIn(), reservation.getCheckOut());
+		if (useStatus.getIsInUse() || useStatus.getIsAfterUse()) {
+			throw new BusinessException(ReservationErrorCode.RESERVATION_ALREADY_STARTED);
+		}
+
         releaseSlots(reservationId);
 
 		int updatedRows = reservationMapper.cancelReservation(reservationId);

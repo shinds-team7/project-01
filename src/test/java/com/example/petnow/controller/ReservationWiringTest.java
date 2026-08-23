@@ -58,7 +58,9 @@ class ReservationWiringTest {
     @Test
     @DisplayName("실제 예약 상세가 취소 확인 모달을 예약 취소 엔드포인트에 연결한다")
     void reservationDetailWiresCancelAction() throws Exception {
-        given(reservationService.detailReservation(9L, 1L)).willReturn(detail());
+        ReservationDetailResponse detail = detail();
+        detail.setUseStatus(ReservationUseStatus.BEFORE_USE);
+        given(reservationService.detailReservation(9L, 1L)).willReturn(detail);
 
         mockMvc.perform(get("/reservation/detail")
                         .param("reservationId", "9")
@@ -69,6 +71,18 @@ class ReservationWiringTest {
                 .andExpect(content().string(containsString("name=\"reservationId\" value=\"9\"")))
                 .andExpect(content().string(containsString("/js/modal.js")))
                 .andExpect(content().string(containsString("예약을 취소할까요?")));
+    }
+
+    @Test
+    void reservationDetailDoesNotRenderCancelActionAfterUse() throws Exception {
+        given(reservationService.detailReservation(9L, 1L)).willReturn(detail());
+
+        mockMvc.perform(get("/reservation/detail")
+                        .param("reservationId", "9")
+                        .session(loggedIn()))
+                .andExpect(status().isOk())
+                .andExpect(content().string(not(containsString("aria-controls=\"reservation-cancel-modal\""))))
+                .andExpect(content().string(not(containsString("id=\"reservation-cancel-modal\""))));
     }
 
     @Test

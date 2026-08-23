@@ -3,6 +3,8 @@ package com.example.petnow.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
+import static org.mockito.Mockito.never;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -21,7 +23,10 @@ import com.example.petnow.dto.response.PlaceSlotResponse;
 import com.example.petnow.dto.response.PlaceSlotPeriodResponse;
 import com.example.petnow.dto.response.ReservationStepResponse;
 import com.example.petnow.entity.Place;
+import com.example.petnow.entity.Reservation;
+import com.example.petnow.entity.ReservationStatus;
 import com.example.petnow.entity.ReservationType;
+import com.example.petnow.exception.AuthErrorCode;
 import com.example.petnow.exception.BusinessException;
 import com.example.petnow.exception.ReservationErrorCode;
 import com.example.petnow.mapper.PetMapper;
@@ -150,6 +155,76 @@ class ReservationServiceImplTest {
         assertEquals(true, selectStep.getDays().get(1).isSelectable());
         assertEquals("confirm", confirmStep.getStep());
         assertEquals(checkOutDate.atTime(12, 0), confirmStep.getCheckOut());
+    }
+
+    @Test
+    void cancelsConfirmedReservationBeforeUse() {
+        given(reservationMapper.findById(1L)).willReturn(reservation(ReservationStatus.CONFIRMED,
+                LocalDateTime.now().plusHours(1), LocalDateTime.now().plusHours(4)));
+        given(reservationMapper.cancelReservation(1L)).willReturn(1);
+
+        reservationService.cancelReservation(1L, 10L);
+
+        then(reservationMapper).should().cancelReservation(1L);
+    }
+
+    @Test
+    void refusesToCancelConfirmedReservationInUse() {
+        given(reservationMapper.findById(1L)).willReturn(reservation(ReservationStatus.CONFIRMED,
+                LocalDateTime.now().minusHours(1), LocalDateTime.now().plusHours(1)));
+
+        BusinessException exception = assertThrows(BusinessException.class,
+                () -> reservationService.cancelReservation(1L, 10L));
+
+        assertEquals(ReservationErrorCode.RESERVATION_ALREADY_STARTED, exception.getErrorCode());
+        then(reservationMapper).should(never()).findSlotIdsByReservationId(1L);
+        then(reservationMapper).should(never()).cancelReservation(1L);
+    }
+
+    @Test
+    void refusesToCancelConfirmedReservationAfterUse() {
+        given(reservationMapper.findById(1L)).willReturn(reservation(ReservationStatus.CONFIRMED,
+                LocalDateTime.now().minusHours(4), LocalDateTime.now().minusHours(1)));
+
+        BusinessException exception = assertThrows(BusinessException.class,
+                () -> reservationService.cancelReservation(1L, 10L));
+
+        assertEquals(ReservationErrorCode.RESERVATION_ALREADY_STARTED, exception.getErrorCode());
+        then(reservationMapper).should(never()).findSlotIdsByReservationId(1L);
+        then(reservationMapper).should(never()).cancelReservation(1L);
+    }
+
+    @Test
+    void cancelsPendingReservationRegardlessOfCheckInTime() {
+        given(reservationMapper.findById(1L)).willReturn(reservation(ReservationStatus.PENDING,
+                LocalDateTime.now().minusHours(1), LocalDateTime.now().plusHours(1)));
+        given(reservationMapper.cancelReservation(1L)).willReturn(1);
+
+        reservationService.cancelReservation(1L, 10L);
+
+        then(reservationMapper).should().cancelReservation(1L);
+    }
+
+    @Test
+    void refusesToCancelAnotherUsersReservation() {
+        given(reservationMapper.findById(1L)).willReturn(reservation(ReservationStatus.PENDING,
+                LocalDateTime.now().plusHours(1), LocalDateTime.now().plusHours(4)));
+
+        BusinessException exception = assertThrows(BusinessException.class,
+                () -> reservationService.cancelReservation(1L, 11L));
+
+        assertEquals(AuthErrorCode.FORBIDDEN, exception.getErrorCode());
+        then(reservationMapper).should(never()).cancelReservation(1L);
+    }
+
+    private Reservation reservation(ReservationStatus status, LocalDateTime checkIn, LocalDateTime checkOut) {
+        return Reservation.builder()
+                .id(1L)
+                .userId(10L)
+                .status(status)
+                .checkIn(checkIn)
+                .checkOut(checkOut)
+                .build();
     }
 
     private PlaceSlotResponse slot(Long id, LocalDateTime startAt) {

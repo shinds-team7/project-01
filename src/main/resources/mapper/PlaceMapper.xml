@@ -184,6 +184,8 @@
         pa.sigungu AS sigungu,
         pa.eupmyeondong AS eupmyeondong,
         pa.road_address AS roadAddress,
+        pa.latitude AS latitude,
+        pa.longitude AS longitude,
         p.place_type AS placeType,
         p.area_size AS areaSize,
         p.capacity,
