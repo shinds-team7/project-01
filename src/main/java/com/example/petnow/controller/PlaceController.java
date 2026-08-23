@@ -166,9 +166,11 @@ public class PlaceController {
     public String detail(@PathVariable Long placeId, Model model, HttpServletRequest request) {
         Long loginUserId = LoginSession.currentUserId(request);
 
-        model.addAttribute("place", placeService.getPlaceDetail(placeId, loginUserId));
+        var place = placeService.getPlaceDetail(placeId, loginUserId);
+        model.addAttribute("place", place);
         model.addAttribute("kakaoMapJavascriptKey", kakaoMapJavascriptKey);
         model.addAttribute("kakaoMapEnabled", !kakaoMapJavascriptKey.isEmpty());
+        model.addAttribute("isOwnPlace", loginUserId != null && loginUserId.equals(place.getHostUserId()));
 
         return "places/place-detail";
     }
