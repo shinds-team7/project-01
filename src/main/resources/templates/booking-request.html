@@ -25,7 +25,7 @@
     </style>
 
     <div class="topbar">
-        <a class="topbar-back" th:href="@{/places/{id}(id=${place.id})}" aria-label="뒤로 가기">
+        <a class="topbar-back" data-history-back th:href="@{/places/{id}(id=${place.id})}" aria-label="뒤로 가기">
             <span class="ico" aria-hidden="true">arrow_back_ios_new</span>
         </a>
         <h1>예약 요청</h1>

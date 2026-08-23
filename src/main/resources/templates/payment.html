@@ -16,7 +16,7 @@
 <body>
 <main id="main-content" class="app-main no-nav has-cta">
     <div class="topbar">
-        <a class="topbar-back" th:href="${place != null} ? @{/places/{id}(id=${place.id})} : @{/places}"
+        <a class="topbar-back" data-history-back th:href="${place != null} ? @{/places/{id}(id=${place.id})} : @{/places}"
            aria-label="뒤로 가기">
             <span class="ico" aria-hidden="true">arrow_back_ios_new</span>
         </a>

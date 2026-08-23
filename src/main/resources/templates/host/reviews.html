@@ -22,7 +22,7 @@
 <body>
 <main id="main-content" class="app-main no-nav">
     <div class="topbar">
-        <a class="topbar-back" th:href="@{/host}" aria-label="호스트 홈으로 돌아가기">
+        <a class="topbar-back" data-history-back th:href="@{/host}" aria-label="호스트 홈으로 돌아가기">
             <span class="ico" aria-hidden="true">arrow_back_ios_new</span>
         </a>
         <h1 th:text="${place != null} ? ${place.name} : '리뷰 관리'">리뷰 관리</h1>

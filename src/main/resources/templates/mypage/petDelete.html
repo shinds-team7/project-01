@@ -4,7 +4,7 @@
 <body>
 <main id="main-content" class="app-main no-nav pet-delete-page">
     <div class="topbar has-line pet-delete-topbar">
-        <a class="topbar-back" th:href="@{/pet/detail/{petId}(petId=${petId})}" aria-label="정보 수정으로 돌아가기">
+        <a class="topbar-back" data-history-back th:href="@{/pet/detail/{petId}(petId=${petId})}" aria-label="정보 수정으로 돌아가기">
             <span class="ico" aria-hidden="true">arrow_back_ios_new</span>
         </a>
         <h1>반려동물 정보 삭제</h1>
