@@ -14,7 +14,7 @@
             <img th:if="${place.thumbnailUrl != null}" th:src="${place.thumbnailUrl}"
                  th:alt="${place.name}">
             <span th:unless="${place.thumbnailUrl != null}" class="ico" aria-hidden="true">weekend</span>
-            <a class="hero-btn is-back" th:href="@{/places}" aria-label="목록으로">
+            <a class="hero-btn is-back" data-history-back th:href="@{/places}" aria-label="목록으로">
                 <span class="ico" aria-hidden="true">arrow_back_ios_new</span>
             </a>
             <button type="button"
