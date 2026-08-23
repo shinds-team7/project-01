@@ -101,10 +101,13 @@
       취소 — 되돌릴 수 없는 요청이라 링크가 아니라 확인 모달을 거치는 POST 폼으로 보낸다.
       JS 가 없으면 모달이 열리지 않을 뿐, 예약이 취소되지는 않는다.
 
-      이미 취소된 예약은 취소할 것도, 남길 후기도 없으므로 CTA 자체를 그리지 않는다.
+      이미 취소됐거나 이용이 시작·완료된 예약은 취소할 수 없으므로 취소 CTA와 모달을 그리지 않는다.
+      이용 완료 뒤의 리뷰 CTA는 계속 보여야 하므로 취소 버튼 조건은 리뷰 링크와 분리한다.
     */-->
-    <div class="cta-bar cta-bar-split no-nav" th:unless="${reservation.status?.name() == 'CANCELED'}">
+    <div class="cta-bar cta-bar-split no-nav"
+         th:unless="${reservation.status?.name() == 'CANCELED' or reservation.useStatus?.isInUse}">
         <button class="btn btn-ghost btn-danger-ghost" type="button" data-modal-open
+                th:unless="${reservation.status?.name() == 'CANCELED' or reservation.useStatus?.isInUse or reservation.useStatus?.isAfterUse}"
                 aria-controls="reservation-cancel-modal">예약 취소</button>
 
         <a class="btn btn-dark"
@@ -117,7 +120,7 @@
 
     <dialog class="modal" id="reservation-cancel-modal"
             aria-labelledby="reservation-cancel-title"
-            th:unless="${reservation.status?.name() == 'CANCELED'}">
+            th:unless="${reservation.status?.name() == 'CANCELED' or reservation.useStatus?.isInUse or reservation.useStatus?.isAfterUse}">
         <form class="modal-inner" th:action="@{/reservation/cancel}" method="post">
             <input type="hidden" name="reservationId" th:value="${reservation.reservationId}">
             <h2 id="reservation-cancel-title">예약을 취소할까요?</h2>

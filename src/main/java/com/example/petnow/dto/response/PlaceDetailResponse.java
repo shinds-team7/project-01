@@ -24,6 +24,8 @@ public class PlaceDetailResponse {
     private String eupmyeondong;
     private String roadAddress;
     private String address;
+    private BigDecimal latitude;
+    private BigDecimal longitude;
     private PlaceType placeType;
     private BigDecimal areaSize;
     private Integer capacity;

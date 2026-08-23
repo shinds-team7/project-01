@@ -18,6 +18,7 @@ public enum ReservationErrorCode implements ErrorCode {
 	RESERVATION_IN_PAST(HttpStatus.BAD_REQUEST, "RESERVATION_IN_PAST", "지난 시간에는 예약할 수 없습니다."),
 	INVALID_RESERVATION_STATUS(HttpStatus.BAD_REQUEST, "INVALID_RESERVATION_STATUS", "처리할 수 없는 예약 상태입니다."),
 	RESERVATION_UPDATE_FAILED(HttpStatus.BAD_REQUEST, "RESERVATION_UPDATE_FAILED", "상태 업데이트에 실패했습니다."),
+	RESERVATION_ALREADY_STARTED(HttpStatus.BAD_REQUEST, "RESERVATION_ALREADY_STARTED", "이미 이용이 시작되었거나 끝난 예약은 취소할 수 없습니다."),
 	RESERVATION_TOO_SHORT(HttpStatus.BAD_REQUEST, "RESERVATION_TOO_SHORT", "예약 시간은 최소 3시간 이상입니다."),
 	PET_REQUIRED(HttpStatus.BAD_REQUEST, "PET_REQUIRED", "반려동물 목록은 비어있을 수 없습니다."),
     PET_NOT_OWNED(HttpStatus.BAD_REQUEST, "PET_NOT_OWNED", "본인 소유 반려동물만 등록할 수 있습니다."),

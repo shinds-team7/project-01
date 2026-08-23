@@ -12,7 +12,7 @@ import com.example.petnow.exception.PlaceErrorCode;
 import com.example.petnow.service.PlaceService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -26,10 +26,16 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 @RequestMapping("/places")
-@RequiredArgsConstructor
 public class PlaceController {
 
     private final PlaceService placeService;
+    private final String kakaoMapJavascriptKey;
+
+    public PlaceController(PlaceService placeService,
+                           @Value("${kakao.map.javascript-key:}") String kakaoMapJavascriptKey) {
+        this.placeService = placeService;
+        this.kakaoMapJavascriptKey = kakaoMapJavascriptKey == null ? "" : kakaoMapJavascriptKey.trim();
+    }
 
     @GetMapping("/new")
     public String createForm(Model model) {
@@ -161,6 +167,8 @@ public class PlaceController {
         Long loginUserId = LoginSession.currentUserId(request);
 
         model.addAttribute("place", placeService.getPlaceDetail(placeId, loginUserId));
+        model.addAttribute("kakaoMapJavascriptKey", kakaoMapJavascriptKey);
+        model.addAttribute("kakaoMapEnabled", !kakaoMapJavascriptKey.isEmpty());
 
         return "places/place-detail";
     }
