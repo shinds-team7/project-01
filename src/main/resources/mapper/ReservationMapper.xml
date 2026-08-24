@@ -28,12 +28,15 @@
         <result property="checkOut" column="check_out_at"/>
         <result property="userName" column="user_name"/>
         <result property="placeName" column="place_name"/>
+        <result property="placeAddress" column="place_address"/>
+        <result property="placeImageUrl" column="place_image_url"/>
 
         <collection property="pets" ofType="com.example.petnow.dto.response.ReservationDetailResponse$PetDetail">
             <result property="petId" column="pet_id"/>
             <result property="petName" column="pet_name"/>
             <result property="weight" column="pet_weight"/>
             <result property="size" column="pet_size"/>
+            <result property="petImageUrl" column="pet_image_url"/>   <!-- 추가 -->
         </collection>
     </resultMap>
 
@@ -66,15 +69,21 @@
             r.check_out_at AS check_out_at,
             u.nickname AS user_name,
             pl.name AS place_name,
+            pa.road_address AS place_address,
+            (SELECT image_url FROM place_photos
+                WHERE place_id = pl.id ORDER BY sort_order, id LIMIT 1) AS place_image_url,
             p.id AS pet_id,
             p.name AS pet_name,
             p.weight AS pet_weight,
-            LOWER(p.size) AS pet_size
+            LOWER(p.size) AS pet_size,
+            pp.image_url AS pet_image_url
         FROM reservations r
             INNER JOIN users u ON r.guest_user_id = u.id
             INNER JOIN places pl ON r.place_id = pl.id
+            LEFT JOIN place_addresses pa ON pa.place_id = pl.id
             LEFT JOIN reservation_pets rp ON r.id = rp.reservation_id
             LEFT JOIN pets p ON rp.pet_id = p.id
+            LEFT JOIN pet_photos pp ON pp.pet_id = p.id
         WHERE r.id = #{reservationId}
     </select>
 
@@ -95,6 +104,8 @@
         r.id AS reservationId,
         r.place_id AS placeId,
         pl.name AS placeName,
+        (SELECT image_url FROM place_photos
+        WHERE place_id = pl.id ORDER BY sort_order, id LIMIT 1) AS placeImageUrl,
         r.total_price AS totalPrice,
         r.status AS reservationStatus,
         r.check_in_at AS checkIn,
@@ -184,6 +195,9 @@
             r.check_out_at AS check_out_at,
             u.nickname AS user_name,
             pl.name AS place_name,
+            pa.road_address AS place_address,
+            (SELECT image_url FROM place_photos
+                WHERE place_id = pl.id ORDER BY sort_order, id LIMIT 1) AS place_image_url,
             p.id AS pet_id,
             p.name AS pet_name,
             p.weight AS pet_weight,
@@ -191,8 +205,10 @@
         FROM reservations r
             INNER JOIN users u ON r.guest_user_id = u.id
             INNER JOIN places pl ON r.place_id = pl.id
+            LEFT JOIN place_addresses pa ON pa.place_id = pl.id
             LEFT JOIN reservation_pets rp ON r.id = rp.reservation_id
             LEFT JOIN pets p ON rp.pet_id = p.id
+            LEFT JOIN pet_photos pp ON pp.pet_id = p.id
         WHERE r.id = #{reservationId}
         AND pl.host_user_id = #{hostUserId}
     </select>

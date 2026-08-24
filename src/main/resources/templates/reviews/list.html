@@ -26,7 +26,7 @@
     </style>
 
     <div class="topbar">
-        <a class="topbar-back" th:href="${placeId != null} ? @{/places/{id}(id=${placeId})} : @{/mypage}"
+        <a class="topbar-back" data-history-back th:href="${placeId != null} ? @{/places/{id}(id=${placeId})} : @{/mypage}"
            aria-label="뒤로 가기">
             <span class="ico" aria-hidden="true">arrow_back_ios_new</span>
         </a>

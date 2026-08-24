@@ -19,6 +19,7 @@ public class ReservationListResponse {
 	private Long reservationId;
 	private Long placeId;
 	private String placeName;
+    private String placeImageUrl;
 	private BigDecimal totalPrice;
 	private ReservationStatus reservationStatus;
 	private LocalDateTime checkIn;

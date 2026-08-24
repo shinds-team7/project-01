@@ -10,6 +10,7 @@ import com.example.petnow.entity.PlaceStatus;
 import com.example.petnow.entity.ReservationStatus;
 import com.example.petnow.entity.ReservationUseStatus;
 import com.example.petnow.mapper.PlaceMapper;
+import com.example.petnow.mapper.PlacePhotoMapper;
 import com.example.petnow.service.HostService;
 import com.example.petnow.service.MyProfileServiceImpl;
 import com.example.petnow.service.PetService;
@@ -52,6 +53,9 @@ class UnstyledScreenShellTest {
     /** ReservationController 가 예약 폼용으로 직접 들고 있는 의존성이라 슬라이스에 필요하다. */
     @MockitoBean
     private PlaceMapper placeMapper;
+
+    @MockitoBean
+    private PlacePhotoMapper placePhotoMapper;
 
     /** 같은 이유로 필요하다. 예약 요청 폼이 반려동물 목록을 여기서 받는다 (#187). */
     @MockitoBean
@@ -177,7 +181,7 @@ class UnstyledScreenShellTest {
 
     private ReservationListResponse listItem() {
         return new ReservationListResponse(
-                9L, 3L, "연남동 윤슬 호스트", new BigDecimal("48000"), ReservationStatus.CONFIRMED,
+                9L, 3L, "연남동 윤슬 호스트", null, new BigDecimal("48000"), ReservationStatus.CONFIRMED,
                 LocalDateTime.of(2026, 8, 5, 14, 0), LocalDateTime.of(2026, 8, 5, 20, 0));
     }
 
@@ -191,7 +195,7 @@ class UnstyledScreenShellTest {
         return new ReservationDetailResponse(
                 9L, "PN-20260805-0001", ReservationStatus.CONFIRMED,
                 LocalDateTime.of(2026, 8, 5, 14, 0), LocalDateTime.of(2026, 8, 5, 20, 0),
-                "지우", "연남동 윤슬 호스트", List.of(pet), ReservationUseStatus.AFTER_USE);
+                "지우", "연남동 윤슬 호스트", null, null, List.of(pet), ReservationUseStatus.AFTER_USE);
     }
 
     /** ReviewResponse 는 MyBatis 가 채우는 DTO 라 생성자·세터가 없다. 화면이 읽는 두 값만 스텁한다. */

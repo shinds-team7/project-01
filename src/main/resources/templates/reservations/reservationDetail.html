@@ -6,7 +6,7 @@
     <style>
         .reservation-cta .btn { flex:1; min-width:0; padding-inline:12px; }
         .reservation-cta .btn-danger { flex:.75; }
-        .reservation-pet-head { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+        .reservation-pet-head { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:28px; }
         .reservation-pet-head .section-title { margin:0; }
         .reservation-pet-edit { border:0; background:none; padding:6px; font-size:13px; font-weight:700; color:var(--green-dark); cursor:pointer; }
         .reservation-pet-modal { width:min(360px,calc(100% - 40px)); }
@@ -16,10 +16,12 @@
         .reservation-pet-option input { width:18px; height:18px; accent-color:var(--green); }
         .reservation-pet-option span { display:flex; flex-direction:column; gap:2px; }
         .reservation-pet-option small { color:var(--muted); }
+        .reservation-place-thumb { width:100%; aspect-ratio:16/9; object-fit:cover; border-radius:12px; margin-bottom:12px; }
+        .reservation-pet-photo { object-fit:cover; }
     </style>
 
     <div class="topbar has-line">
-        <a class="topbar-back" th:href="@{/reservation/list}" aria-label="예약 목록으로 돌아가기">
+        <a class="topbar-back" data-history-back th:href="@{/reservation/list}" aria-label="예약 목록으로 돌아가기">
             <span class="ico" aria-hidden="true">arrow_back_ios_new</span>
         </a>
         <h1>예약 상세</h1>
@@ -27,6 +29,10 @@
 
     <div class="screen">
         <section class="card card-raised" aria-labelledby="reservation-summary">
+            <img class="reservation-place-thumb"
+                 th:if="${reservation.placeImageUrl != null}"
+                 th:src="${reservation.placeImageUrl}" alt="">
+
             <div class="section-head">
                 <h2 class="section-title" id="reservation-summary"
                     th:text="${reservation.placeName}">연남동 윤슬 호스트</h2>
@@ -75,7 +81,11 @@
 
         <div class="list" th:unless="${#lists.isEmpty(reservation.pets)}">
             <div class="card list-row" th:each="pet : ${reservation.pets}">
-                <span class="media media-sm media-warm" aria-hidden="true">
+                <img class="media media-sm reservation-pet-photo"
+                     th:if="${pet.petImageUrl != null}"
+                     th:src="${pet.petImageUrl}" alt="">
+                <span class="media media-sm media-warm" aria-hidden="true"
+                      th:unless="${pet.petImageUrl != null}">
                     <span class="ico is-filled">pets</span>
                 </span>
                 <span class="list-row-label">
